@@ -14,14 +14,14 @@
  */
 
 const _ = require("lodash");
+const fs = require("fs");
 const wrmUtils = require("./util/wrm-utils");
 const webpackUtils = require("./util/webpack-utils");
-const wrmDeps = require("./config/webpack-dependencies-conf");
 
 function getAsyncDescriptorForChunks(chunks) {
     // all the resources that aren't entry point (aka the async ones).
     const resources = _.flatten(_.values(chunks).map((chunk) =>
-        chunk.entry ? [] : chunk.files
+        chunk.hasRuntime() ? [] : chunk.files
     ));
     return {
         key: "webpack-async-chunks",
@@ -29,12 +29,11 @@ function getAsyncDescriptorForChunks(chunks) {
     };
 }
 
-function getWrmDepsForChunk(chunk) {
+function getWrmDepsForChunk(wrmDeps, chunk) {
     const allWrmDeps = _.merge({}, wrmDeps.external , wrmDeps.internal);
     const unFilteredDeps = _.map(chunk.modules, (module) => {
         const name = module.rawRequest;
         if (name) {
-
             return allWrmDeps[name];
         }
         if (module.type === "var") {
@@ -42,9 +41,13 @@ function getWrmDepsForChunk(chunk) {
             return match ? allWrmDeps[match[1]] : [];
         }
     });
-    const globalDeps = allWrmDeps["*"];
+    const globalDeps = allWrmDeps["*"] || [];
     const chunkDeps = _.uniq(_.flatten(_.compact(unFilteredDeps)));
     return [].concat(globalDeps).concat(chunkDeps);
+}
+
+function onlyEntryChunks(chunks) {
+    return chunks;
 }
 
 function mapChunkValues(chunks, func) {
@@ -52,7 +55,27 @@ function mapChunkValues(chunks, func) {
 }
 
 class WrmPlugin {
+    constructor(options = {}) {
+        let opts = Object.assign({}, options);
+        this.wrmOpts = Object.assign({
+            xmlDescriptors: "META-INF/plugin-descriptors/wr-webpack-bundles.xml"
+        }, opts.options);
+        this.wrmDependencies = opts.wrmDependencies || {};
+    }
+
+    resolveWrmDependencies() {
+        let depsFile = this.wrmOpts.dependenciesFile;
+        if (depsFile && fs.existsSync(depsFile)) {
+            let depsData = require(depsFile);
+            Object.assign(this.wrmDependencies, depsData);
+        }
+    }
+
     apply(compiler) {
+        this.resolveWrmDependencies();
+
+        const {wrmOpts, wrmDependencies} = this;
+
         // When the compiler is about to emit files, we jump in to produce our resource descriptors for the WRM.
         compiler.plugin("emit", (compilation, callback) => {
 
@@ -72,49 +95,45 @@ class WrmPlugin {
                     return {
                         key: `context-deps-${name}`,
                         context: name,
-                        dependencies: getWrmDepsForChunk(chunk),
+                        dependencies: getWrmDepsForChunk(wrmDependencies, chunk),
                         resources: []
                     }
                 });
 
             // Used in prod
             const prodEntryPoints = mapChunkValues(
-                compilation.namedChunks, (chunk, name) => {
-                    if (chunk.entry) {
-                        return {
-                            key: `context-${name}`,
-                            context: name,
-                            resources: chunk.files,
-                            isProdModeOnly: true
-                        };
-                    }
+                onlyEntryChunks(compilation.namedChunks), (chunk, name) => {
+                    return {
+                        key: `context-${name}`,
+                        context: name,
+                        resources: chunk.files,
+                        isProdModeOnly: true
+                    };
                 });
 
             // creates a file that simple document.writes the script or style tag that links to the
             // file on the webpack dev server.
             const devEntryPoints = mapChunkValues(
-                compilation.namedChunks, (chunk, name) => {
-                    if (chunk.entry) {
-                        const files = chunk.files.map((file) => {
-                            const devServerLink = webpackUtils.writeDevServerLink(compiler.options.devServerUrl, file);
-                            if (devServerLink) {
-                                const fileName = `dev-${file}`.replace(/\.css$/, ".css.js");
-                                compilation.assets[fileName] = {
-                                    source: () => new Buffer(devServerLink),
-                                    size: () => Buffer.byteLength(devServerLink)
-                                };
-                                return fileName;
-                            }
-                            return file;
-                        });
-                        return {
-                            key: `dev-context-${name}`,
-                            context: name,
-                            dependencies: getWrmDepsForChunk(chunk),
-                            resources: files,
-                            isDevModeOnly: true
-                        };
-                    }
+                onlyEntryChunks(compilation.namedChunks), (chunk, name) => {
+                    const files = chunk.files.map((file) => {
+                        const devServerLink = webpackUtils.writeDevServerLink(compiler.options.devServerUrl, file);
+                        if (devServerLink) {
+                            const fileName = `dev-${file}`.replace(/\.css$/, ".css.js");
+                            compilation.assets[fileName] = {
+                                source: () => new Buffer(devServerLink),
+                                size: () => Buffer.byteLength(devServerLink)
+                            };
+                            return fileName;
+                        }
+                        return file;
+                    });
+                    return {
+                        key: `dev-context-${name}`,
+                        context: name,
+                        dependencies: getWrmDepsForChunk(wrmDependencies, chunk),
+                        resources: files,
+                        isDevModeOnly: true
+                    };
                 });
 
             // Anything that is required in code using require.ensure, becomes a namedChunk. They are required at asyncly
@@ -130,14 +149,14 @@ class WrmPlugin {
 
             const xmlDescriptors = wrmUtils.createResourceDescriptors(wrmDescriptors);
 
-            compilation.assets["META-INF/plugin-descriptors/wr-webpack-bundles.xml"] = {
+            compilation.assets[wrmOpts.xmlDescriptors] = {
                 source: () => new Buffer(xmlDescriptors),
                 size: () => Buffer.byteLength(xmlDescriptors)
             };
 
             callback();
         });
-
-    };
+    }
 }
+
 module.exports = WrmPlugin;

@@ -22,7 +22,7 @@
     "lodash": "^4.17.4"
   },
   "devDependencies": {
-    "webpack": "^1"
+    "webpack": "^2.3.3"
   },
   "engines": {
     "node": ">=6.9.0",
