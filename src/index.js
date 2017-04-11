@@ -37,11 +37,19 @@ function getWrmDepsForChunk(wrmDeps, chunk) {
             return allWrmDeps[name];
         }
         if (module.type === "var") {
-            const match = module.request.match(/require\(['"](.*?)['"]\)/);
-            return match ? allWrmDeps[match[1]] : [];
+            if (module.external) {
+                // Iterate through the external's definitions until
+                // we find an appropriate web-resource definition, or none.
+                const matched = Object.keys(module.request).find(val => allWrmDeps[val]);
+                return matched || [];
+            }
+            else {
+                const match = module.request.match(/require\(['"](.*?)['"]\)/);
+                return match ? allWrmDeps[match[1]] : [];
+            }
         }
     });
-    const globalDeps = allWrmDeps["*"] || [];
+    const globalDeps = _.merge([], allWrmDeps["*"], wrmDeps.always);
     const chunkDeps = _.uniq(_.flatten(_.compact(unFilteredDeps)));
     return [].concat(globalDeps).concat(chunkDeps);
 }
@@ -60,7 +68,8 @@ class WrmPlugin {
         this.wrmOpts = Object.assign({
             xmlDescriptors: "META-INF/plugin-descriptors/wr-webpack-bundles.xml"
         }, opts.options);
-        this.wrmDependencies = opts.wrmDependencies || {};
+        this.wrmDependencies = {};
+        this.wrmDependencies.always = opts.wrmDependencies || [];
     }
 
     resolveWrmDependencies() {
