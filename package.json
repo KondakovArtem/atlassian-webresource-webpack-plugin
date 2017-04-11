@@ -1,0 +1,32 @@
+{
+  "name": "atlassian-webresource-webpack-plugin",
+  "version": "0.1.0",
+  "description": "Auto-generates web-resource definitions for your webpacked code.",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "contributors": [
+    {
+      "name": "Scott Harwood",
+      "email": "sharwood@atlassian.com"
+    },
+    {
+      "name": "Christopher Darroch",
+      "email": "cdarroch@atlassian.com"
+    }
+  ],
+  "license": "Apache-2.0",
+  "dependencies": {
+    "fs-finder": "^1.8.1",
+    "lodash": "^4.17.4"
+  },
+  "devDependencies": {
+    "webpack": "^1"
+  },
+  "engines": {
+    "node": ">=6.9.0",
+    "yarn": ">=0.21.3"
+  },
+  "private": true
+}
