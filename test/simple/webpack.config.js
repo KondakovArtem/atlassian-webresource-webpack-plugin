@@ -6,7 +6,7 @@ const OUTPUT_DIR = path.resolve(__dirname, 'target');
 module.exports = {
     context: FRONTEND_SRC_DIR,
     entry: {
-        'simple': path.join(FRONTEND_SRC_DIR, 'simple.js')
+        'simple-entry': path.join(FRONTEND_SRC_DIR, 'simple.js')
     },
     plugins: [
         new WrmPlugin(),
