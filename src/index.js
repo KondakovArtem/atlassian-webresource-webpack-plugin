@@ -50,16 +50,10 @@ function getWrmDepsForChunk(wrmDeps, chunk) {
         }
         return [];
     });
-<<<<<<< HEAD
 
     const globalDeps = _.merge([], allWrmDeps["*"], wrmDeps.always);
     const chunkDeps = Array.from(new Set([].concat(...unFilteredDeps)));
     return globalDeps.concat(chunkDeps);
-=======
-    const globalDeps = _.merge([], allWrmDeps["*"], wrmDeps.always);
-    const chunkDeps = _.uniq(_.flatten(_.compact(unFilteredDeps)));
-    return [].concat(globalDeps).concat(chunkDeps);
->>>>>>> unsmart code to improve understandability
 }
 
 class WrmPlugin {
