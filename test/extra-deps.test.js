@@ -1,7 +1,6 @@
 const assert = require('assert');
 const parse = require('xml-parser');
 const webpack = require('webpack');
-const _ = require('lodash');
 const fs = require('fs');
 const path = require('path');
 
@@ -15,12 +14,8 @@ describe('extra-deps', function() {
         webpack(config, (err, stats) => {
             let xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             let results = parse(xmlFile);
-            let contextDepsNode = _.find(results.root.children, (node) => {
-                return node.attributes.key === 'context-deps-atl.general'
-            });
-            let generatedDepsNodes = _.filter(contextDepsNode.children, (node) => {
-                return node.name === 'dependency';
-            });
+            let contextDepsNode = results.root.children.find(node => node.attributes.key === 'context-deps-atl.general');
+            let generatedDepsNodes = contextDepsNode.children.filter(node => node.name === 'dependency');
             assert.equal(stats.hasErrors(), false);
             assert.equal(stats.hasWarnings(), false);
             assert.equal(generatedDepsNodes.length, 2);

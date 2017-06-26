@@ -20,9 +20,9 @@ const webpackUtils = require("./util/webpack-utils");
 
 function getAsyncDescriptorForChunks(chunks) {
     // all the resources that aren't entry point (aka the async ones).
-    const resources = _.flatten(_.values(chunks).map((chunk) =>
-        chunk.hasRuntime() ? [] : chunk.files
-    ));
+    const resources = [].concat(...Object.keys(chunks)
+        .map(name => chunks[name])
+        .map(chunk => chunk.hasRuntime() ? [] : chunk.files));
     return {
         key: "webpack-async-chunks",
         resources: resources
@@ -30,11 +30,11 @@ function getAsyncDescriptorForChunks(chunks) {
 }
 
 function getWrmDepsForChunk(wrmDeps, chunk) {
-    const allWrmDeps = _.merge({}, wrmDeps.external , wrmDeps.internal);
-    const unFilteredDeps = _.map(chunk.modules, (module) => {
+    const allWrmDeps = Object.assign({}, wrmDeps.external , wrmDeps.internal);
+    const unFilteredDeps = chunk.modules.map(module => {
         const name = module.rawRequest;
         if (name) {
-            return allWrmDeps[name];
+            return allWrmDeps[name] || [];
         }
         if (module.type === "var") {
             if (module.external) {
@@ -48,18 +48,12 @@ function getWrmDepsForChunk(wrmDeps, chunk) {
                 return match ? allWrmDeps[match[1]] : [];
             }
         }
+        return [];
     });
+
     const globalDeps = _.merge([], allWrmDeps["*"], wrmDeps.always);
-    const chunkDeps = _.uniq(_.flatten(_.compact(unFilteredDeps)));
-    return [].concat(globalDeps).concat(chunkDeps);
-}
-
-function onlyEntryChunks(chunks) {
-    return chunks;
-}
-
-function mapChunkValues(chunks, func) {
-    return _.compact(_.values(_.mapValues(chunks, func)));
+    const chunkDeps = Array.from(new Set([].concat(...unFilteredDeps)));
+    return globalDeps.concat(chunkDeps);
 }
 
 class WrmPlugin {
@@ -99,51 +93,51 @@ class WrmPlugin {
                 }
             });
 
-            const contextDependencies = mapChunkValues(
-                compilation.namedChunks, (chunk, name) => {
-                    return {
-                        key: `context-deps-${name}`,
-                        context: name,
-                        dependencies: getWrmDepsForChunk(wrmDependencies, chunk),
-                        resources: []
-                    }
-                });
+            const contextDependencies = Object.keys(compilation.namedChunks).map( name => {
+                const chunk = compilation.namedChunks[name];
+                return {
+                    key: `context-deps-${name}`,
+                    context: name,
+                    dependencies: getWrmDepsForChunk(wrmDependencies, chunk),
+                    resources: []
+                };
+            });
 
             // Used in prod
-            const prodEntryPoints = mapChunkValues(
-                onlyEntryChunks(compilation.namedChunks), (chunk, name) => {
-                    return {
-                        key: `context-${name}`,
-                        context: name,
-                        resources: chunk.files,
-                        isProdModeOnly: true
-                    };
-                });
+            const prodEntryPoints = Object.keys(compilation.namedChunks).map( name => {
+                const chunk = compilation.namedChunks[name];
+                return {
+                    key: `context-${name}`,
+                    context: name,
+                    resources: chunk.files,
+                    isProdModeOnly: true
+                };
+            });
 
             // creates a file that simple document.writes the script or style tag that links to the
             // file on the webpack dev server.
-            const devEntryPoints = mapChunkValues(
-                onlyEntryChunks(compilation.namedChunks), (chunk, name) => {
-                    const files = chunk.files.map((file) => {
-                        const devServerLink = webpackUtils.writeDevServerLink(compiler.options.devServerUrl, file);
-                        if (devServerLink) {
-                            const fileName = `dev-${file}`.replace(/\.css$/, ".css.js");
-                            compilation.assets[fileName] = {
-                                source: () => new Buffer(devServerLink),
-                                size: () => Buffer.byteLength(devServerLink)
-                            };
-                            return fileName;
-                        }
-                        return file;
-                    });
-                    return {
-                        key: `dev-context-${name}`,
-                        context: name,
-                        dependencies: getWrmDepsForChunk(wrmDependencies, chunk),
-                        resources: files,
-                        isDevModeOnly: true
-                    };
+            const devEntryPoints = Object.keys(compilation.namedChunks).map( name => {
+                const chunk = compilation.namedChunks[name];
+                const files = chunk.files.map((file) => {
+                    const devServerLink = webpackUtils.writeDevServerLink(compiler.options.devServerUrl, file);
+                    if (devServerLink) {
+                        const fileName = `dev-${file}`.replace(/\.css$/, ".css.js");
+                        compilation.assets[fileName] = {
+                            source: () => new Buffer(devServerLink),
+                            size: () => Buffer.byteLength(devServerLink)
+                        };
+                        return fileName;
+                    }
+                    return file;
                 });
+                return {
+                    key: `dev-context-${name}`,
+                    context: name,
+                    dependencies: getWrmDepsForChunk(wrmDependencies, chunk),
+                    resources: files,
+                    isDevModeOnly: true
+                };
+            });
 
             // Anything that is required in code using require.ensure, becomes a namedChunk. They are required at asyncly
             // at runtime. Using the baseurl of the wrm descriptor we create here. /baseurl/[namechunk].js

@@ -1,34 +1,34 @@
-const _ = require("lodash");
 const path = require("path");
 const Finder = require("fs-finder");
 const SourceUtils = require("./source-utils");
 
 function getEntryPointsFromDir(dir) {
     return Finder.from(dir)
-        .filter((stat, path) => _.includes(path, "/context/"))
+        .filter((stat, path) => path.includes("/context/"))
         .findFiles()
         .map((file) => {
             const jsExt = /\.js$/;
             const context = path.basename(file).replace(jsExt, "");
             const module = file.replace(`${dir}/`, "").replace(jsExt, "");
-            return [context, module]
+            return [context, module];
         });
 }
 
 module.exports = {
     getEntryPoints(sourceUtils) {
-        const entryPoints = {};
-        if (sourceUtils instanceof SourceUtils) {
-            const resourceDirectories = sourceUtils.getResourceDirectories();
-            _.flatten(resourceDirectories.map(getEntryPointsFromDir))
-                .forEach((entryPoint) => {
-                    const context = entryPoint[0];
-                    const module = entryPoint[1];
-                    entryPoints[context] = entryPoints[context] || [];
-                    entryPoints[context].push(module);
-                });
+        if (!(sourceUtils instanceof SourceUtils)) {
+            return {};
         }
-        return entryPoints;
+
+        return sourceUtils.getResourceDirectories()
+            .map(getEntryPointsFromDir)
+            .reduce((all, bulk) => all.concat(bulk), [])
+            .reduce((entryPoints, entryPoint) => {
+                const [context, module] = entryPoint;
+                entryPoints[context] = entryPoints[context] || [];
+                entryPoints[context].push(module);
+                return entryPoints;
+            }, {});
     },
     writeDevServerJsLink(devServerRoot, file) {
         return `<script src="${devServerRoot}/${file}" /></script>`;

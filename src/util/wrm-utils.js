@@ -1,4 +1,3 @@
-const _ = require("lodash");
 const unlicensedContexts = require("../config/unlicensed-contexts");
 
 function clientResourceTemplate(b) {
@@ -61,7 +60,8 @@ module.exports = {
             const descriptors = jsonDescriptors.map((descriptor) => {
                 return this.createResourceDescriptor(descriptor);
             });
-            const descriptorsStr = _.values(descriptors).join("\n\n");
+
+            const descriptorsStr = descriptors.join("\n\n");
             return `<bundles>\n${descriptorsStr}\n</bundles>`
     }
 };

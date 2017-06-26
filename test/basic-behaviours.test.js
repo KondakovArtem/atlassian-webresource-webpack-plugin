@@ -1,7 +1,6 @@
 const assert = require('chai').assert;
 const parse = require('xml-parser');
 const webpack = require('webpack');
-const _ = require('lodash');
 const fs = require('fs');
 const path = require('path');
 
@@ -28,9 +27,7 @@ describe('basic behaviours', function() {
             webpack(config, (err, stats) => {
                 let xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
                 results = parse(xmlFile);
-                contextEntryNode = _.find(results.root.children, (node) => {
-                    return node.attributes.key === 'context-simple-entry'
-                });
+                contextEntryNode = results.root.children.find(node => node.attributes.key === 'context-simple-entry');
                 done();
             });
         });
@@ -69,9 +66,7 @@ describe('basic behaviours', function() {
             webpack(config, (err, stats) => {
                 let xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
                 results = parse(xmlFile);
-                contextDepsNode = _.find(results.root.children, (node) => {
-                    return node.attributes.key === 'context-deps-simple-entry'
-                });
+                contextDepsNode = results.root.children.find(node => node.attributes.key === 'context-deps-simple-entry');
                 done();
             });
         });
