@@ -32,19 +32,29 @@ class WrmPlugin {
         assert(options.options.contextMap, `Option [Array] "contextMap" not specified. You must specify one or more "context"s to which an entrypoint will be added. e.g.: {\n\t"my-entry": ["my-plugin-context"]\n}`);
         let opts = Object.assign({}, options);
         this.wrmOpts = Object.assign({
-            xmlDescriptors: "META-INF/plugin-descriptors/wr-webpack-bundles.xml"
+            xmlDescriptors: "META-INF/plugin-descriptors/wr-webpack-bundles.xml",
+            conditionMap: {},
         }, opts.options);
+
+        this.entryRegistry = new Map();
     }
 
     _getContextForEntry(entry) {
-        const actualEntry = entry.startsWith(this.wrmOpts.pluginKey) ? entry.split(`${this.wrmOpts.pluginKey}:`)[1] : entry;
+        const actualEntry = this.entryRegistry.get(entry) || entry;
         return this.wrmOpts.contextMap[actualEntry].concat(entry);
+    }
+
+    _getConditionForEntry(entry) {
+        const actualEntry = this.entryRegistry.get(entry) || entry;
+        return this.wrmOpts.conditionMap[actualEntry];
     }
 
     renameEntries(compiler) {
         compiler.plugin("after-environment", () => {
             compiler.options.entry = Object.keys(compiler.options.entry).reduce((newEntries, entryKey) => {
-                newEntries[`${this.wrmOpts.pluginKey}:${entryKey}`] = compiler.options.entry[entryKey];
+                const newEntryName = `${this.wrmOpts.pluginKey}:${entryKey}`;
+                this.entryRegistry.set(newEntryName, entryKey);
+                newEntries[newEntryName] = compiler.options.entry[entryKey];
                 return newEntries;
             }, {});
         });
@@ -162,7 +172,7 @@ ${standardScript}`
                     contexts: this._getContextForEntry(name),
                     resources: [].concat(...entrypointChunks.map(c => c.files)),
                     dependencies: this.getDependencyForChunks(entrypointChunks),
-                    isProdModeOnly: true
+                    conditions: this._getConditionForEntry(name),
                 };
             });
 
