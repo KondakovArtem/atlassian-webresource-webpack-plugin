@@ -18,11 +18,13 @@ const assert = require("assert");
 const fs = require("fs");
 const wrmUtils = require("./util/wrm-utils");
 const webpackUtils = require("./util/webpack-utils");
+const ExternalModule = require("webpack/lib/ExternalModule");
+const providedDependenciesObj = require("./providedDependencies");
 
-const providedModules = new Map();
-providedModules.set("jquery", "require('jquery')");
-providedModules.set("backbone", "require('backbone')");
-providedModules.set("underscore", "require('underscore')");
+const providedDependencies = new Map();
+for(const dep of Object.keys(providedDependenciesObj)) {
+    providedDependencies.set(dep, providedDependenciesObj[dep]);
+}
 
 class WrmPlugin {
     constructor(options = {}) {
@@ -36,6 +38,9 @@ class WrmPlugin {
         opts
 
         this.chunkContext = new Map(); // contains all chunk that need to be listed in a context
+
+        this.WRM_SPECIFIC_EXTERNAL = Symbol("WRM_SPECIFIC_EXTERNAL");
+        this.WRM_SPECIFIC_REQUEST = Symbol("WRM_SPECIFIC_REQUEST");
     }
 
     renameEntries(compiler) {
@@ -48,18 +53,22 @@ class WrmPlugin {
     }
 
     hookUpProvidedDependencies(compiler) {
-        compiler.plugin("after-environment", () => {
-            const _oldExt = compiler.options.externals
-            compiler.options.externals = [
-                _oldExt,
-                function (context, request, callback) {
-                    if (!providedModules.has(request)) {
-                        return callback();
+        const that = this;
+        compiler.plugin("compile", (params) => {
+            params.normalModuleFactory.apply({ apply(normalModuleFactory){
+                normalModuleFactory.plugin("factory", factory => (data, callback) => {
+                    const request = data.dependencies[0].request;
+                    if (!providedDependencies.has(request)) {
+                        factory(data, callback);
+                        return;
                     }
-
-                    callback(null, 'var ' + providedModules.get(request));
-                }
-            ]
+                    console.log("plugging hole into request to %s, will be provided as a dependency through WRM", request);
+                    const externalModule = new ExternalModule(providedDependencies.get(request).import, 'var');
+                    externalModule[that.WRM_SPECIFIC_EXTERNAL] = true;
+                    externalModule[that.WRM_SPECIFIC_REQUEST] = request;
+                    callback(null, externalModule);
+                });
+            }}); 
         });
     } 
 
@@ -88,6 +97,21 @@ ${standardScript}`
                 );
             })
         });
+    }
+
+    _getExternalModules(chunk) {
+        return chunk.getModules().filter(m => m[this.WRM_SPECIFIC_EXTERNAL]).map(m => m[this.WRM_SPECIFIC_REQUEST])
+    }
+
+    getDependencyForChunks(chunks) {
+        const externalDeps = new Set();
+        for (const chunk of chunks) {
+            for (const dep of this._getExternalModules(chunk)) {
+                externalDeps.add(dep);
+            }
+        }
+        
+        return Array.from(externalDeps).map(request => providedDependencies.get(request).dependency);
     }
 
     renameChunks(compiler) {
@@ -126,11 +150,12 @@ ${standardScript}`
             const entryPointNames = compilation.entrypoints;
             // Used in prod
             const prodEntryPoints = Object.keys(entryPointNames).map(name => {
-                const commonChunks = entryPointNames[name].chunks;
+                const entrypointChunks = entryPointNames[name].chunks;
                 return {
                     key: `context-${name}`,
                     context: name,
-                    resources: [].concat(...commonChunks.map(c => c.files)),
+                    resources: [].concat(...entrypointChunks.map(c => c.files)),
+                    dependencies: this.getDependencyForChunks(entrypointChunks),
                     isProdModeOnly: true
                 };
             });
@@ -138,14 +163,13 @@ ${standardScript}`
             const asyncChunkDescriptors = this.getEntrypointChildChunks(entryPointNames, compilation.chunks).map(c => {
                 return {
                     key: c.id,
-                    resources: c.files
+                    resources: c.files,
+                    dependencies: this.getDependencyForChunks([c])
                 }
             })
 
             const wrmDescriptors = asyncChunkDescriptors
-                // .concat(contextDependencies)
-                .concat(prodEntryPoints)
-            // .concat(devEntryPoints);
+                .concat(prodEntryPoints);
 
             const xmlDescriptors = wrmUtils.createResourceDescriptors(wrmDescriptors);
 
