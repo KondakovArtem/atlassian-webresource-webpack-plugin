@@ -28,19 +28,20 @@ for(const dep of Object.keys(providedDependenciesObj)) {
 
 class WrmPlugin {
     constructor(options = {}) {
-        assert(options.options.pluginKey, `Option "pluginKey" not specified. You must specify a valid fully qualified plugin key. e.g.: com.atlassian.jira.plugins.my-jira-plugin`);
+        assert(options.options.pluginKey, `Option [String] "pluginKey" not specified. You must specify a valid fully qualified plugin key. e.g.: com.atlassian.jira.plugins.my-jira-plugin`);
+        assert(options.options.contextMap, `Option [Array] "contextMap" not specified. You must specify one or more "context"s to which an entrypoint will be added. e.g.: {\n\t"my-entry": ["my-plugin-context"]\n}`);
         let opts = Object.assign({}, options);
         this.wrmOpts = Object.assign({
             xmlDescriptors: "META-INF/plugin-descriptors/wr-webpack-bundles.xml"
         }, opts.options);
-        this.wrmDependencies = {};
-        this.wrmDependencies.always = opts.wrmDependencies || [];
-        opts
-
-        this.chunkContext = new Map(); // contains all chunk that need to be listed in a context
 
         this.WRM_SPECIFIC_EXTERNAL = Symbol("WRM_SPECIFIC_EXTERNAL");
         this.WRM_SPECIFIC_DEPENDENCY = Symbol("WRM_SPECIFIC_DEPENDENCY");
+    }
+
+    _getContextForEntry(entry) {
+        const actualEntry = entry.startsWith(this.wrmOpts.pluginKey) ? entry.split(`${this.wrmOpts.pluginKey}:`)[1] : entry;
+        return this.wrmOpts.contextMap[actualEntry].concat(entry);
     }
 
     renameEntries(compiler) {
@@ -170,7 +171,7 @@ ${standardScript}`
                 const entrypointChunks = entryPointNames[name].chunks;
                 return {
                     key: `context-${name}`,
-                    context: name,
+                    contexts: this._getContextForEntry(name),
                     resources: [].concat(...entrypointChunks.map(c => c.files)),
                     dependencies: this.getDependencyForChunks(entrypointChunks),
                     isProdModeOnly: true

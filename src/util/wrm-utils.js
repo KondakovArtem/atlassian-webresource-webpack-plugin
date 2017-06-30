@@ -1,8 +1,8 @@
 const PrettyData = require('pretty-data').pd;
 
 class XMLFormatter {
-    static context(context) {
-        return `<context>${context}</context>`;
+    static context(contexts) {
+        return contexts.map(context => `<context>${context}</context>`).join('');
     }
 
     static dependencies(dependencies) {
@@ -38,7 +38,7 @@ function createWebResource(resource) {
             <transformation extension="js">
                 <transformer key="jsI18n"/>
             </transformation>
-            ${resource.context ? XMLFormatter.context(resource.context): ""}
+            ${resource.contexts ? XMLFormatter.context(resource.contexts): ""}
             ${resource.dependencies ? XMLFormatter.dependencies(resource.dependencies): ""}
             ${resource.resources ? XMLFormatter.resources(resource.resources): ""}
             ${resource.conditions ? XMLFormatter.condition(resource.conditions): ""}
