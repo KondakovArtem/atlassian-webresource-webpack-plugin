@@ -40,7 +40,7 @@ class WrmPlugin {
         this.chunkContext = new Map(); // contains all chunk that need to be listed in a context
 
         this.WRM_SPECIFIC_EXTERNAL = Symbol("WRM_SPECIFIC_EXTERNAL");
-        this.WRM_SPECIFIC_REQUEST = Symbol("WRM_SPECIFIC_REQUEST");
+        this.WRM_SPECIFIC_DEPENDENCY = Symbol("WRM_SPECIFIC_DEPENDENCY");
     }
 
     renameEntries(compiler) {
@@ -52,21 +52,38 @@ class WrmPlugin {
         });
     }
 
+    _createExternalModule(request, dependency) {
+        const externalModule = new ExternalModule(request, 'var');
+        externalModule[this.WRM_SPECIFIC_EXTERNAL] = true;
+        externalModule[this.WRM_SPECIFIC_DEPENDENCY] = dependency;
+        return externalModule;
+    }
+
     hookUpProvidedDependencies(compiler) {
         const that = this;
         compiler.plugin("compile", (params) => {
             params.normalModuleFactory.apply({ apply(normalModuleFactory){
+                // there is something wrong in webpack - currently external modules end up in the entry point not e.g. in an async chunk if they are only needed there
+                // this means that WRM will load these dependencies with the entrypoint already. Need to fix this in webpack I guess.
                 normalModuleFactory.plugin("factory", factory => (data, callback) => {
                     const request = data.dependencies[0].request;
-                    if (!providedDependencies.has(request)) {
-                        factory(data, callback);
+                    // get globally available libraries through wrm
+                    if (providedDependencies.has(request)) {
+                        console.log("plugging hole into request to %s, will be provided as a dependency through WRM", request);
+                        const p = providedDependencies.get(request);
+                        callback(null, that._createExternalModule(p.import, p.dependency));
                         return;
                     }
-                    console.log("plugging hole into request to %s, will be provided as a dependency through WRM", request);
-                    const externalModule = new ExternalModule(providedDependencies.get(request).import, 'var');
-                    externalModule[that.WRM_SPECIFIC_EXTERNAL] = true;
-                    externalModule[that.WRM_SPECIFIC_REQUEST] = request;
-                    callback(null, externalModule);
+
+                    // make wrc imports happen
+                    if (request.startsWith("wrc!")) {
+                        console.log("adding %s as a context dependency through WRM", request.substr(4));
+                        callback(null, that._createExternalModule("{}", request.substr(4)));
+                        return;
+                    }
+
+                    factory(data, callback);
+                    return;
                 });
             }}); 
         });
@@ -100,7 +117,7 @@ ${standardScript}`
     }
 
     _getExternalModules(chunk) {
-        return chunk.getModules().filter(m => m[this.WRM_SPECIFIC_EXTERNAL]).map(m => m[this.WRM_SPECIFIC_REQUEST])
+        return chunk.getModules().filter(m => m[this.WRM_SPECIFIC_EXTERNAL]).map(m => m[this.WRM_SPECIFIC_DEPENDENCY])
     }
 
     getDependencyForChunks(chunks) {
@@ -111,7 +128,7 @@ ${standardScript}`
             }
         }
         
-        return Array.from(externalDeps).map(request => providedDependencies.get(request).dependency);
+        return Array.from(externalDeps);
     }
 
     renameChunks(compiler) {
