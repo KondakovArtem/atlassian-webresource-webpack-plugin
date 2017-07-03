@@ -27,6 +27,7 @@ for(const dep of Object.keys(providedDependenciesObj)) {
 }
 
 class WrmPlugin {
+
     constructor(options = {}) {
         assert(options.options.pluginKey, `Option [String] "pluginKey" not specified. You must specify a valid fully qualified plugin key. e.g.: com.atlassian.jira.plugins.my-jira-plugin`);
         assert(options.options.contextMap, `Option [Array] "contextMap" not specified. You must specify one or more "context"s to which an entrypoint will be added. e.g.: {\n\t"my-entry": ["my-plugin-context"]\n}`);
@@ -47,6 +48,17 @@ class WrmPlugin {
     _getConditionForEntry(entry) {
         const actualEntry = this.entryRegistry.get(entry) || entry;
         return this.wrmOpts.conditionMap[actualEntry];
+    }
+
+    overwritePublicPath(compiler) {
+        const that = this;
+        compiler.plugin("compilation", (compilation) => {
+            compilation.mainTemplate.plugin("require-extensions", function (standardScript) {
+                return `${standardScript}
+${this.requireFn}.p = AJS.Meta.get('context-path') + "/download/resources/${that.wrmOpts.pluginKey}:assets/";
+`
+            });
+        });
     }
 
     renameEntries(compiler) {
@@ -111,7 +123,7 @@ if (WRMChildChunkIds[chunkId]) {
 }
 ${standardScript}`
                 );
-            })
+            });
         });
     }
 
@@ -156,6 +168,7 @@ ${standardScript}`
 
         this.renameEntries(compiler);
         this.renameChunks(compiler);
+        this.overwritePublicPath(compiler);
 
         this.hookUpProvidedDependencies(compiler);
         this.enableAsyncLoadingWithWRM(compiler);
@@ -182,10 +195,17 @@ ${standardScript}`
                     resources: c.files,
                     dependencies: this.getDependencyForChunks([c])
                 }
-            })
+            });
+
+            const assets = {
+                key: "assets",
+                resources: Object.keys(compilation.assets)
+                    .filter(p => !/\.(js|js\.map)$/.test(p))
+            }
 
             const wrmDescriptors = asyncChunkDescriptors
-                .concat(prodEntryPoints);
+                .concat(prodEntryPoints)
+                .concat(assets);
 
             const xmlDescriptors = wrmUtils.createResourceDescriptors(wrmDescriptors);
 
