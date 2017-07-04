@@ -1,3 +1,4 @@
+const path = require('path');
 const PrettyData = require('pretty-data').pd;
 
 class XMLFormatter {
@@ -11,9 +12,9 @@ class XMLFormatter {
             .join("\n");
     }
 
-    static resources(resources) {
+    static resources(pathPrefix, resources) {
         return resources
-            .map((resource) => `<resource name="${resource}" type="download" location="dist/${resource}" />`)
+            .map((resource) => `<resource name="${resource}" type="download" location="${pathPrefix}${resource}" />`)
             .join("\n");
     }
 
@@ -32,7 +33,7 @@ class XMLFormatter {
     }
 }
 
-function createWebResource(resource) {
+function createWebResource(pathPrefix, resource) {
     return `
         <web-resource key="${resource.key}">
             <transformation extension="js">
@@ -40,18 +41,18 @@ function createWebResource(resource) {
             </transformation>
             ${resource.contexts ? XMLFormatter.context(resource.contexts): ""}
             ${resource.dependencies ? XMLFormatter.dependencies(resource.dependencies): ""}
-            ${resource.resources ? XMLFormatter.resources(resource.resources): ""}
+            ${resource.resources ? XMLFormatter.resources(pathPrefix, resource.resources): ""}
             ${resource.conditions ? XMLFormatter.condition(resource.conditions): ""}
         </web-resource>
     `;
 }
 
-exports.createResourceDescriptors = function (jsonDescriptors) {
+exports.createResourceDescriptors = function (pathPrefix, jsonDescriptors) {
     const descriptors = jsonDescriptors.map((descriptor) => {
         // TODO: Introduce pluggability for web-resource conditions here.
         // e.g., Allow for ServiceDesk to inject their licensed condition, or for a devmode hotreload server condition.
         if (!descriptor.isDevModeOnly) {
-            return createWebResource(descriptor);
+            return createWebResource(pathPrefix, descriptor);
         }
     });
 

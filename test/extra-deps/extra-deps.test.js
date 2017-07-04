@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 const targetDir = path.join(__dirname, 'target');
-const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptors', 'wr-webpack-bundles.xml');
+const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
 describe('extra-deps', function() {
     let config = require('./webpack.config.js');
@@ -14,13 +14,12 @@ describe('extra-deps', function() {
         webpack(config, (err, stats) => {
             let xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             let results = parse(xmlFile);
-            let contextDepsNode = results.root.children.find(node => node.attributes.key === 'context-deps-atl.general');
+            let contextDepsNode = results.root.children.find(node => node.attributes.key === 'entrypoint-atl.general');
             let generatedDepsNodes = contextDepsNode.children.filter(node => node.name === 'dependency');
             assert.equal(stats.hasErrors(), false);
             assert.equal(stats.hasWarnings(), false);
-            assert.equal(generatedDepsNodes.length, 2);
-            assert.equal(generatedDepsNodes[0].content, 'com.atlassian.plugins.jquery:jquery');
-            assert.equal(generatedDepsNodes[1].content, 'com.atlassian.auiplugin:ajs-core');
+            assert.equal(generatedDepsNodes.length, 1);
+            assert.equal(generatedDepsNodes[0].content, 'jira.webresources:jquery');
             done();
         });
     });

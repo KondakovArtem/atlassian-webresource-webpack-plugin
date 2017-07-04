@@ -16,27 +16,80 @@
 const _ = require("lodash");
 const assert = require("assert");
 const fs = require("fs");
+const path = require('path');
+
 const wrmUtils = require("./util/wrm-utils");
 const webpackUtils = require("./util/webpack-utils");
 const providedDependenciesObj = require("./providedDependencies");
 const ProvidedExternalModule = require("./ProvidedExternalModule");
 
 const providedDependencies = new Map();
-for(const dep of Object.keys(providedDependenciesObj)) {
+for (const dep of Object.keys(providedDependenciesObj)) {
     providedDependencies.set(dep, providedDependenciesObj[dep]);
 }
 
 class WrmPlugin {
 
+    /**
+     * 
+     * @param {Object} options - options passed to WRMPlugin
+     * @param {String} options.pluginKey - The fully qualified plugin key. e.g.: com.atlassian.jira.plugins.my-jira-plugin
+     * @param {String} options.contextMap - One or more "context"s to which an entrypoint will be added. e.g.: {\n\t"my-entry": ["my-plugin-context"]\n}
+     * @param {String} options.xmlDescriptors - Path to the directory where this plugin stores the descriptors about this plugin, used by the WRM to load your frontend code.
+     */
     constructor(options = {}) {
         assert(options.pluginKey, `Option [String] "pluginKey" not specified. You must specify a valid fully qualified plugin key. e.g.: com.atlassian.jira.plugins.my-jira-plugin`);
-        assert(options.contextMap, `Option [Array] "contextMap" not specified. You must specify one or more "context"s to which an entrypoint will be added. e.g.: {\n\t"my-entry": ["my-plugin-context"]\n}`);
+        assert(options.contextMap, `Option [Array<String>] "contextMap" not specified. You must specify one or more "context"s to which an entrypoint will be added. e.g.: { "my-entry": ["my-plugin-context"] }`);
+        assert(options.xmlDescriptors, `Option [String] "xmlDescriptors" not specified. You must specify the path to the directory where this plugin stores the descriptors about this plugin, used by the WRM to load your frontend code. This should point somewhere in the "target/classes" directory.`);
+        assert(path.isAbsolute(options.xmlDescriptors), `Option [String] "xmlDescriptors" must be absolute!`);
         this.options = Object.assign({
-            xmlDescriptors: "META-INF/plugin-descriptors/wr-webpack-bundles.xml",
             conditionMap: {},
+            verbose: true,
         }, options);
 
         this.entryRegistry = new Map();
+    }
+
+    checkConfig(compiler) {
+        compiler.plugin("after-environment", () => {
+            // check if output path points to somewhere in target/classes
+            const outputPath = compiler.options.output.path;
+            if (!outputPath.includes(path.join('target', 'classes'))) {
+                this.options.verbose && console.warn(`
+*********************************************************************************
+The output.path specified in your webpack config does not point to target/classes:
+
+${outputPath}
+
+This is very likely to cause issues - please double check your settings!
+*********************************************************************************
+
+`);
+            }
+        });
+    }
+
+    _extractPathPrefixForXml(options) {
+        const outputPath = options.output.path;
+        // get everything "past" the /target/classes
+        const pathPrefix = outputPath.split(path.join('target', 'classes'))[1];
+        if (!pathPrefix) {
+            this.options.verbose && console.warn(`
+******************************************************************************
+Path prefix for resources could not be extracted as the output path specified 
+in webpack does not point to somewhere in "target/classes". 
+This is likely to cause problems, please check your settings!
+
+Not adding any path prefix - WRM will probably not be able to find your files!
+******************************************************************************
+`);
+            return '';
+        }
+        
+        // remove leading/trailing path separator
+        const withoutLeadingTrailingSeparators = pathPrefix.replace(new RegExp(`^\\${path.sep}|\\${path.sep}$`, 'g'), '');
+        // readd trailing slash - this time OS independent always a "/"
+        return withoutLeadingTrailingSeparators + "/";
     }
 
     _getContextForEntry(entry) {
@@ -63,30 +116,32 @@ ${this.requireFn}.p = AJS.Meta.get('context-path') + "/download/resources/${that
     hookUpProvidedDependencies(compiler) {
         const that = this;
         compiler.plugin("compile", (params) => {
-            params.normalModuleFactory.apply({ apply(normalModuleFactory){
-                normalModuleFactory.plugin("factory", factory => (data, callback) => {
-                    const request = data.dependencies[0].request;
-                    // get globally available libraries through wrm
-                    if (providedDependencies.has(request)) {
-                        console.log("plugging hole into request to %s, will be provided as a dependency through WRM", request);
-                        const p = providedDependencies.get(request);
-                        callback(null, new ProvidedExternalModule(p.import, p.dependency));
-                        return;
-                    }
+            params.normalModuleFactory.apply({
+                apply(normalModuleFactory) {
+                    normalModuleFactory.plugin("factory", factory => (data, callback) => {
+                        const request = data.dependencies[0].request;
+                        // get globally available libraries through wrm
+                        if (providedDependencies.has(request)) {
+                            console.log("plugging hole into request to %s, will be provided as a dependency through WRM", request);
+                            const p = providedDependencies.get(request);
+                            callback(null, new ProvidedExternalModule(p.import, p.dependency));
+                            return;
+                        }
 
-                    // make wrc imports happen
-                    if (request.startsWith("wrc!")) {
-                        console.log("adding %s as a context dependency through WRM", request.substr(4));
-                        callback(null, new ProvidedExternalModule("{}", request.substr(4)));
-                        return;
-                    }
+                        // make wrc imports happen
+                        if (request.startsWith("wrc!")) {
+                            console.log("adding %s as a context dependency through WRM", request.substr(4));
+                            callback(null, new ProvidedExternalModule("{}", request.substr(4)));
+                            return;
+                        }
 
-                    factory(data, callback);
-                    return;
-                });
-            }}); 
+                        factory(data, callback);
+                        return;
+                    });
+                }
+            });
         });
-    } 
+    }
 
     getEntrypointChildChunks(entrypointNames, chunks) {
         const entryPoints = Object.keys(entrypointNames).map(key => chunks.find(c => c.name === key));
@@ -126,11 +181,13 @@ ${standardScript}`
                 externalDeps.add(dep);
             }
         }
-        
+
         return Array.from(externalDeps);
     }
 
     apply(compiler) {
+
+        this.checkConfig(compiler);
 
         this.overwritePublicPath(compiler);
 
@@ -171,9 +228,9 @@ ${standardScript}`
                 .concat(prodEntryPoints)
                 .concat(assets);
 
-            const xmlDescriptors = wrmUtils.createResourceDescriptors(wrmDescriptors);
-
-            compilation.assets[this.options.xmlDescriptors] = {
+            const xmlDescriptors = wrmUtils.createResourceDescriptors(this._extractPathPrefixForXml(compiler.options), wrmDescriptors);
+            const xmlDescriptorWebpackPath = path.relative(compiler.options.output.path, this.options.xmlDescriptors);
+            compilation.assets[xmlDescriptorWebpackPath] = {
                 source: () => new Buffer(xmlDescriptors),
                 size: () => Buffer.byteLength(xmlDescriptors)
             };

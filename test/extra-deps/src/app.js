@@ -1,5 +1,6 @@
 define(function(require) {
     var wrmRequire = require('wrm/require');
+    var $ = require("jquery");
     console.log('first, require some external dependencies');
     wrmRequire(['wr!com.atlassian.auiplugin:aui-flag'], function() {
         console.log('now we can load the AUI flag');

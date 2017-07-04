@@ -9,7 +9,12 @@ module.exports = {
         'simple-entry': path.join(FRONTEND_SRC_DIR, 'simple.js')
     },
     plugins: [
-        new WrmPlugin(),
+        new WrmPlugin({
+            pluginKey: "com.atlassian.plugin.test",
+            contextMap: {"simple-entry": [""]},
+            xmlDescriptors: path.join(__dirname, 'target', 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml'),
+            verbose: false,
+        }),
     ],
     output: {
         filename: '[name].js',

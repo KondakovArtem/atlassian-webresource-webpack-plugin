@@ -14,14 +14,10 @@ module.exports = {
     },
     plugins: [
         new WrmPlugin({
-            // Always add these dependencies to our generated web-resources.
-            wrmDependencies: [
-                'com.atlassian.plugins.jquery:jquery',
-                'com.atlassian.auiplugin:ajs-core'
-            ],
-            options: {
-                dependenciesFile: path.resolve(__dirname, 'webresource-deps.config.js')
-            }
+            pluginKey: 'com.atlassian.plugin.test',
+            contextMap: { 'atl.general': [''] },
+            xmlDescriptors: path.join(__dirname, 'target', 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml'),
+            verbose: false,
         }),
     ],
     output: {
