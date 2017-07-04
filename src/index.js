@@ -60,17 +60,6 @@ ${this.requireFn}.p = AJS.Meta.get('context-path') + "/download/resources/${that
         });
     }
 
-    renameEntries(compiler) {
-        compiler.plugin("after-environment", () => {
-            compiler.options.entry = Object.keys(compiler.options.entry).reduce((newEntries, entryKey) => {
-                const newEntryName = `${this.options.pluginKey}:${entryKey}`;
-                this.entryRegistry.set(newEntryName, entryKey);
-                newEntries[newEntryName] = compiler.options.entry[entryKey];
-                return newEntries;
-            }, {});
-        });
-    }
-
     hookUpProvidedDependencies(compiler) {
         const that = this;
         compiler.plugin("compile", (params) => {
@@ -141,32 +130,8 @@ ${standardScript}`
         return Array.from(externalDeps);
     }
 
-    renameChunks(compiler) {
-        compiler.plugin("compilation", (compilation) => {
-            compilation.plugin("optimize-chunk-ids", chunks => {
-                chunks.forEach((c, i) => {
-                    if (c.name && c.name.indexOf(this.options.pluginKey) === 0) {
-                        return;
-                    }
-                    const id = c.name || c.id;
-                    const newId = `${this.options.pluginKey}:${id}`;
-                    c.ids = c.ids.map(id => {
-                        if (id != c.id) {
-                            return id;
-                        }
-                        return newId;
-                    })
-                    c.id = newId;
-                    c.name = newId;
-                });
-            });
-        });
-    }
-
     apply(compiler) {
 
-        this.renameEntries(compiler);
-        this.renameChunks(compiler);
         this.overwritePublicPath(compiler);
 
         this.hookUpProvidedDependencies(compiler);
@@ -180,7 +145,7 @@ ${standardScript}`
             const prodEntryPoints = Object.keys(entryPointNames).map(name => {
                 const entrypointChunks = entryPointNames[name].chunks;
                 return {
-                    key: `context-${name}`,
+                    key: `entrypoint-${name}`,
                     contexts: this._getContextForEntry(name),
                     resources: [].concat(...entrypointChunks.map(c => c.files)),
                     dependencies: this.getDependencyForChunks(entrypointChunks),
@@ -190,7 +155,7 @@ ${standardScript}`
 
             const asyncChunkDescriptors = this.getEntrypointChildChunks(entryPointNames, compilation.chunks).map(c => {
                 return {
-                    key: c.id,
+                    key: `${c.id}`,
                     resources: c.files,
                     dependencies: this.getDependencyForChunks([c])
                 }
