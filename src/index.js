@@ -29,25 +29,24 @@ for(const dep of Object.keys(providedDependenciesObj)) {
 class WrmPlugin {
 
     constructor(options = {}) {
-        assert(options.options.pluginKey, `Option [String] "pluginKey" not specified. You must specify a valid fully qualified plugin key. e.g.: com.atlassian.jira.plugins.my-jira-plugin`);
-        assert(options.options.contextMap, `Option [Array] "contextMap" not specified. You must specify one or more "context"s to which an entrypoint will be added. e.g.: {\n\t"my-entry": ["my-plugin-context"]\n}`);
-        let opts = Object.assign({}, options);
-        this.wrmOpts = Object.assign({
+        assert(options.pluginKey, `Option [String] "pluginKey" not specified. You must specify a valid fully qualified plugin key. e.g.: com.atlassian.jira.plugins.my-jira-plugin`);
+        assert(options.contextMap, `Option [Array] "contextMap" not specified. You must specify one or more "context"s to which an entrypoint will be added. e.g.: {\n\t"my-entry": ["my-plugin-context"]\n}`);
+        this.options = Object.assign({
             xmlDescriptors: "META-INF/plugin-descriptors/wr-webpack-bundles.xml",
             conditionMap: {},
-        }, opts.options);
+        }, options);
 
         this.entryRegistry = new Map();
     }
 
     _getContextForEntry(entry) {
         const actualEntry = this.entryRegistry.get(entry) || entry;
-        return this.wrmOpts.contextMap[actualEntry].concat(entry);
+        return this.options.contextMap[actualEntry].concat(entry);
     }
 
     _getConditionForEntry(entry) {
         const actualEntry = this.entryRegistry.get(entry) || entry;
-        return this.wrmOpts.conditionMap[actualEntry];
+        return this.options.conditionMap[actualEntry];
     }
 
     overwritePublicPath(compiler) {
@@ -55,7 +54,7 @@ class WrmPlugin {
         compiler.plugin("compilation", (compilation) => {
             compilation.mainTemplate.plugin("require-extensions", function (standardScript) {
                 return `${standardScript}
-${this.requireFn}.p = AJS.Meta.get('context-path') + "/download/resources/${that.wrmOpts.pluginKey}:assets/";
+${this.requireFn}.p = AJS.Meta.get('context-path') + "/download/resources/${that.options.pluginKey}:assets/";
 `
             });
         });
@@ -64,7 +63,7 @@ ${this.requireFn}.p = AJS.Meta.get('context-path') + "/download/resources/${that
     renameEntries(compiler) {
         compiler.plugin("after-environment", () => {
             compiler.options.entry = Object.keys(compiler.options.entry).reduce((newEntries, entryKey) => {
-                const newEntryName = `${this.wrmOpts.pluginKey}:${entryKey}`;
+                const newEntryName = `${this.options.pluginKey}:${entryKey}`;
                 this.entryRegistry.set(newEntryName, entryKey);
                 newEntries[newEntryName] = compiler.options.entry[entryKey];
                 return newEntries;
@@ -118,7 +117,7 @@ ${this.requireFn}.p = AJS.Meta.get('context-path') + "/download/resources/${that
                     `
 var WRMChildChunkIds = ${JSON.stringify(childChunkIds)};
 if (WRMChildChunkIds[chunkId]) {
-    WRM.require('wrc!${this.wrmOpts.pluginKey}:' + chunkId)
+    WRM.require('wrc!${this.options.pluginKey}:' + chunkId)
     return promise;
 }
 ${standardScript}`
@@ -146,11 +145,11 @@ ${standardScript}`
         compiler.plugin("compilation", (compilation) => {
             compilation.plugin("optimize-chunk-ids", chunks => {
                 chunks.forEach((c, i) => {
-                    if (c.name && c.name.indexOf(this.wrmOpts.pluginKey) === 0) {
+                    if (c.name && c.name.indexOf(this.options.pluginKey) === 0) {
                         return;
                     }
                     const id = c.name || c.id;
-                    const newId = `${this.wrmOpts.pluginKey}:${id}`;
+                    const newId = `${this.options.pluginKey}:${id}`;
                     c.ids = c.ids.map(id => {
                         if (id != c.id) {
                             return id;
@@ -209,7 +208,7 @@ ${standardScript}`
 
             const xmlDescriptors = wrmUtils.createResourceDescriptors(wrmDescriptors);
 
-            compilation.assets[this.wrmOpts.xmlDescriptors] = {
+            compilation.assets[this.options.xmlDescriptors] = {
                 source: () => new Buffer(xmlDescriptors),
                 size: () => Buffer.byteLength(xmlDescriptors)
             };
