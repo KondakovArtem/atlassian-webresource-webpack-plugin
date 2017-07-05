@@ -18,6 +18,7 @@ const assert = require("assert");
 const fs = require("fs");
 const path = require('path');
 
+const uuidv4Gen = require('uuid/v4');
 const wrmUtils = require("./util/wrm-utils");
 const webpackUtils = require("./util/webpack-utils");
 const providedDependenciesObj = require("./providedDependencies");
@@ -46,6 +47,10 @@ class WrmPlugin {
             conditionMap: {},
             verbose: true,
         }, options);
+
+        // generate an asset uuid per build - this is used to ensure we have a new "cache" for our assets per build. 
+        // As JIRA-Server does not "rebuild" too often, this can be considered reasonable.
+        this.assetUUID = uuidv4Gen();
 
         this.entryRegistry = new Map();
     }
@@ -107,7 +112,7 @@ Not adding any path prefix - WRM will probably not be able to find your files!
         compiler.plugin("compilation", (compilation) => {
             compilation.mainTemplate.plugin("require-extensions", function (standardScript) {
                 return `${standardScript}
-${this.requireFn}.p = AJS.Meta.get('context-path') + "/download/resources/${that.options.pluginKey}:assets/";
+${this.requireFn}.p = AJS.Meta.get('context-path') + "/download/resources/${that.options.pluginKey}:assets-${that.assetUUID}/";
 `
             });
         });
@@ -219,7 +224,7 @@ ${standardScript}`
             });
 
             const assets = {
-                key: "assets",
+                key: `assets-${this.assetUUID}`,
                 resources: Object.keys(compilation.assets)
                     .filter(p => !/\.(js|js\.map)$/.test(p))
             }
