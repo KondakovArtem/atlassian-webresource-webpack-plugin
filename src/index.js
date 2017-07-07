@@ -40,19 +40,17 @@ class WrmPlugin {
      */
     constructor(options = {}) {
         assert(options.pluginKey, `Option [String] "pluginKey" not specified. You must specify a valid fully qualified plugin key. e.g.: com.atlassian.jira.plugins.my-jira-plugin`);
-        assert(options.contextMap, `Option [Array<String>] "contextMap" not specified. You must specify one or more "context"s to which an entrypoint will be added. e.g.: { "my-entry": ["my-plugin-context"] }`);
         assert(options.xmlDescriptors, `Option [String] "xmlDescriptors" not specified. You must specify the path to the directory where this plugin stores the descriptors about this plugin, used by the WRM to load your frontend code. This should point somewhere in the "target/classes" directory.`);
         assert(path.isAbsolute(options.xmlDescriptors), `Option [String] "xmlDescriptors" must be absolute!`);
         this.options = Object.assign({
             conditionMap: {},
+            contextMap: {},
             verbose: true,
         }, options);
 
         // generate an asset uuid per build - this is used to ensure we have a new "cache" for our assets per build. 
         // As JIRA-Server does not "rebuild" too often, this can be considered reasonable.
         this.assetUUID = uuidv4Gen();
-
-        this.entryRegistry = new Map();
     }
 
     checkConfig(compiler) {
@@ -98,13 +96,14 @@ Not adding any path prefix - WRM will probably not be able to find your files!
     }
 
     _getContextForEntry(entry) {
-        const actualEntry = this.entryRegistry.get(entry) || entry;
-        return this.options.contextMap[actualEntry].concat(entry);
+        if (!this.options.contextMap[entry]) {
+            return [entry];
+        }
+        return this.options.contextMap[entry].concat(entry);
     }
 
     _getConditionForEntry(entry) {
-        const actualEntry = this.entryRegistry.get(entry) || entry;
-        return this.options.conditionMap[actualEntry];
+        return this.options.conditionMap[entry];
     }
 
     overwritePublicPath(compiler) {
