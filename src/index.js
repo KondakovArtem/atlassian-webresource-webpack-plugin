@@ -126,7 +126,7 @@ ${this.requireFn}.p = AJS.Meta.get('context-path') + "/download/resources/${that
                         const request = data.dependencies[0].request;
                         // get globally available libraries through wrm
                         if (providedDependencies.has(request)) {
-                            console.log("plugging hole into request to %s, will be provided as a dependency through WRM", request);
+                            that.verbose && console.log("plugging hole into request to %s, will be provided as a dependency through WRM", request);
                             const p = providedDependencies.get(request);
                             callback(null, new ProvidedExternalModule(p.import, p.dependency));
                             return;
@@ -134,8 +134,8 @@ ${this.requireFn}.p = AJS.Meta.get('context-path') + "/download/resources/${that
 
                         // make wrc imports happen
                         if (request.startsWith("wrc!")) {
-                            console.log("adding %s as a context dependency through WRM", request.substr(4));
-                            callback(null, new ProvidedExternalModule("{}", request.substr(4)));
+                            that.verbose && console.log("adding %s as a context dependency through WRM", request.substr(4));
+                            callback(null, new ProvidedExternalModule(`{/* empty request for ${request.substr(4)} */}`, request.substr(4)));
                             return;
                         }
 
@@ -185,7 +185,6 @@ ${standardScript}`
                 externalDeps.add(dep);
             }
         }
-
         return Array.from(externalDeps);
     }
 
