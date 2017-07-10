@@ -33,6 +33,6 @@
     "webpack"
   ],
   "scripts": {
-    "test": "mocha test/*.test.js"
+    "test": "mocha test/**/*.test.js"
   }
 }

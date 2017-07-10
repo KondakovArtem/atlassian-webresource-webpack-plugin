@@ -4,11 +4,11 @@ const webpack = require('webpack');
 const fs = require('fs');
 const path = require('path');
 
-const base = path.join(__dirname, 'extra-deps');
-const webresourceOutput = path.join(base, 'target', 'META-INF', 'plugin-descriptors', 'wr-webpack-bundles.xml');
+const targetDir = path.join(__dirname, 'target');
+const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptors', 'wr-webpack-bundles.xml');
 
 describe('extra-deps', function() {
-    let config = require(path.join(base, 'webpack.config.js'));
+    let config = require('./webpack.config.js');
 
     it('outputs declared web-resource dependencies', (done) => {
         webpack(config, (err, stats) => {

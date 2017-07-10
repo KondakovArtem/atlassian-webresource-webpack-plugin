@@ -4,11 +4,11 @@ const webpack = require('webpack');
 const fs = require('fs');
 const path = require('path');
 
-const base = path.join(__dirname, 'simple');
-const webresourceOutput = path.join(base, 'target', 'META-INF', 'plugin-descriptors', 'wr-webpack-bundles.xml');
+const targetDir = path.join(__dirname, 'target');
+const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptors', 'wr-webpack-bundles.xml');
 
 describe('basic behaviours', function() {
-    let config = require(path.join(base, 'webpack.config.js'));
+    let config = require('./webpack.config.js');
 
     it('compiles an xml file', (done) => {
         webpack(config, (err, stats) => {
