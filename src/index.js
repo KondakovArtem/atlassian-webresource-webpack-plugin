@@ -111,7 +111,9 @@ Not adding any path prefix - WRM will probably not be able to find your files!
         compiler.plugin("compilation", (compilation) => {
             compilation.mainTemplate.plugin("require-extensions", function (standardScript) {
                 return `${standardScript}
-${this.requireFn}.p = AJS.Meta.get('context-path') + "/download/resources/${that.options.pluginKey}:assets-${that.assetUUID}/";
+if (typeof AJS !== "undefined") {
+    ${this.requireFn}.p = AJS.Meta.get('context-path') + "/download/resources/${that.options.pluginKey}:assets-${that.assetUUID}/";
+}
 `
             });
         });
@@ -200,6 +202,14 @@ ${standardScript}`
         // When the compiler is about to emit files, we jump in to produce our resource descriptors for the WRM.
         compiler.plugin("emit", (compilation, callback) => {
 
+            const assetFiles = Object.keys(compilation.assets)
+                    .filter(p => !/\.(js|js\.map)$/.test(p));
+
+            const assets = {
+                key: `assets-${this.assetUUID}`,
+                resources: assetFiles,
+            }
+
             const entryPointNames = compilation.entrypoints;
             // Used in prod
             const prodEntryPoints = Object.keys(entryPointNames).map(name => {
@@ -207,7 +217,7 @@ ${standardScript}`
                 return {
                     key: `entrypoint-${name}`,
                     contexts: this._getContextForEntry(name),
-                    resources: [].concat(...entrypointChunks.map(c => c.files)),
+                    resources: Array.from(new Set([].concat(...entrypointChunks.map(c => c.files), ...assetFiles))),
                     dependencies: this.getDependencyForChunks(entrypointChunks),
                     conditions: this._getConditionForEntry(name),
                 };
@@ -221,11 +231,6 @@ ${standardScript}`
                 }
             });
 
-            const assets = {
-                key: `assets-${this.assetUUID}`,
-                resources: Object.keys(compilation.assets)
-                    .filter(p => !/\.(js|js\.map)$/.test(p))
-            }
 
             const wrmDescriptors = asyncChunkDescriptors
                 .concat(prodEntryPoints)
