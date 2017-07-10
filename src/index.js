@@ -50,7 +50,7 @@ class WrmPlugin {
 
         // generate an asset uuid per build - this is used to ensure we have a new "cache" for our assets per build. 
         // As JIRA-Server does not "rebuild" too often, this can be considered reasonable.
-        this.assetUUID = uuidv4Gen();
+        this.assetUUID = process.env.NODE_ENV === 'production' ? uuidv4Gen() : "DEV_PSEUDO_HASH";
     }
 
     checkConfig(compiler) {
