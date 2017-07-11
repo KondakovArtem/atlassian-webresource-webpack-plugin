@@ -1,10 +1,14 @@
 {
   "name": "atlassian-webresource-webpack-plugin",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Auto-generates web-resource definitions from your webpacked code, for usage in an Atlassian product or plugin.",
   "main": "src/index.js",
   "license": "Apache-2.0",
   "contributors": [
+    {
+      "name": "Tim Sebastian",
+      "email": "tsebastian@atlassian.com"
+    },
     {
       "name": "Scott Harwood",
       "email": "sharwood@atlassian.com"
