@@ -18,8 +18,7 @@ const fs = require("fs");
 const path = require('path');
 
 const uuidv4Gen = require('uuid/v4');
-const wrmUtils = require("./util/wrm-utils");
-const webpackUtils = require("./util/webpack-utils");
+const wrmUtils = require("./util/wrm");
 const ProvidedExternalModule = require("./ProvidedExternalModule");
 
 class WrmPlugin {
