@@ -13,7 +13,6 @@
  *     * [named-chunk].chunk.js files
  */
 
-const _ = require("lodash");
 const assert = require("assert");
 const fs = require("fs");
 const path = require('path');
