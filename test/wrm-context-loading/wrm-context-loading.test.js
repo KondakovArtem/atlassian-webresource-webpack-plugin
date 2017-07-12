@@ -7,7 +7,7 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('async-chunks', function () {
+describe('wrm-context-loading', function () {
     const config = require('./webpack.config.js');
 
     let stats;
@@ -45,7 +45,7 @@ describe('async-chunks', function () {
     });
 
     it('add a dependency for each requested context', () => {
-        assert.ok(dependencies.includes('jira.webresources:jquery'));
+        assert.ok(dependencies.includes('com.atlassian.plugins.atlassian-plugins-webresource-plugin:data'));
         assert.ok(dependencies.includes('some-weird:context'));
         assert.ok(dependencies.includes('foo-bar:baz'));
     });

@@ -7,7 +7,7 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('async-chunks', function () {
+describe('provided-modules-replacement', function () {
     const config = require('./webpack.config.js');
 
     let stats;
@@ -39,7 +39,7 @@ describe('async-chunks', function () {
     it('should create a webresource with dependencies for each async chunk', () => {
         assert.ok(entry);
         assert.ok(dependencies);
-        assert.equal(2, dependencies.length)
+        assert.equal(dependencies.length, 3)
         assert.equal(stats.hasErrors(), false);
         assert.equal(stats.hasWarnings(), false);
     });

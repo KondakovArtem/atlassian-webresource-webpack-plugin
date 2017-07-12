@@ -7,7 +7,7 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('asset-loading-via-js', function () {
+describe('css-and-assets-via-style-loader', function () {
     const config = require('./webpack.config.js');
 
     let stats;
@@ -39,7 +39,7 @@ describe('asset-loading-via-js', function () {
     it('should overwrite webpack output path to point to a wrm-resource', () => {
         // setup
         const bundleFile = fs.readFileSync(path.join(targetDir, 'app.js'), 'utf-8');
-        const expectedLine = `__WEBPACK_IMPORTED_MODULE_0_jquery___default.a('body').append(\`<div class="\${__WEBPACK_IMPORTED_MODULE_1__styles_css___default.a.wurst}"><div class="\${__WEBPACK_IMPORTED_MODULE_1__styles_css___default.a.tricky}"></div></div>\`);`;
+        const expectedLine = `__WEBPACK_IMPORTED_MODULE_0_jquery___default()('body').append(\`<div class="\${__WEBPACK_IMPORTED_MODULE_1__styles_css___default.a.wurst}"><div class="\${__WEBPACK_IMPORTED_MODULE_1__styles_css___default.a.tricky}"></div></div>\`);`;
 
         assert.ok(bundleFile.includes(expectedLine));
     });

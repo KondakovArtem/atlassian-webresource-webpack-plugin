@@ -7,7 +7,7 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('async-chunks', function () {
+describe('commons-chunks', function () {
     const config = require('./webpack.config.js');
 
     let stats;
@@ -51,11 +51,11 @@ describe('async-chunks', function () {
     it('should create a webresources with dependencies and resources as appropriate', () => {
         assert.ok(entryApp);
         assert.equal(resourceApp.length, 3);
-        assert.equal(dependencyApp.length, 1);
+        assert.equal(dependencyApp.length, 2);
 
         assert.ok(entryFoo);
         assert.equal(resourceFoo.length, 3);
-        assert.equal(dependencyFoo.length, 0);
+        assert.equal(dependencyFoo.length, 1);
 
         assert.equal(stats.hasErrors(), false);
         assert.equal(stats.hasWarnings(), false);
@@ -72,6 +72,6 @@ describe('async-chunks', function () {
     });
 
     it('should add dependencies as appropriate', () => {
-        assert.equal(dependencyApp[0], 'jira.webresources:jquery');
+        assert.equal(dependencyApp[1], 'jira.webresources:jquery');
     });
 });

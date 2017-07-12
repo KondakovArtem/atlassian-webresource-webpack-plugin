@@ -39,11 +39,11 @@ describe('async-chunks', function () {
     });
 
     it('should create a webresource for each async chunk', () => {
-        assert.ok(entry);
-        assert.ok(asyncChunk1);
-        assert.ok(asyncChunk2);
-        assert.equal(stats.hasErrors(), false);
-        assert.equal(stats.hasWarnings(), false);
+        assert.ok(entry, "entry does not exist");
+        assert.ok(asyncChunk1, "asyncChunk1 does not exist");
+        assert.ok(asyncChunk2, "asyncChunk2 does not exist");
+        assert.equal(stats.hasErrors(), false, "should not have errors");
+        assert.equal(stats.hasWarnings(), false, "should not have warnings");
     });
 
     it('should inject a WRM pre-condition checker into the webpack runtime', () => {
