@@ -21,13 +21,7 @@ const path = require('path');
 const uuidv4Gen = require('uuid/v4');
 const wrmUtils = require("./util/wrm-utils");
 const webpackUtils = require("./util/webpack-utils");
-const providedDependenciesObj = require("./providedDependencies");
 const ProvidedExternalModule = require("./ProvidedExternalModule");
-
-const providedDependencies = new Map();
-for (const dep of Object.keys(providedDependenciesObj)) {
-    providedDependencies.set(dep, providedDependenciesObj[dep]);
-}
 
 class WrmPlugin {
 
@@ -45,6 +39,7 @@ class WrmPlugin {
         this.options = Object.assign({
             conditionMap: {},
             contextMap: {},
+            providedDependencies: new Map(),
             verbose: true,
         }, options);
 
@@ -127,9 +122,9 @@ if (typeof AJS !== "undefined") {
                     normalModuleFactory.plugin("factory", factory => (data, callback) => {
                         const request = data.dependencies[0].request;
                         // get globally available libraries through wrm
-                        if (providedDependencies.has(request)) {
+                        if (that.options.providedDependencies.has(request)) {
                             that.verbose && console.log("plugging hole into request to %s, will be provided as a dependency through WRM", request);
-                            const p = providedDependencies.get(request);
+                            const p = that.options.providedDependencies.get(request);
                             callback(null, new ProvidedExternalModule(p.import, p.dependency));
                             return;
                         }
