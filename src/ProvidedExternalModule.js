@@ -9,8 +9,8 @@ const ExternalModule = require("webpack/lib/ExternalModule");
  * ProvidedExternalModule ensures that.
  */
 module.exports = class ProvidedExternalModule extends ExternalModule {
-    constructor(request, dependency) {
-        super(request, 'var');
+    constructor(request, dependency, type) {
+        super(request, type);
         this._request = request;
         this._dependency = dependency;
     }

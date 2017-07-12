@@ -119,12 +119,13 @@ if (typeof WRM !== "undefined") {
             params.normalModuleFactory.apply({
                 apply(normalModuleFactory) {
                     normalModuleFactory.plugin("factory", factory => (data, callback) => {
+                        const type = compiler.options.output.libraryTarget;
                         const request = data.dependencies[0].request;
                         // get globally available libraries through wrm
                         if (that.options.providedDependencies.has(request)) {
                             that.verbose && console.log("plugging hole into request to %s, will be provided as a dependency through WRM", request);
                             const p = that.options.providedDependencies.get(request);
-                            callback(null, new ProvidedExternalModule(p.import, p.dependency));
+                            callback(null, new ProvidedExternalModule(p.import, p.dependency, type));
                             return;
                         }
 
