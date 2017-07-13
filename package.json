@@ -19,13 +19,19 @@
     }
   ],
   "dependencies": {
-    "fs-finder": "^1.8.1",
-    "lodash": "^4.17.4"
+    "pretty-data": "^0.40.0",
+    "uuid": "^3.1.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",
+    "css-loader": "^0.28.4",
+    "extract-text-webpack-plugin": "^2.1.2",
+    "file-loader": "^0.11.2",
+    "jquery": "^3.2.1",
     "mocha": "^3.4.1",
-    "webpack": "^2.3.3",
+    "style-loader": "^0.18.2",
+    "underscore": "^1.8.3",
+    "webpack": "^3.2.0",
     "xml-parser": "^1.2.1"
   },
   "engines": {
