@@ -51,8 +51,8 @@ describe('asset-loading-via-js', function () {
     it('should overwrite webpack output path to point to a wrm-resource', () => {
         // setup
         const bundleFile = fs.readFileSync(path.join(targetDir, 'app.js'), 'utf-8');
-        const expected = `__webpack_require__.p = WRM.contextPath() + "/download/resources/com.atlassian.plugin.test:${assets.attributes.key}/";`;
-        const injectedLine = bundleFile.match(/__webpack_require__\.p = WRM.contextPath.*/)[0];
+        const expected = `__webpack_require__.p = require("wrm/context-path")() + "/download/resources/com.atlassian.plugin.test:${assets.attributes.key}/";`;
+        const injectedLine = bundleFile.match(/__webpack_require__\.p = require\("wrm\/contex.*/)[0];
 
         assert.equal(expected, injectedLine);
     });

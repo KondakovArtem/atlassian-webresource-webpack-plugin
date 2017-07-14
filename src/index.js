@@ -106,7 +106,7 @@ Not adding any path prefix - WRM will probably not be able to find your files!
             compilation.mainTemplate.plugin("require-extensions", function (standardScript) {
                 return `${standardScript}
 if (typeof WRM !== "undefined") {
-    ${this.requireFn}.p = WRM.contextPath() + "/download/resources/${that.options.pluginKey}:assets-${that.assetUUID}/";
+    ${this.requireFn}.p = require("wrm/context-path")() + "/download/resources/${that.options.pluginKey}:assets-${that.assetUUID}/";
 }
 `
             });
