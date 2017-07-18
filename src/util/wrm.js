@@ -69,6 +69,11 @@ exports.createResourceDescriptors = function (pathPrefix, jsonDescriptors) {
         }
     });
 
+    const testDescriptors = jsonDescriptors
+        .filter((descriptor) => descriptor.testFiles)
+        .map(descriptor => Object.assign({}, descriptor, {contexts: undefined, key: `__test__${descriptor.key}`, resources: descriptor.testFiles}))
+        .map(descriptor => createWebResource("", descriptor));
+
     const descriptorsStr = descriptors.join("\n\n");
-    return PrettyData.xml(`<bundles>\n${descriptorsStr}\n</bundles>`);
+    return PrettyData.xml(`<bundles>\n${descriptorsStr}\n${testDescriptors}</bundles>`);
 };

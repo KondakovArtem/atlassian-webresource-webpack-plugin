@@ -261,6 +261,32 @@ ${standardScript}`
             .map(dep => resourceToAssetMap.get(dep))
     }
 
+    extractAllFiles(chunks, context) {
+        function addModule(m, container) {
+            const deps = m.dependencies
+                .map(d => d.module)
+                .filter(Boolean)
+                .filter(m => m.resource)
+                .filter(m => !m.resource.includes("node_modules"))
+                .forEach(m => addModule(m, container));
+
+            if(m.resource && !m.resource.includes("node_modules")) {
+                container.add(path.relative(context, m.resource));
+            }
+        }
+
+        let dependencyTreeSet = new Set();
+        for(const chunk of chunks) {
+            for (const mod of chunk.modules) {
+                addModule(mod, dependencyTreeSet);
+            }
+
+            const subchunkSet = this.extractAllFiles(chunk.chunks, context);
+            dependencyTreeSet = new Set([...dependencyTreeSet, ...subchunkSet]);
+        }
+        return dependencyTreeSet;
+    }
+
     apply(compiler) {
 
         this.checkConfig(compiler);
@@ -288,6 +314,7 @@ ${standardScript}`
                 const webresourceKey = this._getWebresourceKeyForEntry(name);
                 const entrypointChunks = entryPointNames[name].chunks;
                 const additionalFileDeps = entrypointChunks.map(c => this.getDependencyResourcesFromChunk(c, resourceToAssetMap));
+                const testFiles = this.extractAllFiles(entrypointChunks, compiler.options.context);
                 return {
                     key: webresourceKey,
                     contexts: this._getContextForEntry(name),
@@ -295,6 +322,7 @@ ${standardScript}`
                     resources: Array.from(new Set([].concat(...entrypointChunks.map(c => c.files), ...additionalFileDeps))),
                     dependencies: baseContexts.concat(this.getDependencyForChunks(entrypointChunks)),
                     conditions: this._getConditionForEntry(name),
+                    testFiles: Array.from(testFiles)
                 };
             });
 
