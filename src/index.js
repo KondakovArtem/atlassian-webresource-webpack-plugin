@@ -15,6 +15,7 @@
 
 const assert = require("assert");
 const fs = require("fs");
+const glob = require("glob");
 const path = require('path');
 
 const uuidv4Gen = require('uuid/v4');
@@ -105,6 +106,28 @@ Not adding any path prefix - WRM will probably not be able to find your files!
         const withoutLeadingTrailingSeparators = pathPrefix.replace(new RegExp(`^\\${path.sep}|\\${path.sep}$`, 'g'), '');
         // readd trailing slash - this time OS independent always a "/"
         return withoutLeadingTrailingSeparators + "/";
+    }
+
+    getTestFiles(context) {
+        const testGlobs = this.options.__testGlobs__;
+
+        if(!testGlobs) {
+            return [];
+        }
+                
+        this.options.verbose && console.warn(`
+******************************************************************************
+The option "testGlobs" is only available to allow migrating old code. Consider
+this option deprecated and try to migrate your code to a proper JS-Testrunner.
+******************************************************************************
+`);
+        return testGlobs.map( g => glob.sync(g, {absolute: true})) // get all matching files
+            .reduce((_, _v, _i, files) => { // flatten them and make them unique
+                const uniqueFiles = new Set([].concat(...files));
+                files.length = 0;
+                return Array.from(uniqueFiles);
+            })
+            .map(file => path.relative(context, file)); // make them relative to the context
     }
 
     _getContextForEntry(entry) {
@@ -299,6 +322,8 @@ ${standardScript}`
         // When the compiler is about to emit files, we jump in to produce our resource descriptors for the WRM.
         compiler.plugin("emit", (compilation, callback) => {
 
+            const qunitTestFiles = this.getTestFiles(compiler.options.context);
+
             const assetFiles = Object.keys(compilation.assets)
                     .filter(p => !/\.(js|css|soy)(\.map)?$/.test(p));
 
@@ -340,7 +365,7 @@ ${standardScript}`
                 .concat(prodEntryPoints)
                 .concat(assets);
 
-            const xmlDescriptors = wrmUtils.createResourceDescriptors(this._extractPathPrefixForXml(compiler.options), wrmDescriptors);
+            const xmlDescriptors = wrmUtils.createResourceDescriptors(this._extractPathPrefixForXml(compiler.options), wrmDescriptors, qunitTestFiles);
             const xmlDescriptorWebpackPath = path.relative(compiler.options.output.path, this.options.xmlDescriptors);
             compilation.assets[xmlDescriptorWebpackPath] = {
                 source: () => new Buffer(xmlDescriptors),

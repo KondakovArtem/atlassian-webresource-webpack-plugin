@@ -60,7 +60,9 @@ function createWebResource(pathPrefix, resource) {
     `;
 }
 
-exports.createResourceDescriptors = function (pathPrefix, jsonDescriptors) {
+const createQunitResources = (filename) => `<resource type="qunit" name="${filename}" location="${filename}" />`;
+
+exports.createResourceDescriptors = function (pathPrefix, jsonDescriptors, testFiles) {
     const descriptors = jsonDescriptors.map((descriptor) => {
         // TODO: Introduce pluggability for web-resource conditions here.
         // e.g., Allow for ServiceDesk to inject their licensed condition, or for a devmode hotreload server condition.
@@ -74,6 +76,8 @@ exports.createResourceDescriptors = function (pathPrefix, jsonDescriptors) {
         .map(descriptor => Object.assign({}, descriptor, {contexts: undefined, key: `__test__${descriptor.key}`, resources: descriptor.testFiles}))
         .map(descriptor => createWebResource("", descriptor));
 
+    const quniteResources = testFiles.map(createQunitResources);
+
     const descriptorsStr = descriptors.join("\n\n");
-    return PrettyData.xml(`<bundles>\n${descriptorsStr}\n${testDescriptors}</bundles>`);
+    return PrettyData.xml(`<bundles>\n${descriptorsStr}\n${testDescriptors}${quniteResources}</bundles>`);
 };
