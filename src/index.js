@@ -24,6 +24,7 @@ const ProvidedExternalDependencyModule = require("./ProvidedExternalDependencyMo
 const WrmDependencyModule = require("./WrmDependencyModule");
 const WrmResourceModule = require("./WrmResourceModule");
 const baseContexts = require("./base-context");
+const qUnitRequireMock = require("./qunit-require-test-mock");
 
 class WrmPlugin {
 
@@ -62,6 +63,7 @@ class WrmPlugin {
         // generate an asset uuid per build - this is used to ensure we have a new "cache" for our assets per build.
         // As JIRA-Server does not "rebuild" too often, this can be considered reasonable.
         this.assetUUID = process.env.NODE_ENV === 'production' ? uuidv4Gen() : "DEV_PSEUDO_HASH";
+        this.qunitRequireMockPath = `qunit-require-test-mock-${uuidv4Gen()}.js`;
     }
 
     checkConfig(compiler) {
@@ -339,7 +341,9 @@ ${standardScript}`
                 const webresourceKey = this._getWebresourceKeyForEntry(name);
                 const entrypointChunks = entryPointNames[name].chunks;
                 const additionalFileDeps = entrypointChunks.map(c => this.getDependencyResourcesFromChunk(c, resourceToAssetMap));
-                const testFiles = this.extractAllFiles(entrypointChunks, compiler.options.context);
+                const testFiles = [
+                    `${this._extractPathPrefixForXml(compiler.options)}${this.qunitRequireMockPath}` // require mock to allow imports like "wr-dependency!context"
+                ].concat(Array.from(this.extractAllFiles(entrypointChunks, compiler.options.context)));
                 return {
                     key: webresourceKey,
                     contexts: this._getContextForEntry(name),
@@ -347,7 +351,7 @@ ${standardScript}`
                     resources: Array.from(new Set([].concat(...entrypointChunks.map(c => c.files), ...additionalFileDeps))),
                     dependencies: baseContexts.concat(this.getDependencyForChunks(entrypointChunks)),
                     conditions: this._getConditionForEntry(name),
-                    testFiles: Array.from(testFiles)
+                    testFiles
                 };
             });
 
@@ -371,6 +375,11 @@ ${standardScript}`
                 source: () => new Buffer(xmlDescriptors),
                 size: () => Buffer.byteLength(xmlDescriptors)
             };
+
+            compilation.assets[this.qunitRequireMockPath] = {
+                source: () => new Buffer(qUnitRequireMock),
+                size: () => Buffer.byteLength(qUnitRequireMock)
+            }
 
             callback();
         });
