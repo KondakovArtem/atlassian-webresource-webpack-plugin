@@ -20,6 +20,7 @@ const path = require('path');
 const uuidv4Gen = require('uuid/v4');
 const wrmUtils = require("./util/wrm");
 const ProvidedExternalModule = require("./ProvidedExternalModule");
+const ProvidedDllModule = require("./ProvidedDllModule");
 const baseContexts = require("./base-context");
 
 class WrmPlugin {
@@ -134,7 +135,7 @@ if (typeof AJS !== "undefined") {
                         if (loader) {
                             const res = request.substr(loader.length);
                             that.verbose && console.log("adding %s as a context dependency through WRM", res);
-                            callback(null, new ProvidedExternalModule(`{/* empty request for ${res} */}`, res));
+                            callback(null, new ProvidedDllModule(res, type));
                             return;
                         }
 
@@ -174,8 +175,10 @@ ${standardScript}`
     }
 
     _getExternalModules(chunk) {
-        debugger;
-        return chunk.getModules().filter(m => m instanceof ProvidedExternalModule).map(m => m.getDependency())
+        return chunk.getModules().filter(m => {
+            return m instanceof ProvidedExternalModule
+                || m instanceof ProvidedDllModule
+        }).map(m => m.getDependency())
     }
 
     getDependencyForChunks(chunks) {
