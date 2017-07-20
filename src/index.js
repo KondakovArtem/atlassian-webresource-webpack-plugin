@@ -130,9 +130,11 @@ if (typeof AJS !== "undefined") {
                         }
 
                         // make wrc imports happen
-                        if (request.startsWith("wrc!")) {
-                            that.verbose && console.log("adding %s as a context dependency through WRM", request.substr(4));
-                            callback(null, new ProvidedExternalModule(`{/* empty request for ${request.substr(4)} */}`, request.substr(4)));
+                        const loader = ["wrc!", "wr!"].find(loader => request.startsWith(loader));
+                        if (loader) {
+                            const res = request.substr(loader.length);
+                            that.verbose && console.log("adding %s as a context dependency through WRM", res);
+                            callback(null, new ProvidedExternalModule(`{/* empty request for ${res} */}`, res));
                             return;
                         }
 
@@ -172,6 +174,7 @@ ${standardScript}`
     }
 
     _getExternalModules(chunk) {
+        debugger;
         return chunk.getModules().filter(m => m instanceof ProvidedExternalModule).map(m => m.getDependency())
     }
 

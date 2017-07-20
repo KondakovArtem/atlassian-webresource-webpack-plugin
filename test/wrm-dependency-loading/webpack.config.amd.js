@@ -1,11 +1,11 @@
 const path = require('path');
 const WrmPlugin = require('../../src/index');
-const FRONTEND_SRC_DIR = path.join(__dirname, 'src');
+const FRONTEND_SRC_DIR = path.join(__dirname, 'src-amd');
 const OUTPUT_DIR = path.join(__dirname, 'target');
 
 module.exports = {
     entry: {
-        'app': path.join(FRONTEND_SRC_DIR, 'app.js')
+        'app-amd': path.join(FRONTEND_SRC_DIR, 'app.js')
     },
     plugins: [
         new WrmPlugin({
