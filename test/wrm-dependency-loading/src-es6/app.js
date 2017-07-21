@@ -1,7 +1,6 @@
 import $ from 'jquery';
-import "wr!some.weird:web-resource";
-import "wr!foo-bar:baz";
-import "wrc!this-is-actually-a-context-whoops";
+import "wr-dependency!some.weird:web-resource";
+import "wr-dependency!foo-bar:baz";
 
 $(() => {
     $('body').html("hello world");

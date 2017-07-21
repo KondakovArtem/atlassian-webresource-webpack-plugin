@@ -1,3 +1,3 @@
 import $ from 'jquery';
-import 'wr!a.plugin.key:webresource-key';
+import 'wr-dependency!a.plugin.key:webresource-key';
 import _ from 'underscore';

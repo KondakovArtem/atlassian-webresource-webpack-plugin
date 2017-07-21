@@ -130,8 +130,8 @@ if (typeof AJS !== "undefined") {
                             return;
                         }
 
-                        // make wrc imports happen
-                        const loader = ["wrc!", "wr!"].find(loader => request.startsWith(loader));
+                        // import web-resources we find dependencies static import statements for
+                        const loader = ["wr-dependency!"].find(loader => request.startsWith(loader));
                         if (loader) {
                             const res = request.substr(loader.length);
                             that.verbose && console.log("adding %s as a context dependency through WRM", res);

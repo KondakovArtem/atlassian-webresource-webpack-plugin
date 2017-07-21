@@ -49,10 +49,6 @@ describe('wrm-dependency-loading', function () {
             assert.include(dependencies, 'some.weird:web-resource');
             assert.include(dependencies, 'foo-bar:baz');
         });
-
-        it('[legacy] assumes someone meant "wr!" if they typed "wrc!" for their web-resource dependency', () => {
-            assert.include(dependencies, 'this-is-actually-a-context-whoops');
-        });
     }
 
     describe('in ES6 modules', function () {
