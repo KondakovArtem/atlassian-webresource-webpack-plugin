@@ -214,7 +214,7 @@ added to the generated web-resource.
 
 This plugin has been built to work with the following versions of the external build tools:
 
-* Webpack 2+
+* Webpack 3+
 * Node 6+ (at P2 plugin build-time)
 * Atlassian Maven Plugin Suite (AMPS) 6.2.11+
 
