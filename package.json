@@ -36,7 +36,8 @@
     "xml-parser": "^1.2.1"
   },
   "peerDependencies": {
-    "webpack": ">=3"
+    "webpack": "^3",
+    "webpack-sources": "^1.0.1"
   },
   "engines": {
     "node": ">=6.9.0",
