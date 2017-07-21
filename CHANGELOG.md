@@ -1,4 +1,8 @@
-## 0.2.0 (July 19, 2017)
+## 0.2.1 (July 21, 2017)
+
+* Stop `wr-dependency!` import statements from throwing JavaScript exceptions (fixes #11)
+
+## 0.2.0 (July 21, 2017)
 
 Thanks to [@timse2](https://bitbucket.org/timse2), the plugin has been re-implemented in order to introduce a bunch of sweet behaviours!
 
