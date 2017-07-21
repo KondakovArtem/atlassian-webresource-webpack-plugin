@@ -1,8 +1,11 @@
-const assert = require('assert');
+const chai = require('chai');
+const assert = chai.assert;
 const parse = require('xml-parser');
 const webpack = require('webpack');
 const fs = require('fs');
 const path = require('path');
+
+chai.use(require('chai-string'));
 
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
@@ -39,20 +42,20 @@ describe('provided-modules-replacement', function () {
     it('should create a webresource with dependencies for each async chunk', () => {
         assert.ok(entry);
         assert.ok(dependencies);
-        assert.equal(dependencies.length, 3)
         assert.equal(stats.hasErrors(), false);
         assert.equal(stats.hasWarnings(), false);
     });
 
     it('add a dependency for the provided module to the webresource', () => {
-        assert.ok(dependencies.includes('jira.webresources:jquery'));
-        assert.ok(dependencies.includes('com.atlassian.plugin.jslibs:underscore-1.4.4'));
+        assert.include(dependencies, 'jira.webresources:jquery');
+        assert.include(dependencies, 'com.atlassian.plugin.jslibs:underscore-1.4.4');
+        assert.include(dependencies, 'a.plugin.key:webresource-key');
     });
 
     it('should specify the provided dependencies as proper amd dependencies', () => {
         // setup
         const bundleFile = fs.readFileSync(path.join(targetDir, 'app.js'), 'utf-8');
 
-        assert.ok(bundleFile.startsWith(`define(["jquery","underscore"],`));
+        assert.startsWith(bundleFile, `define(["jquery","underscore"],`);
     });
 });

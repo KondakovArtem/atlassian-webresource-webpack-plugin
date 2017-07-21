@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('chai').assert;
 const parse = require('xml-parser');
 const webpack = require('webpack');
 const fs = require('fs');
@@ -39,13 +39,13 @@ describe('provided-modules-replacement', function () {
     it('should create a webresource with dependencies for each async chunk', () => {
         assert.ok(entry);
         assert.ok(dependencies);
-        assert.equal(dependencies.length, 3)
         assert.equal(stats.hasErrors(), false);
         assert.equal(stats.hasWarnings(), false);
     });
 
     it('add a dependency for the provided module to the webresource', () => {
-        assert.ok(dependencies.includes('jira.webresources:jquery'));
-        assert.ok(dependencies.includes('com.atlassian.plugin.jslibs:underscore-1.4.4'));
+        assert.include(dependencies, 'jira.webresources:jquery');
+        assert.include(dependencies, 'com.atlassian.plugin.jslibs:underscore-1.4.4');
+        assert.include(dependencies, 'a.plugin.key:webresource-key');
     });
 });

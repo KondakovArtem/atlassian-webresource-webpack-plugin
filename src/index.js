@@ -20,6 +20,7 @@ const path = require('path');
 const uuidv4Gen = require('uuid/v4');
 const wrmUtils = require("./util/wrm");
 const ProvidedExternalModule = require("./ProvidedExternalModule");
+const ProvidedDllModule = require("./ProvidedDllModule");
 const baseContexts = require("./base-context");
 
 class WrmPlugin {
@@ -129,10 +130,12 @@ if (typeof AJS !== "undefined") {
                             return;
                         }
 
-                        // make wrc imports happen
-                        if (request.startsWith("wrc!")) {
-                            that.verbose && console.log("adding %s as a context dependency through WRM", request.substr(4));
-                            callback(null, new ProvidedExternalModule(`{/* empty request for ${request.substr(4)} */}`, request.substr(4)));
+                        // import web-resources we find dependencies static import statements for
+                        const loader = ["wr-dependency!"].find(loader => request.startsWith(loader));
+                        if (loader) {
+                            const res = request.substr(loader.length);
+                            that.verbose && console.log("adding %s as a context dependency through WRM", res);
+                            callback(null, new ProvidedDllModule(res, type));
                             return;
                         }
 
@@ -172,7 +175,10 @@ ${standardScript}`
     }
 
     _getExternalModules(chunk) {
-        return chunk.getModules().filter(m => m instanceof ProvidedExternalModule).map(m => m.getDependency())
+        return chunk.getModules().filter(m => {
+            return m instanceof ProvidedExternalModule
+                || m instanceof ProvidedDllModule
+        }).map(m => m.getDependency())
     }
 
     getDependencyForChunks(chunks) {
