@@ -8,8 +8,6 @@ const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
 describe('provided-modules-replacement', function () {
-    const config = require('./webpack.config.js');
-
     let stats;
     let error;
     let entry;
@@ -23,7 +21,7 @@ describe('provided-modules-replacement', function () {
         return nodes.map(node => node.content);
     }
 
-    beforeEach((done) => {
+    function runWebpack(config, done) {
         webpack(config, (err, st) => {
             error = err;
             stats = st;
@@ -34,18 +32,32 @@ describe('provided-modules-replacement', function () {
             dependencies = getContent(getDependencies(entry));
             done();
         });
+    }
+
+    function runTheTestsFor(config) {
+        beforeEach((done) => runWebpack(config, done));
+
+        it('should create a webresource with dependencies for each async chunk', () => {
+            assert.ok(entry);
+            assert.ok(dependencies);
+            assert.equal(stats.hasErrors(), false);
+            assert.equal(stats.hasWarnings(), false);
+        });
+
+        it('add a dependency for the provided module to the webresource', () => {
+            assert.include(dependencies, 'jira.webresources:jquery');
+            assert.include(dependencies, 'com.atlassian.plugin.jslibs:underscore-1.4.4');
+            assert.include(dependencies, 'a.plugin.key:webresource-key');
+        });
+    }
+
+    describe('using a map', () => {
+        const config = require('./webpack.config.with-map.js');
+        runTheTestsFor(config);
     });
 
-    it('should create a webresource with dependencies for each async chunk', () => {
-        assert.ok(entry);
-        assert.ok(dependencies);
-        assert.equal(stats.hasErrors(), false);
-        assert.equal(stats.hasWarnings(), false);
-    });
-
-    it('add a dependency for the provided module to the webresource', () => {
-        assert.include(dependencies, 'jira.webresources:jquery');
-        assert.include(dependencies, 'com.atlassian.plugin.jslibs:underscore-1.4.4');
-        assert.include(dependencies, 'a.plugin.key:webresource-key');
+    describe('using a plain object', () => {
+        const config = require('./webpack.config.with-object.js');
+        runTheTestsFor(config);
     });
 });

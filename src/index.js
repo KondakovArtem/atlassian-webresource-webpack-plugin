@@ -36,6 +36,18 @@ class WrmPlugin {
         assert(options.pluginKey, `Option [String] "pluginKey" not specified. You must specify a valid fully qualified plugin key. e.g.: com.atlassian.jira.plugins.my-jira-plugin`);
         assert(options.xmlDescriptors, `Option [String] "xmlDescriptors" not specified. You must specify the path to the directory where this plugin stores the descriptors about this plugin, used by the WRM to load your frontend code. This should point somewhere in the "target/classes" directory.`);
         assert(path.isAbsolute(options.xmlDescriptors), `Option [String] "xmlDescriptors" must be absolute!`);
+
+        // convert providedDependencies object to map
+        if (typeof options.providedDependencies === 'object' && !(options.providedDependencies instanceof Map)) {
+            const deps = options.providedDependencies;
+            const map = new Map();
+            Object.keys(deps).forEach((key) => {
+                map.set(key, deps[key]);
+            });
+            options.providedDependencies = map;
+        }
+
+        // pull out our options
         this.options = Object.assign({
             conditionMap: {},
             contextMap: {},
