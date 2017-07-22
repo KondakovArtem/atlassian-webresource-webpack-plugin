@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('chai').assert;
 const parse = require('xml-parser');
 const webpack = require('webpack');
 const fs = require('fs');
@@ -41,6 +41,6 @@ describe('css-and-assets-via-style-loader', function () {
         const bundleFile = fs.readFileSync(path.join(targetDir, 'app.js'), 'utf-8');
         const expectedLine = `__WEBPACK_IMPORTED_MODULE_0_jquery___default()('body').append(\`<div class="\${__WEBPACK_IMPORTED_MODULE_1__styles_css___default.a.wurst}"><div class="\${__WEBPACK_IMPORTED_MODULE_1__styles_css___default.a.tricky}"></div></div>\`);`;
 
-        assert.ok(bundleFile.includes(expectedLine));
+        assert.include(bundleFile, expectedLine);
     });
 });

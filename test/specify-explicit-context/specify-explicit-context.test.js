@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('chai').assert;
 const parse = require('xml-parser');
 const webpack = require('webpack');
 const fs = require('fs');
@@ -45,8 +45,8 @@ describe('specify-explicit-context', function () {
     });
 
     it('add additional contexts as specified in the contextMap', () => {
-        assert.ok(contexts.includes('some:weird:context'));
-        assert.ok(contexts.includes('foo:bar'));
-        assert.ok(contexts.includes('app'));
+        assert.include(contexts, 'some:weird:context');
+        assert.include(contexts, 'foo:bar');
+        assert.include(contexts, 'app');
     });
 });

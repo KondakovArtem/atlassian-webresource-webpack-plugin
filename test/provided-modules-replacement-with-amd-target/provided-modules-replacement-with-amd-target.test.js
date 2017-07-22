@@ -55,7 +55,8 @@ describe('provided-modules-replacement', function () {
     it('should specify the provided dependencies as proper amd dependencies', () => {
         // setup
         const bundleFile = fs.readFileSync(path.join(targetDir, 'app.js'), 'utf-8');
+        const bundleLines = bundleFile.split("\n");
 
-        assert.startsWith(bundleFile, `define(["jquery","underscore"],`);
+        assert.startsWith(bundleLines[0], `define(["jquery","underscore"],`);
     });
 });

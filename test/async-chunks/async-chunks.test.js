@@ -1,4 +1,4 @@
-const assert = require('assert');
+const assert = require('chai').assert;
 const parse = require('xml-parser');
 const webpack = require('webpack');
 const fs = require('fs');
