@@ -73,11 +73,13 @@ exports.createResourceDescriptors = function (pathPrefix, jsonDescriptors, testF
 
     const testDescriptors = jsonDescriptors
         .filter((descriptor) => descriptor.testFiles)
-        .map(descriptor => Object.assign({}, descriptor, {contexts: undefined, key: `__test__${descriptor.key}`, resources: descriptor.testFiles}))
+        .map(descriptor => Object.assign({}, descriptor, {resources: undefined, contexts: undefined, key: `__test__${descriptor.key}`, externalResources: descriptor.testFiles, dependencies: descriptor.testDependencies}))
         .map(descriptor => createWebResource("", descriptor));
+        
 
     const quniteResources = testFiles.map(createQunitResources);
 
     const descriptorsStr = descriptors.join("\n\n");
-    return PrettyData.xml(`<bundles>\n${descriptorsStr}\n${testDescriptors}${quniteResources}</bundles>`);
+    const testDescriptorsStr = testDescriptors.join("");
+    return PrettyData.xml(`<bundles>\n${descriptorsStr}\n${testDescriptorsStr}${quniteResources}</bundles>`);
 };

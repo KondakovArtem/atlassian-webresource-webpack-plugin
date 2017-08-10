@@ -26,6 +26,7 @@ const WrmResourceModule = require("./WrmResourceModule");
 const baseContexts = require("./base-context");
 const qUnitRequireMock = require("./qunit-require-test-mock");
 
+const RESOURCE_JOINER = "__RESOURCE__JOINER__";
 class WrmPlugin {
 
     /**
@@ -247,6 +248,19 @@ ${standardScript}`
         return Array.from(externalDeps);
     }
 
+    extractAllDependencies(chunks) {
+        let dependencyTreeSet = new Set();
+        for(const chunk of chunks) {
+            // filter out "runtime" chunk
+            if (chunk.getModules().length > 0) {
+                const subchunkSet = this.extractAllDependencies(chunk.chunks);
+                dependencyTreeSet = new Set([...dependencyTreeSet, ...subchunkSet]);
+            }
+        }
+        dependencyTreeSet = new Set([...dependencyTreeSet, ...this.getDependencyForChunks(chunks)]);
+        return dependencyTreeSet;
+    }
+
     _getExternalResourceModules(chunk) {
         return chunk.getModules().filter(m => m instanceof WrmResourceModule).map(m => m.getResourcePair())
     }
@@ -291,23 +305,37 @@ ${standardScript}`
             const deps = m.dependencies
                 .map(d => d.module)
                 .filter(Boolean)
-                .filter(m => m.resource)
-                .filter(m => !m.resource.includes("node_modules"))
+                .filter(m => {
+                    if(m.resource) return true;
+                    if(m instanceof WrmResourceModule) {
+                        return true;
+                    }
+                    return false;
+                })
+                .filter(m => !m.resource || !m.resource.includes("node_modules"))
                 .forEach(m => addModule(m, container));
 
             if(m.resource && !m.resource.includes("node_modules")) {
-                container.add(path.relative(context, m.resource));
+                const reference = path.relative(context, m.resource);
+                container.add(reference);
+            }
+
+            if(m instanceof WrmResourceModule) {
+                container.add(m.getResourcePair().join(RESOURCE_JOINER));
             }
         }
 
         let dependencyTreeSet = new Set();
         for(const chunk of chunks) {
+            // filter out "runtime" chunk
+            if (chunk.getModules().length > 0) {
+                const subchunkSet = this.extractAllFiles(chunk.chunks, context);
+                dependencyTreeSet = new Set([...dependencyTreeSet, ...subchunkSet]);
+            }
+
             for (const mod of chunk.modules) {
                 addModule(mod, dependencyTreeSet);
             }
-
-            const subchunkSet = this.extractAllFiles(chunk.chunks, context);
-            dependencyTreeSet = new Set([...dependencyTreeSet, ...subchunkSet]);
         }
         return dependencyTreeSet;
     }
@@ -341,9 +369,17 @@ ${standardScript}`
                 const webresourceKey = this._getWebresourceKeyForEntry(name);
                 const entrypointChunks = entryPointNames[name].chunks;
                 const additionalFileDeps = entrypointChunks.map(c => this.getDependencyResourcesFromChunk(c, resourceToAssetMap));
+                const extractedTestResources = Array.from(this.extractAllFiles(entrypointChunks, compiler.options.context))
+                    .map(resource => {
+                        if (resource.includes(RESOURCE_JOINER)) {
+                            return resource.split(RESOURCE_JOINER);
+                        }
+                        return [resource, resource];
+                    })
                 const testFiles = [
-                    `${this._extractPathPrefixForXml(compiler.options)}${this.qunitRequireMockPath}` // require mock to allow imports like "wr-dependency!context"
-                ].concat(Array.from(this.extractAllFiles(entrypointChunks, compiler.options.context)));
+                    [`${this._extractPathPrefixForXml(compiler.options)}${this.qunitRequireMockPath}`, `${this._extractPathPrefixForXml(compiler.options)}${this.qunitRequireMockPath}`] // require mock to allow imports like "wr-dependency!context"
+                ].concat(extractedTestResources);
+                const testDependencies = Array.from(this.extractAllDependencies(entrypointChunks));
                 return {
                     key: webresourceKey,
                     contexts: this._getContextForEntry(name),
@@ -351,7 +387,8 @@ ${standardScript}`
                     resources: Array.from(new Set([].concat(...entrypointChunks.map(c => c.files), ...additionalFileDeps))),
                     dependencies: baseContexts.concat(this.getDependencyForChunks(entrypointChunks)),
                     conditions: this._getConditionForEntry(name),
-                    testFiles
+                    testFiles,
+                    testDependencies
                 };
             });
 
