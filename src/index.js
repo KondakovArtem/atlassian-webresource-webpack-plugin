@@ -112,10 +112,11 @@ Not adding any path prefix - WRM will probably not be able to find your files!
     }
 
     _getWebresourceKeyForEntry(entry) {
-        if (!this.options.webresourceKeyMap[entry]) {
+        const wrKey = this.options.webresourceKeyMap[entry];
+        if (!wrKey || typeof wrKey !== 'string') {
             return `entrypoint-${entry}`;
         }
-        return this.options.webresourceKeyMap[entry];
+        return wrKey;
     }
 
     _getConditionForEntry(entry) {

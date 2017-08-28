@@ -5,14 +5,19 @@ const OUTPUT_DIR = path.join(__dirname, 'target');
 
 module.exports = {
     entry: {
-        'app': path.join(FRONTEND_SRC_DIR, 'app.js')
+        'app-good-mapped-with-string': path.join(FRONTEND_SRC_DIR, 'app.js'),
+        'app-good-autonamed': path.join(FRONTEND_SRC_DIR, 'app.js'),
+        'app-bad-objectlike': path.join(FRONTEND_SRC_DIR, 'app.js'),
+        'app-bad-falsy': path.join(FRONTEND_SRC_DIR, 'app.js'),
     },
     plugins: [
         new WrmPlugin({
             pluginKey: 'com.atlassian.plugin.test',
             xmlDescriptors: path.join(OUTPUT_DIR, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml'),
             webresourceKeyMap: {
-                app: "legacy-name-for-app"
+                'app-good-mapped-with-string': 'legacy-name-for-app',
+                'app-bad-objectlike': {},
+                'app-bad-falsy': ''
             },
             verbose: false,
         }),
