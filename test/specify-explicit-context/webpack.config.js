@@ -5,14 +5,23 @@ const OUTPUT_DIR = path.join(__dirname, 'target');
 
 module.exports = {
     entry: {
-        'app': path.join(FRONTEND_SRC_DIR, 'app.js')
+        'app-good-newcontexts': path.join(FRONTEND_SRC_DIR, 'app.js'),
+        'app-good-implicit': path.join(FRONTEND_SRC_DIR, 'app.js'),
+        'app-bad-emptyarray': path.join(FRONTEND_SRC_DIR, 'app.js'),
+        'app-bad-emptyvalues': path.join(FRONTEND_SRC_DIR, 'app.js'),
+        'app-bad-objectlike': path.join(FRONTEND_SRC_DIR, 'app.js'),
+        'app-bad-falsy': path.join(FRONTEND_SRC_DIR, 'app.js'),
     },
     plugins: [
         new WrmPlugin({
             pluginKey: 'com.atlassian.plugin.test',
             xmlDescriptors: path.join(OUTPUT_DIR, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml'),
             contextMap: {
-                app: ["some:weird:context", "foo:bar"]
+                'app-good-newcontexts': ['some:weird:context', 'foo.bar'],
+                'app-bad-emptyarray': [],
+                'app-bad-emptyvalues': [false, '', undefined, 'foo.bar'],
+                'app-bad-objectlike': {},
+                'app-bad-falsy': '',
             },
             verbose: false,
         }),

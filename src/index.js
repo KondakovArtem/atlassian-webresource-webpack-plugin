@@ -105,10 +105,9 @@ Not adding any path prefix - WRM will probably not be able to find your files!
     }
 
     _getContextForEntry(entry) {
-        if (!this.options.contextMap[entry]) {
-            return [entry];
-        }
-        return this.options.contextMap[entry].concat(entry);
+        let contexts = [].concat(entry).concat(this.options.contextMap[entry]);
+        let validContexts = contexts.filter(context => context && typeof context === 'string');
+        return validContexts;
     }
 
     _getWebresourceKeyForEntry(entry) {
