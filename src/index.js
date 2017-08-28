@@ -26,10 +26,11 @@ const baseContexts = require("./base-context");
 class WrmPlugin {
 
     /**
-     * 
+     *
      * @param {Object} options - options passed to WRMPlugin
      * @param {String} options.pluginKey - The fully qualified plugin key. e.g.: com.atlassian.jira.plugins.my-jira-plugin
      * @param {String} options.contextMap - One or more "context"s to which an entrypoint will be added. e.g.: {\n\t"my-entry": ["my-plugin-context"]\n}
+     * @param {String} options.webresourceKeyMap - Optional map of an explicit name for the web-resource generated per entry point. e.g.: {\n\t"my-entry": "legacy-webresource-name"\n}
      * @param {String} options.xmlDescriptors - Path to the directory where this plugin stores the descriptors about this plugin, used by the WRM to load your frontend code.
      */
     constructor(options = {}) {
@@ -51,11 +52,12 @@ class WrmPlugin {
         this.options = Object.assign({
             conditionMap: {},
             contextMap: {},
+            webresourceKeyMap: {},
             providedDependencies: new Map(),
             verbose: true,
         }, options);
 
-        // generate an asset uuid per build - this is used to ensure we have a new "cache" for our assets per build. 
+        // generate an asset uuid per build - this is used to ensure we have a new "cache" for our assets per build.
         // As JIRA-Server does not "rebuild" too often, this can be considered reasonable.
         this.assetUUID = process.env.NODE_ENV === 'production' ? uuidv4Gen() : "DEV_PSEUDO_HASH";
     }
@@ -95,7 +97,7 @@ Not adding any path prefix - WRM will probably not be able to find your files!
 `);
             return '';
         }
-        
+
         // remove leading/trailing path separator
         const withoutLeadingTrailingSeparators = pathPrefix.replace(new RegExp(`^\\${path.sep}|\\${path.sep}$`, 'g'), '');
         // readd trailing slash - this time OS independent always a "/"
@@ -107,6 +109,13 @@ Not adding any path prefix - WRM will probably not be able to find your files!
             return [entry];
         }
         return this.options.contextMap[entry].concat(entry);
+    }
+
+    _getWebresourceKeyForEntry(entry) {
+        if (!this.options.webresourceKeyMap[entry]) {
+            return `entrypoint-${entry}`;
+        }
+        return this.options.webresourceKeyMap[entry];
     }
 
     _getConditionForEntry(entry) {
@@ -221,14 +230,15 @@ ${standardScript}`
             const assets = {
                 key: `assets-${this.assetUUID}`,
                 resources: assetFiles,
-            }
+            };
 
             const entryPointNames = compilation.entrypoints;
             // Used in prod
             const prodEntryPoints = Object.keys(entryPointNames).map(name => {
                 const entrypointChunks = entryPointNames[name].chunks;
+                const webresourceKey = this._getWebresourceKeyForEntry(name);
                 return {
-                    key: `entrypoint-${name}`,
+                    key: webresourceKey,
                     contexts: this._getContextForEntry(name),
                     resources: Array.from(new Set([].concat(...entrypointChunks.map(c => c.files), ...assetFiles))),
                     dependencies: baseContexts.concat(this.getDependencyForChunks(entrypointChunks)),
