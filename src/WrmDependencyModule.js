@@ -1,22 +1,12 @@
-const DllModule = require("webpack/lib/DllModule");
-const RawSource = require("webpack-sources").RawSource;
+const EmptyExportsModule = require("./EmptyExportsModule");
 
-module.exports = class extends DllModule {
+module.exports = class extends EmptyExportsModule {
     constructor(dependency, type) {
-        super(null, [], dependency, type);
+        super(dependency, type);
         this._dependency = dependency;
-    }
-
-    chunkCondition() {
-        return true;
-    }
-
-    source() {
-        return new RawSource("module.exports = undefined;");
     }
 
     getDependency() {
         return this._dependency;
     }
-
-}
+};
