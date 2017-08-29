@@ -1,9 +1,18 @@
-const ProvidedDllModule = require("./ProvidedDllModule");
+const DllModule = require("webpack/lib/DllModule");
+const RawSource = require("webpack-sources").RawSource;
 
-module.exports = class ProvidedExternalResourceModule extends ProvidedDllModule {
+module.exports = class ProvidedExternalResourceModule extends DllModule {
     constructor(resourceNameAndLocationPair, target) {
-        super(null, target);
+        super(null, [], resourceNameAndLocationPair, target);
         this._resource = resourceNameAndLocationPair.split('!');
+    }
+
+    chunkCondition() {
+        return true;
+    }
+
+    source() {
+        return new RawSource("module.exports = undefined;");
     }
 
     getResourcePair() {
