@@ -231,13 +231,13 @@ as when you refactor an existing feature (and its web-resource) to be generated 
 An map of objects that let you associate what web-resources house particular external JS dependencies.
 The format of an external dependency mapping is as follows:
 
-```js
+```json
 {
-  'dependency-name': {
-    dependency: "atlassian.plugin.key:webresource-key",
-    import: {
-      var: "require('dependency-amd-module-name')",
-      amd: "dependency-amd-module-name"
+  "dependency-name": {
+    "dependency": "atlassian.plugin.key:webresource-key",
+    "import": {
+      "var": "require('dependency-amd-module-name')",
+      "amd": "dependency-amd-module-name"
     }
   }
 }
@@ -261,8 +261,10 @@ This plugin has been built to work with the following versions of the external b
 
 #### Prerequisites
 
-* [node](https://nodejs.org/) version should be 6 or above (to check `node -v`)
-* [yarn](https://yarnpkg.com/) should be installed globally (`npm install -g yarn@0.23.1`)
+* [node](https://nodejs.org/) version should be 6 or above
+  (follow the [Node installation instructions][102]; check with `node -v`)
+* [yarn](https://yarnpkg.com/) should be installed globally
+  (follow the [Yarn installation instructions][103]; check with `yarn --version`)
 
 ## Work to do
 
@@ -276,3 +278,5 @@ This is still beta software. The following features are planned:
 
 
 [101]: https://bitbucket.org/serverecosystem/sao4fed-bundle-the-ui
+[102]: https://docs.npmjs.com/getting-started/installing-node
+[103]: https://yarnpkg.com/lang/en/docs/install/
