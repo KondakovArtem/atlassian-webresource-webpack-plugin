@@ -12,8 +12,11 @@ describe('specify-explicit-context', function () {
 
     let stats;
     let error;
-    let entry;
-    let contexts;
+    let wrNodes;
+
+    function getWebresourceLike(needle) {
+        return wrNodes.find(node => node.attributes.key.indexOf(needle) > -1);
+    }
 
     function getContexts(node) {
         return node.children.filter(node => node.name === "context")
@@ -30,23 +33,58 @@ describe('specify-explicit-context', function () {
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            entry = results.root.children.find(node => node.attributes.key.startsWith("entry"));
-            contexts = getContent(getContexts(entry));
+            wrNodes = results.root.children.filter(node => node.attributes.key.startsWith("entry"));
             done();
         });
     });
 
-    it('should create a webresource', () => {
-        assert.ok(entry);
-        assert.ok(contexts);
-        assert.equal(3, contexts.length)
+    it('should run without error', () => {
+        assert.ok(wrNodes);
         assert.equal(stats.hasErrors(), false);
         assert.equal(stats.hasWarnings(), false);
     });
 
-    it('add additional contexts as specified in the contextMap', () => {
+    it('should add additional contexts as specified in the contextMap', () => {
+        const wrWithGoodConfig = getWebresourceLike('good-newcontexts');
+        const contexts = getContent(getContexts(wrWithGoodConfig));
+        assert.ok(contexts);
+        assert.equal(3, contexts.length);
         assert.include(contexts, 'some:weird:context');
-        assert.include(contexts, 'foo:bar');
-        assert.include(contexts, 'app');
+        assert.include(contexts, 'foo.bar');
+        assert.include(contexts, 'app-good-newcontexts');
     });
+
+    it('should add the entrypoint name as a context when there is no contextMap config for it', () => {
+        const wrWithImplicitConfig = getWebresourceLike('good-implicit');
+        const contexts = getContent(getContexts(wrWithImplicitConfig));
+        assert.ok(contexts);
+        assert.equal(1, contexts.length);
+        assert.include(contexts, 'app-good-implicit');
+    });
+
+    it('should ignore non-array configuration values gracefully', () => {
+        const wrWithBadConfig = getWebresourceLike('bad-objectlike');
+        const contexts = getContent(getContexts(wrWithBadConfig));
+        assert.ok(contexts);
+        assert.equal(1, contexts.length);
+        assert.include(contexts, 'app-bad-objectlike');
+    });
+
+    it('should ignore falsy configuration values gracefully', () => {
+        const wrWithBadConfig = getWebresourceLike('bad-falsy');
+        const contexts = getContent(getContexts(wrWithBadConfig));
+        assert.ok(contexts);
+        assert.equal(1, contexts.length);
+        assert.include(contexts, 'app-bad-falsy');
+    });
+
+    it('should ignore non-string context names gracefully', () => {
+        const wrWithBadValues = getWebresourceLike('bad-emptyvalues');
+        const contexts = getContent(getContexts(wrWithBadValues));
+        assert.ok(contexts);
+        assert.equal(2, contexts.length);
+        assert.include(contexts, 'app-bad-emptyvalues');
+        assert.include(contexts, 'foo.bar');
+    });
+
 });

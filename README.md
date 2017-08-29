@@ -128,6 +128,36 @@ product's runtime.
 
 In other words, there's practically no effort on your part to make your critical path small :)
 
+### Flexible generation of `web-resource` definitions
+
+By default, a generated web-resource will have:
+
+* A key based on the name of your webpack entry-point, and
+* Will be included in a `<context>` named after your entry-point.
+
+For example, an entry point named "my-feature" will yield a web-resource like this:
+
+```xml
+<web-resource key="entrypoint-my-feature">
+  <context>my-feature</context>
+  <!-- the resources for your entry-point -->
+</web-resource>
+```
+
+For new code, this should be enough to get your feature loading in to a place you want it to in your
+plugin or product -- assuming the appropriate call on the server-side is made to include your web-resource.
+
+Sometimes, in order to ensure your code loads when it's expected to, you will need to override
+the values generated for you. To do this, when defining the `WrmPlugin`'s config, you can provide either:
+
+* A `webresourceKeyMap` to change the web-resource's key to whatever you need it to be, or
+* A `contextMap` to include the web-resource in any number of web-resource contexts you expect it to load in to.
+
+It's most likely that you'll want to specify additional contexts for a web-resource to load in to. When
+all of your web-resources are automatically generated and loaded via contexts, there is no need to know its key. You
+would typically provide your own web-resource key when refactoring old code to Webpack, in order to keep
+the dependencies working in any pre-existing code.
+
 ### Module-mapping to `web-resource`s
 
 If you use a common library or module -- for example, 'jquery' or 'backbone' -- and you know
@@ -189,6 +219,13 @@ should be present in what web-resource contexts at an Atlassian product runtime.
 
 You can provide either a single web-resource context as a string, or an array of context strings.
 
+### `webresourceKeyMap` (Optional)
+
+Allows you to change the name of the web-resource that is generated for a given webpack entry-point.
+
+This is useful when you expect other plugins will need to depend on your auto-generated web-resources directly, such
+as when you refactor an existing feature (and its web-resource) to be generated via Webpack.
+
 ### `providedDependencies` (Optional)
 
 An map of objects that let you associate what web-resources house particular external JS dependencies.
@@ -231,7 +268,6 @@ This plugin has been built to work with the following versions of the external b
 
 This is still beta software. The following features are planned:
 
-* Generating web-resources with specific names (#9)
 * Exporting re-consumable modules within generated web-resources (#10)
 * Conversion of `WRM.require` calls in source to async chunk calls (#5)
 * Support for adding web-resource conditions (#2)
