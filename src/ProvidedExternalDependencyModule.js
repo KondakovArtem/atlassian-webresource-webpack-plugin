@@ -8,9 +8,9 @@ const ExternalModule = require("webpack/lib/ExternalModule");
  * have their own dependencies to make the entrypoint as small as possible.
  * ProvidedExternalModule ensures that.
  */
-module.exports = class ProvidedExternalModule extends ExternalModule {
-    constructor(request, dependency, type) {
-        super(request, type);
+module.exports = class ProvidedExternalDependencyModule extends ExternalModule {
+    constructor(request, dependency, target) {
+        super(request, target);
         this._request = request;
         this._dependency = dependency;
     }

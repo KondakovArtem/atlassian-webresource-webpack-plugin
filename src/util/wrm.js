@@ -12,6 +12,12 @@ class XMLFormatter {
             .join("\n");
     }
 
+    static externalResources(resourcesPairs) {
+        return resourcesPairs
+            .map((resourcePair) => `<resource name="${resourcePair[0]}" type="download" location="${resourcePair[1]}" />`)
+            .join("\n");
+    }
+
     static resources(pathPrefix, resources) {
         return resources
             .map((resource) => `<resource name="${resource}" type="download" location="${pathPrefix}${resource}" />`)
@@ -39,8 +45,15 @@ function createWebResource(pathPrefix, resource) {
             <transformation extension="js">
                 <transformer key="jsI18n"/>
             </transformation>
+             <transformation extension="soy">
+                <transformer key="soyTransformer"/>
+            </transformation>
+            <transformation extension="less">
+                <transformer key="lessTransformer"/>
+            </transformation>
             ${resource.contexts ? XMLFormatter.context(resource.contexts): ""}
             ${resource.dependencies ? XMLFormatter.dependencies(resource.dependencies): ""}
+            ${resource.externalResources ? XMLFormatter.externalResources(resource.externalResources): ""}
             ${resource.resources ? XMLFormatter.resources(pathPrefix, resource.resources): ""}
             ${resource.conditions ? XMLFormatter.condition(resource.conditions): ""}
         </web-resource>
