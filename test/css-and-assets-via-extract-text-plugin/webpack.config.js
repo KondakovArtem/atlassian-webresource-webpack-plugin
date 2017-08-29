@@ -7,7 +7,8 @@ const OUTPUT_DIR = path.join(__dirname, 'target');
 
 module.exports = {
     entry: {
-        'app': path.join(FRONTEND_SRC_DIR, 'app.js')
+        'feature-one': path.join(FRONTEND_SRC_DIR, 'feature-one.js'),
+        'feature-two': path.join(FRONTEND_SRC_DIR, 'feature-two.js')
     },
     module: {
         rules: [
