@@ -19,9 +19,9 @@ const path = require('path');
 
 const uuidv4Gen = require('uuid/v4');
 const wrmUtils = require("./util/wrm");
-const ProvidedDllModule = require("./ProvidedDllModule");
 const ProvidedExternalDependencyModule = require("./ProvidedExternalDependencyModule");
-const ProvidedExternalResourceModule = require("./ProvidedExternalResourceModule");
+const WrmDependencyModule = require("./WrmDependencyModule");
+const WrmResourceModule = require("./WrmResourceModule");
 const baseContexts = require("./base-context");
 
 class WrmPlugin {
@@ -156,7 +156,7 @@ if (typeof AJS !== "undefined") {
                         if (request.startsWith("wr-dependency!")) {
                             const res = request.substr("wr-dependency!".length);
                             that.options.verbose && console.log("adding %s as a web-resource dependency through WRM", res);
-                            callback(null, new ProvidedDllModule(res, target));
+                            callback(null, new WrmDependencyModule(res, target));
                             return;
                         }
 
@@ -164,7 +164,7 @@ if (typeof AJS !== "undefined") {
                         if (request.startsWith("wr-resource!")) {
                             const res = request.substr("wr-resource!".length);
                             that.options.verbose && console.log("adding %s as a resource through WRM", res);
-                            callback(null, new ProvidedExternalResourceModule(res, target));
+                            callback(null, new WrmResourceModule(res, target));
                             return;
                         }
 
@@ -206,7 +206,7 @@ ${standardScript}`
     _getExternalDependencyModules(chunk) {
         return chunk.getModules().filter(m => {
             return m instanceof ProvidedExternalDependencyModule
-                || m instanceof ProvidedDllModule
+                || m instanceof WrmDependencyModule
         }).map(m => m.getDependency())
     }
 
@@ -221,7 +221,7 @@ ${standardScript}`
     }
 
     _getExternalResourceModules(chunk) {
-        return chunk.getModules().filter(m => m instanceof ProvidedExternalResourceModule).map(m => m.getResourcePair())
+        return chunk.getModules().filter(m => m instanceof WrmResourceModule).map(m => m.getResourcePair())
     }
 
     getExternalResourcesForChunks(chunks) {
