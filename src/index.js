@@ -86,7 +86,9 @@ This is very likely to cause issues - please double check your settings!
         const outputPath = options.output.path;
         // get everything "past" the /target/classes
         const pathPrefix = outputPath.split(path.join('target', 'classes'))[1];
-        if (!pathPrefix) {
+        if (pathPrefix === "" || pathPrefix === "/") {
+            return '';
+        } else if (pathPrefix === undefined) {
             this.options.verbose && console.warn(`
 ******************************************************************************
 Path prefix for resources could not be extracted as the output path specified 
@@ -234,6 +236,31 @@ ${standardScript}`
         return Array.from(externalResources);
     }
 
+    extractAdditionalAssetsFromChunk(chunk) {
+        const ownDeps = chunk.getModules().map(m => m.resource);
+        const ownDepsSet = new Set(ownDeps);
+        const fileDeps = chunk.getModules().map(m => m.fileDependencies).reduce((all, fds) => all.concat(fds), []);
+        const fileDepsSet = new Set(fileDeps);
+        return Array.from(fileDepsSet).filter(filename => !ownDepsSet.has(filename) && !/\.(js|css|soy)(\.map)?$/.test(filename));
+    }
+
+    extractResourceToAssetMapForCompilation(compilationModules) {
+        return compilationModules
+            .filter(m => m.resource && Object.keys(m.assets).length > 0) // is an actual asset thingy
+            .map(m => [m.resource, Object.keys(m.assets)[0]])
+            .reduce((set, [resource, asset]) => {
+                set.set(resource, asset);
+                return set;
+            }, new Map());
+    }
+
+    getDependencyResourcesFromChunk(chunk, resourceToAssetMap) {
+        const deps =this.extractAdditionalAssetsFromChunk(chunk);
+        return deps
+            .filter(dep => resourceToAssetMap.has(dep))
+            .map(dep => resourceToAssetMap.get(dep))
+    }
+
     apply(compiler) {
 
         this.checkConfig(compiler);
@@ -247,7 +274,7 @@ ${standardScript}`
         compiler.plugin("emit", (compilation, callback) => {
 
             const assetFiles = Object.keys(compilation.assets)
-                    .filter(p => !/\.(js|js\.map)$/.test(p));
+                    .filter(p => !/\.(js|css|soy)(\.map)?$/.test(p));
 
             const assets = {
                 key: `assets-${this.assetUUID}`,
@@ -255,25 +282,28 @@ ${standardScript}`
             };
 
             const entryPointNames = compilation.entrypoints;
+            const resourceToAssetMap = this.extractResourceToAssetMapForCompilation(compilation.modules);
             // Used in prod
             const prodEntryPoints = Object.keys(entryPointNames).map(name => {
                 const webresourceKey = this._getWebresourceKeyForEntry(name);
                 const entrypointChunks = entryPointNames[name].chunks;
+                const additionalFileDeps = entrypointChunks.map(c => this.getDependencyResourcesFromChunk(c, resourceToAssetMap));
                 return {
                     key: webresourceKey,
                     contexts: this._getContextForEntry(name),
                     externalResources: this.getExternalResourcesForChunks(entrypointChunks),
-                    resources: Array.from(new Set([].concat(...entrypointChunks.map(c => c.files), ...assetFiles))),
+                    resources: Array.from(new Set([].concat(...entrypointChunks.map(c => c.files), ...additionalFileDeps))),
                     dependencies: baseContexts.concat(this.getDependencyForChunks(entrypointChunks)),
                     conditions: this._getConditionForEntry(name),
                 };
             });
 
             const asyncChunkDescriptors = this.getEntrypointChildChunks(entryPointNames, compilation.chunks).map(c => {
+                const additionalFileDeps = this.getDependencyResourcesFromChunk(c, resourceToAssetMap);
                 return {
                     key: `${c.id}`,
                     externalResources: this.getExternalResourcesForChunks([c]),
-                    resources: c.files,
+                    resources: Array.from(new Set(c.files.concat(additionalFileDeps))),
                     dependencies: this.getDependencyForChunks([c])
                 }
             });
