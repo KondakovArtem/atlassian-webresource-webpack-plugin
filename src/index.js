@@ -85,7 +85,9 @@ This is very likely to cause issues - please double check your settings!
         const outputPath = options.output.path;
         // get everything "past" the /target/classes
         const pathPrefix = outputPath.split(path.join('target', 'classes'))[1];
-        if (!pathPrefix) {
+        if (pathPrefix === "" || pathPrefix === "/") {
+            return '';
+        } else if (pathPrefix === undefined) {
             this.options.verbose && console.warn(`
 ******************************************************************************
 Path prefix for resources could not be extracted as the output path specified 
