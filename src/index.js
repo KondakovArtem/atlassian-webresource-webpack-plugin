@@ -212,6 +212,31 @@ ${standardScript}`
         return Array.from(externalDeps);
     }
 
+    extractAdditionalAssetsFromChunk(chunk) {
+        const ownDeps = chunk.getModules().map(m => m.resource);
+        const ownDepsSet = new Set(ownDeps);
+        const fileDeps = chunk.getModules().map(m => m.fileDependencies).reduce((all, fds) => all.concat(fds), []);
+        const fileDepsSet = new Set(fileDeps);
+        return Array.from(fileDepsSet).filter(filename => !ownDepsSet.has(filename) && !/\.(js|css|soy)(\.map)?$/.test(filename));
+    }
+
+    extractResourceToAssetMapForCompilation(compilationModules) {
+        return compilationModules
+            .filter(m => m.resource && Object.keys(m.assets).length > 0) // is an actual asset thingy
+            .map(m => [m.resource, Object.keys(m.assets)[0]])
+            .reduce((set, [resource, asset]) => {
+                set.set(resource, asset);
+                return set;
+            }, new Map());
+    }
+
+    getDependencyResourcesFromChunk(chunk, resourceToAssetMap) {
+        const deps =this.extractAdditionalAssetsFromChunk(chunk);
+        return deps
+            .filter(dep => resourceToAssetMap.has(dep))
+            .map(dep => resourceToAssetMap.get(dep))
+    }
+
     apply(compiler) {
 
         this.checkConfig(compiler);
@@ -225,7 +250,7 @@ ${standardScript}`
         compiler.plugin("emit", (compilation, callback) => {
 
             const assetFiles = Object.keys(compilation.assets)
-                    .filter(p => !/\.(js|js\.map)$/.test(p));
+                    .filter(p => !/\.(js|css|soy)(\.map)?$/.test(p));
 
             const assets = {
                 key: `assets-${this.assetUUID}`,
@@ -233,23 +258,26 @@ ${standardScript}`
             };
 
             const entryPointNames = compilation.entrypoints;
+            const resourceToAssetMap = this.extractResourceToAssetMapForCompilation(compilation.modules);
             // Used in prod
             const prodEntryPoints = Object.keys(entryPointNames).map(name => {
                 const entrypointChunks = entryPointNames[name].chunks;
                 const webresourceKey = this._getWebresourceKeyForEntry(name);
+                const additionalFileDeps = entrypointChunks.map(c => this.getDependencyResourcesFromChunk(c, resourceToAssetMap));
                 return {
                     key: webresourceKey,
                     contexts: this._getContextForEntry(name),
-                    resources: Array.from(new Set([].concat(...entrypointChunks.map(c => c.files), ...assetFiles))),
+                    resources: Array.from(new Set([].concat(...entrypointChunks.map(c => c.files), ...additionalFileDeps))),
                     dependencies: baseContexts.concat(this.getDependencyForChunks(entrypointChunks)),
                     conditions: this._getConditionForEntry(name),
                 };
             });
 
             const asyncChunkDescriptors = this.getEntrypointChildChunks(entryPointNames, compilation.chunks).map(c => {
+                const additionalFileDeps = this.getDependencyResourcesFromChunk(c, resourceToAssetMap);
                 return {
                     key: `${c.id}`,
-                    resources: c.files,
+                    resources: Array.from(new Set(c.files.concat(additionalFileDeps))),
                     dependencies: this.getDependencyForChunks([c])
                 }
             });
