@@ -19,8 +19,9 @@ const path = require('path');
 
 const uuidv4Gen = require('uuid/v4');
 const wrmUtils = require("./util/wrm");
-const ProvidedExternalModule = require("./ProvidedExternalModule");
-const ProvidedDllModule = require("./ProvidedDllModule");
+const ProvidedExternalDependencyModule = require("./ProvidedExternalDependencyModule");
+const WrmDependencyModule = require("./WrmDependencyModule");
+const WrmResourceModule = require("./WrmResourceModule");
 const baseContexts = require("./base-context");
 
 class WrmPlugin {
@@ -143,22 +144,29 @@ if (typeof AJS !== "undefined") {
             params.normalModuleFactory.apply({
                 apply(normalModuleFactory) {
                     normalModuleFactory.plugin("factory", factory => (data, callback) => {
-                        const type = compiler.options.output.libraryTarget;
+                        const target = compiler.options.output.libraryTarget;
                         const request = data.dependencies[0].request;
                         // get globally available libraries through wrm
                         if (that.options.providedDependencies.has(request)) {
-                            that.verbose && console.log("plugging hole into request to %s, will be provided as a dependency through WRM", request);
+                            that.options.verbose && console.log("plugging hole into request to %s, will be provided as a dependency through WRM", request);
                             const p = that.options.providedDependencies.get(request);
-                            callback(null, new ProvidedExternalModule(p.import, p.dependency, type));
+                            callback(null, new ProvidedExternalDependencyModule(p.import, p.dependency, target));
                             return;
                         }
 
-                        // import web-resources we find dependencies static import statements for
-                        const loader = ["wr-dependency!"].find(loader => request.startsWith(loader));
-                        if (loader) {
-                            const res = request.substr(loader.length);
-                            that.verbose && console.log("adding %s as a context dependency through WRM", res);
-                            callback(null, new ProvidedDllModule(res, type));
+                        // import web-resources we find static import statements for
+                        if (request.startsWith("wr-dependency!")) {
+                            const res = request.substr("wr-dependency!".length);
+                            that.options.verbose && console.log("adding %s as a web-resource dependency through WRM", res);
+                            callback(null, new WrmDependencyModule(res, target));
+                            return;
+                        }
+
+                        // import resources we find static import statements for
+                        if (request.startsWith("wr-resource!")) {
+                            const res = request.substr("wr-resource!".length);
+                            that.options.verbose && console.log("adding %s as a resource through WRM", res);
+                            callback(null, new WrmResourceModule(res, target));
                             return;
                         }
 
@@ -197,21 +205,35 @@ ${standardScript}`
         });
     }
 
-    _getExternalModules(chunk) {
+    _getExternalDependencyModules(chunk) {
         return chunk.getModules().filter(m => {
-            return m instanceof ProvidedExternalModule
-                || m instanceof ProvidedDllModule
+            return m instanceof ProvidedExternalDependencyModule
+                || m instanceof WrmDependencyModule
         }).map(m => m.getDependency())
     }
 
     getDependencyForChunks(chunks) {
         const externalDeps = new Set();
         for (const chunk of chunks) {
-            for (const dep of this._getExternalModules(chunk)) {
+            for (const dep of this._getExternalDependencyModules(chunk)) {
                 externalDeps.add(dep);
             }
         }
         return Array.from(externalDeps);
+    }
+
+    _getExternalResourceModules(chunk) {
+        return chunk.getModules().filter(m => m instanceof WrmResourceModule).map(m => m.getResourcePair())
+    }
+
+    getExternalResourcesForChunks(chunks) {
+        const externalResources = new Set();
+        for (const chunk of chunks) {
+            for (const dep of this._getExternalResourceModules(chunk)) {
+                externalResources.add(dep);
+            }
+        }
+        return Array.from(externalResources);
     }
 
     extractAdditionalAssetsFromChunk(chunk) {
@@ -263,12 +285,13 @@ ${standardScript}`
             const resourceToAssetMap = this.extractResourceToAssetMapForCompilation(compilation.modules);
             // Used in prod
             const prodEntryPoints = Object.keys(entryPointNames).map(name => {
-                const entrypointChunks = entryPointNames[name].chunks;
                 const webresourceKey = this._getWebresourceKeyForEntry(name);
+                const entrypointChunks = entryPointNames[name].chunks;
                 const additionalFileDeps = entrypointChunks.map(c => this.getDependencyResourcesFromChunk(c, resourceToAssetMap));
                 return {
                     key: webresourceKey,
                     contexts: this._getContextForEntry(name),
+                    externalResources: this.getExternalResourcesForChunks(entrypointChunks),
                     resources: Array.from(new Set([].concat(...entrypointChunks.map(c => c.files), ...additionalFileDeps))),
                     dependencies: baseContexts.concat(this.getDependencyForChunks(entrypointChunks)),
                     conditions: this._getConditionForEntry(name),
@@ -279,11 +302,11 @@ ${standardScript}`
                 const additionalFileDeps = this.getDependencyResourcesFromChunk(c, resourceToAssetMap);
                 return {
                     key: `${c.id}`,
+                    externalResources: this.getExternalResourcesForChunks([c]),
                     resources: Array.from(new Set(c.files.concat(additionalFileDeps))),
                     dependencies: this.getDependencyForChunks([c])
                 }
             });
-
 
             const wrmDescriptors = asyncChunkDescriptors
                 .concat(prodEntryPoints)
