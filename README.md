@@ -193,6 +193,33 @@ import 'wr-dependency!my.plugin.key:my-webresource';
 console.log('my-webresource will have been loaded synchronously with the page');
 ```
 
+### Legacy runtime `resource` inclusion
+
+95% of the time, your application's non-JavaScript resources -- CSS, images, templates, etcetera --
+are possible to bundle and include via Webpack loaders. Sometimes, though, you will have 
+resources that only work during an Atlassian product's runtime -- think things like 
+Atlassian Soy templates and a product's LESS files for look-and-feel styles -- and 
+it isn't possible to make them work during ahead-of-time compilation.
+
+In these cases, you can add import statements to your code that will add a `<resource>` to your
+generated web-resource:
+
+```js
+// in AMD syntax
+define(function(require) {
+  require('wr-resource!my-runtime-styles.css!path/to/the/styles.less');
+  require('wr-resource!my-compiled-templates.js!path/to/the/templates.soy');
+
+  console.log('these styles and templates will be transformed to CSS and JS at product runtime.');
+});
+
+// in ES6 syntax
+import 'wr-resource!my-runtime-styles.css!path/to/the/styles.less';
+import 'wr-resource!my-compiled-templates.js!path/to/the/templates.soy';
+
+console.log('these styles and templates will be transformed to CSS and JS at product runtime.');
+```
+
 ## Configuring the plugin
 
 The Atlassian Web-Resource Webpack Plugin has a number of configuration options.
