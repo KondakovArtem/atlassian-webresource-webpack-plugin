@@ -77,7 +77,7 @@ exports.createResourceDescriptors = function (pathPrefix, jsonDescriptors, testF
         .map(descriptor => createWebResource("", descriptor));
         
 
-    const quniteResources = testFiles.map(createQunitResources);
+    const quniteResources = testFiles.map(createQunitResources).join("");
 
     const descriptorsStr = descriptors.join("\n\n");
     const testDescriptorsStr = testDescriptors.join("");

@@ -120,7 +120,7 @@ Not adding any path prefix - WRM will probably not be able to find your files!
                 
         this.options.verbose && console.warn(`
 ******************************************************************************
-The option "testGlobs" is only available to allow migrating old code. Consider
+The option "__testGlobs__" is only available to allow migrating old code. Consider
 this option deprecated and try to migrate your code to a proper JS-Testrunner.
 ******************************************************************************
 `);
@@ -248,13 +248,15 @@ ${standardScript}`
         return Array.from(externalDeps);
     }
 
+    // find all dependencies defined in the specified chunks
+    // needed to build a web-resource for qunit tests
     extractAllDependencies(chunks) {
         let dependencyTreeSet = new Set();
         for(const chunk of chunks) {
             // filter out "runtime" chunk
             if (chunk.getModules().length > 0) {
-                const subchunkSet = this.extractAllDependencies(chunk.chunks);
-                dependencyTreeSet = new Set([...dependencyTreeSet, ...subchunkSet]);
+                const subChunkSet = this.extractAllDependencies(chunk.chunks);
+                dependencyTreeSet = new Set([...dependencyTreeSet, ...subChunkSet]);
             }
         }
         dependencyTreeSet = new Set([...dependencyTreeSet, ...this.getDependencyForChunks(chunks)]);
@@ -300,26 +302,30 @@ ${standardScript}`
             .map(dep => resourceToAssetMap.get(dep))
     }
 
+    // get all files used in a chunk
+    // this is needed to create a web-resource that can be used by qunit tests.
+    // this is a "sledgehammer approach" to avoid having to create an entry point per qunit tests and building it via webpack.
     extractAllFiles(chunks, context) {
         function addModule(m, container) {
             const deps = m.dependencies
                 .map(d => d.module)
                 .filter(Boolean)
                 .filter(m => {
+                    // filter out all "virtual" modules that do not reference an actual file (or a wrm web-resource)
                     if(m.resource) return true;
-                    if(m instanceof WrmResourceModule) {
-                        return true;
-                    }
+                    if(m instanceof WrmResourceModule) return true;
                     return false;
                 })
-                .filter(m => !m.resource || !m.resource.includes("node_modules"))
-                .forEach(m => addModule(m, container));
+                
+                .filter(m => !m.resource || !m.resource.includes("node_modules")) // if it references a file remove it if it comes from "node_modules"
+                .forEach(m => addModule(m, container)); // recursively add modules own dependencies first
 
             if(m.resource && !m.resource.includes("node_modules")) {
                 const reference = path.relative(context, m.resource);
                 container.add(reference);
             }
 
+            // handle imports of resources through "wr-resource!..."-syntax 
             if(m instanceof WrmResourceModule) {
                 container.add(m.getResourcePair().join(RESOURCE_JOINER));
             }
@@ -327,7 +333,7 @@ ${standardScript}`
 
         let dependencyTreeSet = new Set();
         for(const chunk of chunks) {
-            // filter out "runtime" chunk
+            // make sure only the files for this entrypoint end up in the test-files chunk
             if (chunk.getModules().length > 0) {
                 const subchunkSet = this.extractAllFiles(chunk.chunks, context);
                 dependencyTreeSet = new Set([...dependencyTreeSet, ...subchunkSet]);
