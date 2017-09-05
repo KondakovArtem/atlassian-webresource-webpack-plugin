@@ -15,6 +15,7 @@
 
 const assert = require("assert");
 const fs = require("fs");
+const glob = require("glob");
 const path = require('path');
 
 const uuidv4Gen = require('uuid/v4');
@@ -23,7 +24,9 @@ const ProvidedExternalDependencyModule = require("./ProvidedExternalDependencyMo
 const WrmDependencyModule = require("./WrmDependencyModule");
 const WrmResourceModule = require("./WrmResourceModule");
 const baseContexts = require("./base-context");
+const qUnitRequireMock = require("./qunit-require-test-mock");
 
+const RESOURCE_JOINER = "__RESOURCE__JOINER__";
 class WrmPlugin {
 
     /**
@@ -61,6 +64,7 @@ class WrmPlugin {
         // generate an asset uuid per build - this is used to ensure we have a new "cache" for our assets per build.
         // As JIRA-Server does not "rebuild" too often, this can be considered reasonable.
         this.assetUUID = process.env.NODE_ENV === 'production' ? uuidv4Gen() : "DEV_PSEUDO_HASH";
+        this.qunitRequireMockPath = `qunit-require-test-mock-${this.assetUUID}.js`;
     }
 
     checkConfig(compiler) {
@@ -105,6 +109,28 @@ Not adding any path prefix - WRM will probably not be able to find your files!
         const withoutLeadingTrailingSeparators = pathPrefix.replace(new RegExp(`^\\${path.sep}|\\${path.sep}$`, 'g'), '');
         // readd trailing slash - this time OS independent always a "/"
         return withoutLeadingTrailingSeparators + "/";
+    }
+
+    getTestFiles(context) {
+        const testGlobs = this.options.__testGlobs__;
+
+        if(!testGlobs) {
+            return [];
+        }
+                
+        this.options.verbose && console.warn(`
+******************************************************************************
+The option "__testGlobs__" is only available to allow migrating old code. Consider
+this option deprecated and try to migrate your code to a proper JS-Testrunner.
+******************************************************************************
+`);
+        return testGlobs.map( g => glob.sync(g, {absolute: true})) // get all matching files
+            .reduce((_, _v, _i, files) => { // flatten them and make them unique
+                const uniqueFiles = new Set([].concat(...files));
+                files.length = 0;
+                return Array.from(uniqueFiles);
+            })
+            .map(file => path.relative(context, file)); // make them relative to the context
     }
 
     _getContextForEntry(entry) {
@@ -222,6 +248,21 @@ ${standardScript}`
         return Array.from(externalDeps);
     }
 
+    // find all dependencies defined in the specified chunks
+    // needed to build a web-resource for qunit tests
+    extractAllDependencies(chunks) {
+        let dependencyTreeSet = new Set();
+        for(const chunk of chunks) {
+            // filter out "runtime" chunk
+            if (chunk.getModules().length > 0) {
+                const subChunkSet = this.extractAllDependencies(chunk.chunks);
+                dependencyTreeSet = new Set([...dependencyTreeSet, ...subChunkSet]);
+            }
+        }
+        dependencyTreeSet = new Set([...dependencyTreeSet, ...this.getDependencyForChunks(chunks)]);
+        return dependencyTreeSet;
+    }
+
     _getExternalResourceModules(chunk) {
         return chunk.getModules().filter(m => m instanceof WrmResourceModule).map(m => m.getResourcePair())
     }
@@ -261,6 +302,50 @@ ${standardScript}`
             .map(dep => resourceToAssetMap.get(dep))
     }
 
+    // get all files used in a chunk
+    // this is needed to create a web-resource that can be used by qunit tests.
+    // this is a "sledgehammer approach" to avoid having to create an entry point per qunit tests and building it via webpack.
+    extractAllFiles(chunks, context) {
+        function addModule(m, container) {
+            const deps = m.dependencies
+                .map(d => d.module)
+                .filter(Boolean)
+                .filter(m => {
+                    // filter out all "virtual" modules that do not reference an actual file (or a wrm web-resource)
+                    if(m.resource) return true;
+                    if(m instanceof WrmResourceModule) return true;
+                    return false;
+                })
+                
+                .filter(m => !m.resource || !m.resource.includes("node_modules")) // if it references a file remove it if it comes from "node_modules"
+                .forEach(m => addModule(m, container)); // recursively add modules own dependencies first
+
+            if(m.resource && !m.resource.includes("node_modules")) {
+                const reference = path.relative(context, m.resource);
+                container.add(reference);
+            }
+
+            // handle imports of resources through "wr-resource!..."-syntax 
+            if(m instanceof WrmResourceModule) {
+                container.add(m.getResourcePair().join(RESOURCE_JOINER));
+            }
+        }
+
+        let dependencyTreeSet = new Set();
+        for(const chunk of chunks) {
+            // make sure only the files for this entrypoint end up in the test-files chunk
+            if (chunk.getModules().length > 0) {
+                const subchunkSet = this.extractAllFiles(chunk.chunks, context);
+                dependencyTreeSet = new Set([...dependencyTreeSet, ...subchunkSet]);
+            }
+
+            for (const mod of chunk.modules) {
+                addModule(mod, dependencyTreeSet);
+            }
+        }
+        return dependencyTreeSet;
+    }
+
     apply(compiler) {
 
         this.checkConfig(compiler);
@@ -272,6 +357,8 @@ ${standardScript}`
 
         // When the compiler is about to emit files, we jump in to produce our resource descriptors for the WRM.
         compiler.plugin("emit", (compilation, callback) => {
+
+            const qunitTestFiles = this.getTestFiles(compiler.options.context);
 
             const assetFiles = Object.keys(compilation.assets)
                     .filter(p => !/\.(js|css|soy)(\.map)?$/.test(p));
@@ -288,6 +375,17 @@ ${standardScript}`
                 const webresourceKey = this._getWebresourceKeyForEntry(name);
                 const entrypointChunks = entryPointNames[name].chunks;
                 const additionalFileDeps = entrypointChunks.map(c => this.getDependencyResourcesFromChunk(c, resourceToAssetMap));
+                const extractedTestResources = Array.from(this.extractAllFiles(entrypointChunks, compiler.options.context))
+                    .map(resource => {
+                        if (resource.includes(RESOURCE_JOINER)) {
+                            return resource.split(RESOURCE_JOINER);
+                        }
+                        return [resource, resource];
+                    })
+                const testFiles = [
+                    [`${this._extractPathPrefixForXml(compiler.options)}${this.qunitRequireMockPath}`, `${this._extractPathPrefixForXml(compiler.options)}${this.qunitRequireMockPath}`] // require mock to allow imports like "wr-dependency!context"
+                ].concat(extractedTestResources);
+                const testDependencies = Array.from(this.extractAllDependencies(entrypointChunks));
                 return {
                     key: webresourceKey,
                     contexts: this._getContextForEntry(name),
@@ -295,6 +393,8 @@ ${standardScript}`
                     resources: Array.from(new Set([].concat(...entrypointChunks.map(c => c.files), ...additionalFileDeps))),
                     dependencies: baseContexts.concat(this.getDependencyForChunks(entrypointChunks)),
                     conditions: this._getConditionForEntry(name),
+                    testFiles,
+                    testDependencies
                 };
             });
 
@@ -312,12 +412,17 @@ ${standardScript}`
                 .concat(prodEntryPoints)
                 .concat(assets);
 
-            const xmlDescriptors = wrmUtils.createResourceDescriptors(this._extractPathPrefixForXml(compiler.options), wrmDescriptors);
+            const xmlDescriptors = wrmUtils.createResourceDescriptors(this._extractPathPrefixForXml(compiler.options), wrmDescriptors, qunitTestFiles);
             const xmlDescriptorWebpackPath = path.relative(compiler.options.output.path, this.options.xmlDescriptors);
             compilation.assets[xmlDescriptorWebpackPath] = {
                 source: () => new Buffer(xmlDescriptors),
                 size: () => Buffer.byteLength(xmlDescriptors)
             };
+
+            compilation.assets[this.qunitRequireMockPath] = {
+                source: () => new Buffer(qUnitRequireMock),
+                size: () => Buffer.byteLength(qUnitRequireMock)
+            }
 
             callback();
         });
