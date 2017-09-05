@@ -13,6 +13,11 @@ module.exports = class ProvidedExternalDependencyModule extends ExternalModule {
         super(request, target);
         this._request = request;
         this._dependency = dependency;
+        this._target = target;
+    }
+
+    libIdent() {
+        return `${this._dependency}/${this._request[this._target]}`;
     }
 
     chunkCondition() {
