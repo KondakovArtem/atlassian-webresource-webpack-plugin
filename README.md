@@ -220,6 +220,23 @@ import 'wr-resource!my-compiled-templates.js!path/to/the/templates.soy';
 console.log('these styles and templates will be transformed to CSS and JS at product runtime.');
 ```
 
+### Legacy runtime test inclusion
+
+If you use the [Atlassian QUnit plugin][104] to write runtime tests, you may be writing tests half-way
+between unit tests and black-box integration tests. If your tests expect that certain modules exist,
+but those modules are compiled and hidden away via Webpack, those tests won't work well with
+your webpacked code.
+
+The preferred approach for migrating to webpack is that you refactor your runtime QUnit tests, either
+in to pure unit tests that can run at build-time (e.g., using Jest or Mocha), or
+in to pure black-box integration tests that do not need references to any modules or other
+implementation details (e.g., using Webdriver).
+
+If these approaches are not achievable in the short term, you can keep your legacy QUnit tests
+running by passing them to the plugin in a `__testGlobs__` configuration option. With a small amount of
+updates to the test files, they will continue to work long enough for you to rewrite them in a
+more proper form. Read the configuration section for detail.
+
 ## Configuring the plugin
 
 The Atlassian Web-Resource Webpack Plugin has a number of configuration options.
@@ -274,6 +291,25 @@ When your code is compiled through webpack, any occurrence of `dependency-name` 
 statement will be replaced in the webpack output, and an appropriate web-resource `<dependency>` will be
 added to the generated web-resource.
 
+### `__testGlobs__` (Optional) (Deprecated)
+
+When provided, the Webpack compilation will generate `<resource type="qunit"/>` entries for each test file
+the glob specifies. It will also cause Webpack to generate web-resources for both the compiled output *and*
+raw source modules.
+
+The source modules will be available in a web-resource key beginning with `__test__`, followed by the name
+of the entrypoint they were discovered through. For instance, if your entrypoint name is `my-feature`,
+and your plugin key is `com.example.myplugin`, the web-resource key for `my-feature`'s source modules will be
+`com.example.myplugin:__test__entrypoint-my-feature`.
+
+Because the web-resource name with testable source files is auto-generated, the QUnit test files will
+need to be updated to point at the appropriate web-resource key,
+so that any modules the test expects to be present will be loaded via the WRM at runtime.
+
+This configuration option is deprecated and will be removed in a 1.0 release of this plugin. The option
+exists to give developers time to refactor and rewrite their QUnit tests as build-time tests; either
+as pure unit tests (e.g., via Jest or Mocha) or pure black-box integration tests (e.g., via Webdriver).
+
 ## Minimum requirements
 
 This plugin has been built to work with the following versions of the external build tools:
@@ -307,3 +343,4 @@ This is still beta software. The following features are planned:
 [101]: https://bitbucket.org/serverecosystem/sao4fed-bundle-the-ui
 [102]: https://docs.npmjs.com/getting-started/installing-node
 [103]: https://yarnpkg.com/lang/en/docs/install/
+[104]: https://bitbucket.org/atlassian/atlassian-qunit-plugin
