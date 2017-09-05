@@ -370,10 +370,40 @@ ${standardScript}`
 
             const entryPointNames = compilation.entrypoints;
             const resourceToAssetMap = this.extractResourceToAssetMapForCompilation(compilation.modules);
+
+            const commonsChunks = Array.from(Object.keys(entryPointNames)
+                .map(name => entryPointNames[name].chunks) // get chunks per entry
+                .filter(cs => cs.length > 1) // check if commons chunks exist
+                .map(cs => cs.slice(0, -1)) // only take all chunks up to the actual entry chunk
+                .reduce((all, cs) => all.concat(cs), []) // flatten arrays
+                .reduce((set, c) => {
+                    set.add(c);
+                    return set;
+                }, new Set())); // deduplicate
+
+            const commonsChunkDependencyKeyMap = new Map();
+            for(const c of commonsChunks) {
+                commonsChunkDependencyKeyMap.set(c.name, {
+                    key: `commons_${c.name}`,
+                    dependency: `${this.options.pluginKey}:commons_${c.name}`
+                })
+            }
+            const commonDescriptors = commonsChunks.map(c => {
+                const additionalFileDeps = this.getDependencyResourcesFromChunk(c, resourceToAssetMap);
+                return {
+                    key: commonsChunkDependencyKeyMap.get(c.name).key,
+                    externalResources: this.getExternalResourcesForChunks([c]),
+                    resources: Array.from(new Set(c.files.concat(additionalFileDeps))),
+                    dependencies: this.getDependencyForChunks([c])
+                }
+            });
+
             // Used in prod
             const prodEntryPoints = Object.keys(entryPointNames).map(name => {
                 const webresourceKey = this._getWebresourceKeyForEntry(name);
                 const entrypointChunks = entryPointNames[name].chunks;
+                const actualEntrypointChunk = entrypointChunks[entrypointChunks.length-1];
+                const commonDeps = entrypointChunks.map(c => commonsChunkDependencyKeyMap.get(c.name)).filter(Boolean).map(val => val.dependency);
                 const additionalFileDeps = entrypointChunks.map(c => this.getDependencyResourcesFromChunk(c, resourceToAssetMap));
                 const extractedTestResources = Array.from(this.extractAllFiles(entrypointChunks, compiler.options.context))
                     .map(resource => {
@@ -381,7 +411,7 @@ ${standardScript}`
                             return resource.split(RESOURCE_JOINER);
                         }
                         return [resource, resource];
-                    })
+                    });
                 const testFiles = [
                     [`${this._extractPathPrefixForXml(compiler.options)}${this.qunitRequireMockPath}`, `${this._extractPathPrefixForXml(compiler.options)}${this.qunitRequireMockPath}`] // require mock to allow imports like "wr-dependency!context"
                 ].concat(extractedTestResources);
@@ -389,9 +419,9 @@ ${standardScript}`
                 return {
                     key: webresourceKey,
                     contexts: this._getContextForEntry(name),
-                    externalResources: this.getExternalResourcesForChunks(entrypointChunks),
-                    resources: Array.from(new Set([].concat(...entrypointChunks.map(c => c.files), ...additionalFileDeps))),
-                    dependencies: baseContexts.concat(this.getDependencyForChunks(entrypointChunks)),
+                    externalResources: this.getExternalResourcesForChunks([actualEntrypointChunk]),
+                    resources: Array.from(new Set([].concat(actualEntrypointChunk.files, ...additionalFileDeps))),
+                    dependencies: baseContexts.concat(this.getDependencyForChunks([actualEntrypointChunk]), commonDeps),
                     conditions: this._getConditionForEntry(name),
                     testFiles,
                     testDependencies
@@ -408,7 +438,8 @@ ${standardScript}`
                 }
             });
 
-            const wrmDescriptors = asyncChunkDescriptors
+            const wrmDescriptors = commonDescriptors
+                .concat(asyncChunkDescriptors)
                 .concat(prodEntryPoints)
                 .concat(assets);
 
