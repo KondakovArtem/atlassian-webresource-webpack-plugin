@@ -1,5 +1,5 @@
 const path = require('path');
-const WrmPlugin = require('../../src/index');
+const WrmPlugin = require('../../../src/index');
 const FRONTEND_SRC_DIR = path.join(__dirname, 'src-es6');
 const OUTPUT_DIR = path.join(__dirname, 'target');
 

@@ -1,7 +1,7 @@
 const path = require('path');
 const ExtractTextPlugin = require('extract-css-chunks-webpack-plugin');
 
-const WrmPlugin = require('../../src/index');
+const WrmPlugin = require('../../../src/index');
 const FRONTEND_SRC_DIR = path.join(__dirname, 'src');
 const OUTPUT_DIR = path.join(__dirname, 'target');
 

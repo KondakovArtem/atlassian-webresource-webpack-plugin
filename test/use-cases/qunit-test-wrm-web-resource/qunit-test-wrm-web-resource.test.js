@@ -68,8 +68,8 @@ describe('qunit-test-wrm-web-resource', function () {
 
         // check
         assert.equal(qunitResources.length, 2, "qunit resources not found");
-        assert.equal(barResource, 'test/qunit-test-wrm-web-resource/src/bar-dep_test.js', "expected to find qunit resources for bar-dep.js");
-        assert.equal(fooResource, 'test/qunit-test-wrm-web-resource/src/foo-dep_test.js', "expected to find qunit resources for foo-dep.js");
+        assert.equal(barResource, 'test/use-cases/qunit-test-wrm-web-resource/src/bar-dep_test.js', "expected to find qunit resources for bar-dep.js");
+        assert.equal(fooResource, 'test/use-cases/qunit-test-wrm-web-resource/src/foo-dep_test.js', "expected to find qunit resources for foo-dep.js");
     });
 
     describe('test web-resources', () => {
@@ -98,8 +98,8 @@ describe('qunit-test-wrm-web-resource', function () {
             // setup
             const actualFirstResource1 = getName(getResources(testEntry1));
             const actualFirstResource2 = getName(getResources(testEntry2));
-            const expectedOnlyInEntry1 = 'test/qunit-test-wrm-web-resource/src/app.js';
-            const expectedOnlyInEntry2 = 'test/qunit-test-wrm-web-resource/src/app.2.js';
+            const expectedOnlyInEntry1 = 'test/use-cases/qunit-test-wrm-web-resource/src/app.js';
+            const expectedOnlyInEntry2 = 'test/use-cases/qunit-test-wrm-web-resource/src/app.2.js';
 
             // check
             assert.include(actualFirstResource1, expectedOnlyInEntry1, "missing resource in first entry");
@@ -115,16 +115,16 @@ describe('qunit-test-wrm-web-resource', function () {
             const expectedResources1 = [
                 'qunit-require-test-mock-DEV_PSEUDO_HASH.js',
                 'ultimate/name/at/runtime.js',
-                'test/qunit-test-wrm-web-resource/src/bar-dep.js',
+                'test/use-cases/qunit-test-wrm-web-resource/src/bar-dep.js',
                 'ultimate/name/at/runtime.css',
-                'test/qunit-test-wrm-web-resource/src/foo-dep.js',
-                'test/qunit-test-wrm-web-resource/src/app.js'
+                'test/use-cases/qunit-test-wrm-web-resource/src/foo-dep.js',
+                'test/use-cases/qunit-test-wrm-web-resource/src/app.js'
             ];
             const expectedResources2 = [
                 'qunit-require-test-mock-DEV_PSEUDO_HASH.js',
                 'ultimate/name/at/runtime.js',
-                'test/qunit-test-wrm-web-resource/src/bar-dep.js',
-                'test/qunit-test-wrm-web-resource/src/app.2.js'
+                'test/use-cases/qunit-test-wrm-web-resource/src/bar-dep.js',
+                'test/use-cases/qunit-test-wrm-web-resource/src/app.2.js'
             ];
 
             // check

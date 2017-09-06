@@ -3,7 +3,7 @@ const parse = require('xml-parser');
 const webpack = require('webpack');
 const fs = require('fs');
 const path = require('path');
-const baseContexts = require('../../src/base-context');
+const baseContexts = require('../../../src/base-context');
 
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
