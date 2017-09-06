@@ -10,11 +10,11 @@ describe("ProvidedExternalDependencyModule", () => {
             const pedm = new ProvidedExternalDependencyModule({amd: "something"}, "some-dependency", "amd");
             assert.ok(pedm.libIdent(), "libIdent did not return a valid value");
         });
-    
+
         it("should create deterministic ids based on specified params", () => {
             const pedm1 = new ProvidedExternalDependencyModule({amd: "something"}, "some-dependency", "amd");
             const pedm2 = new ProvidedExternalDependencyModule({amd: "something"}, "some-dependency", "amd");
-            assert.strictEqual(pedm1.libIdent(), pedm1.libIdent(), "libIdent did not return the expected values");
+            assert.strictEqual(pedm1.libIdent(), pedm2.libIdent(), "libIdent did not return the expected values");
         });
 
         it("should return a unique value for unique constructor params", () => {
