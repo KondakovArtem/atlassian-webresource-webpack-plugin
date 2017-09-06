@@ -405,7 +405,7 @@ ${standardScript}`
                 const actualEntrypointChunk = entrypointChunks[entrypointChunks.length-1];
                 const commonDeps = entrypointChunks.map(c => commonsChunkDependencyKeyMap.get(c.name)).filter(Boolean).map(val => val.dependency);
                 const additionalFileDeps = entrypointChunks.map(c => this.getDependencyResourcesFromChunk(c, resourceToAssetMap));
-                const extractedTestResources = Array.from(this.extractAllFiles(entrypointChunks, compiler.options.context))
+                const extractedTestResources = Array.from(this.extractAllFiles([actualEntrypointChunk], compiler.options.context))
                     .map(resource => {
                         if (resource.includes(RESOURCE_JOINER)) {
                             return resource.split(RESOURCE_JOINER);
