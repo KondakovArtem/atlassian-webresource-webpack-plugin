@@ -33,9 +33,11 @@ class WrmPlugin {
      *
      * @param {Object} options - options passed to WRMPlugin
      * @param {String} options.pluginKey - The fully qualified plugin key. e.g.: com.atlassian.jira.plugins.my-jira-plugin
-     * @param {String} options.contextMap - One or more "context"s to which an entrypoint will be added. e.g.: {\n\t"my-entry": ["my-plugin-context"]\n}
-     * @param {String} options.webresourceKeyMap - Optional map of an explicit name for the web-resource generated per entry point. e.g.: {\n\t"my-entry": "legacy-webresource-name"\n}
+     * @param {Object} options.contextMap - One or more "context"s to which an entrypoint will be added. e.g.: {\n\t"my-entry": ["my-plugin-context"]\n}
+     * @param {Object} options.webresourceKeyMap - Optional map of an explicit name for the web-resource generated per entry point. e.g.: {\n\t"my-entry": "legacy-webresource-name"\n}
+     * @param {Object} options.providedDependencies - Map of provided dependencies. If somewhere in the code this dependency is required, it will not be bundled but instead replaced with the specified placeholder.
      * @param {String} options.xmlDescriptors - Path to the directory where this plugin stores the descriptors about this plugin, used by the WRM to load your frontend code.
+     * @param {Boolean} options.verbose - Indicate if log output should be verbose - default is false.
      */
     constructor(options = {}) {
         assert(options.pluginKey, `Option [String] "pluginKey" not specified. You must specify a valid fully qualified plugin key. e.g.: com.atlassian.jira.plugins.my-jira-plugin`);
@@ -58,7 +60,7 @@ class WrmPlugin {
             contextMap: {},
             webresourceKeyMap: {},
             providedDependencies: new Map(),
-            verbose: true,
+            verbose: false,
         }, options);
 
         // generate an asset uuid per build - this is used to ensure we have a new "cache" for our assets per build.
