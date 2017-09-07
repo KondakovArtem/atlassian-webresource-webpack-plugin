@@ -87,7 +87,7 @@ describe('qunit-test-wrm-web-resource', function () {
             // setup
             const actualFirstResource1 = getName([getResources(testEntry1)[0]])[0];
             const actualFirstResource2 = getName([getResources(testEntry2)[0]])[0];
-            const expectedFirstResource = 'qunit-require-test-mock-DEV_PSEUDO_HASH.js';
+            const expectedFirstResource = 'qunit-require-shim-DEV_PSEUDO_HASH.js';
 
             // check
             assert.equal(actualFirstResource1, expectedFirstResource, "unexpected first file in test entry 1 - expected require mock");
@@ -113,7 +113,7 @@ describe('qunit-test-wrm-web-resource', function () {
             const actualResources1 = getName(getResources(testEntry1));
             const actualResources2 = getName(getResources(testEntry2));
             const expectedResources1 = [
-                'qunit-require-test-mock-DEV_PSEUDO_HASH.js',
+                'qunit-require-shim-DEV_PSEUDO_HASH.js',
                 'ultimate/name/at/runtime.js',
                 'test/use-cases/qunit-test-wrm-web-resource/src/bar-dep.js',
                 'ultimate/name/at/runtime.css',
@@ -121,7 +121,7 @@ describe('qunit-test-wrm-web-resource', function () {
                 'test/use-cases/qunit-test-wrm-web-resource/src/app.js'
             ];
             const expectedResources2 = [
-                'qunit-require-test-mock-DEV_PSEUDO_HASH.js',
+                'qunit-require-shim-DEV_PSEUDO_HASH.js',
                 'ultimate/name/at/runtime.js',
                 'test/use-cases/qunit-test-wrm-web-resource/src/bar-dep.js',
                 'test/use-cases/qunit-test-wrm-web-resource/src/app.2.js'

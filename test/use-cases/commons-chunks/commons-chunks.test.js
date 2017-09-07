@@ -121,12 +121,12 @@ describe('commons-chunks', function () {
         });
 
         it('should contain the resources as specified in its entry point - including commons ones', () => {
-            assert.strictEqual(resourcesTestApp[0], 'qunit-require-test-mock-DEV_PSEUDO_HASH.js', "expected resource not found");
+            assert.strictEqual(resourcesTestApp[0], 'qunit-require-shim-DEV_PSEUDO_HASH.js', "expected resource not found");
             assert.strictEqual(resourcesTestApp[1], 'test/use-cases/commons-chunks/src/foo.js', "expected resource not found");
             assert.strictEqual(resourcesTestApp[2], 'test/use-cases/commons-chunks/src/bar.js', "expected resource not found");
             assert.strictEqual(resourcesTestApp[3], 'test/use-cases/commons-chunks/src/app.js', "expected resource not found");
 
-            assert.strictEqual(resourcesTestApp2[0], 'qunit-require-test-mock-DEV_PSEUDO_HASH.js', "expected resource not found");
+            assert.strictEqual(resourcesTestApp2[0], 'qunit-require-shim-DEV_PSEUDO_HASH.js', "expected resource not found");
             assert.strictEqual(resourcesTestApp2[1], 'test/use-cases/commons-chunks/src/foo2.js', "expected resource not found");
             assert.strictEqual(resourcesTestApp2[2], 'test/use-cases/commons-chunks/src/bar.js', "expected resource not found");
             assert.strictEqual(resourcesTestApp2[3], 'test/use-cases/commons-chunks/src/app2.js', "expected resource not found");

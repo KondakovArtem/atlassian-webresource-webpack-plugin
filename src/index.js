@@ -24,7 +24,7 @@ const ProvidedExternalDependencyModule = require("./webpack-modules/ProvidedExte
 const WrmDependencyModule = require("./webpack-modules/WrmDependencyModule");
 const WrmResourceModule = require("./webpack-modules/WrmResourceModule");
 const baseContexts = require("./base-context");
-const qUnitRequireMock = require("./qunit-require-test-mock");
+const qUnitRequireMock = require("./shims/qunit-require-shim");
 
 const RESOURCE_JOINER = "__RESOURCE__JOINER__";
 class WrmPlugin {
@@ -64,7 +64,7 @@ class WrmPlugin {
         // generate an asset uuid per build - this is used to ensure we have a new "cache" for our assets per build.
         // As JIRA-Server does not "rebuild" too often, this can be considered reasonable.
         this.assetUUID = process.env.NODE_ENV === 'production' ? uuidv4Gen() : "DEV_PSEUDO_HASH";
-        this.qunitRequireMockPath = `qunit-require-test-mock-${this.assetUUID}.js`;
+        this.qunitRequireMockPath = `qunit-require-shim-${this.assetUUID}.js`;
     }
 
     checkConfig(compiler) {
