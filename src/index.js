@@ -23,7 +23,7 @@ const XMLFormatter = require("./XmlFormatter");
 const ProvidedExternalDependencyModule = require("./webpack-modules/ProvidedExternalDependencyModule");
 const WrmDependencyModule = require("./webpack-modules/WrmDependencyModule");
 const WrmResourceModule = require("./webpack-modules/WrmResourceModule");
-const baseContexts = require("./base-context");
+const baseContexts = require("./settings/base-contexts");
 const qUnitRequireMock = require("./shims/qunit-require-shim");
 
 const RESOURCE_JOINER = "__RESOURCE__JOINER__";
