@@ -19,7 +19,7 @@ const glob = require("glob");
 const path = require('path');
 
 const uuidv4Gen = require('uuid/v4');
-const wrmUtils = require("./util/wrm");
+const XMLFormatter = require("./XmlFormatter");
 const ProvidedExternalDependencyModule = require("./webpack-modules/ProvidedExternalDependencyModule");
 const WrmDependencyModule = require("./webpack-modules/WrmDependencyModule");
 const WrmResourceModule = require("./webpack-modules/WrmResourceModule");
@@ -470,7 +470,7 @@ ${standardScript}`
                 .concat(prodEntryPoints)
                 .concat(assets);
 
-            const xmlDescriptors = wrmUtils.createResourceDescriptors(this._extractPathPrefixForXml(compiler.options), wrmDescriptors, qunitTestFiles);
+            const xmlDescriptors = XMLFormatter.createResourceDescriptors(this._extractPathPrefixForXml(compiler.options), wrmDescriptors, qunitTestFiles);
             const xmlDescriptorWebpackPath = path.relative(compiler.options.output.path, this.options.xmlDescriptors);
             compilation.assets[xmlDescriptorWebpackPath] = {
                 source: () => new Buffer(xmlDescriptors),
