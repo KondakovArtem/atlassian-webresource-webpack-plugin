@@ -1,6 +1,6 @@
 const assert = require('chai').assert;
 
-const ProvidedExternalDependencyModule = require("../../src/ProvidedExternalDependencyModule");
+const ProvidedExternalDependencyModule = require("../../src/webpack-modules/ProvidedExternalDependencyModule");
 
 
 describe("ProvidedExternalDependencyModule", () => {

@@ -20,9 +20,9 @@ const path = require('path');
 
 const uuidv4Gen = require('uuid/v4');
 const wrmUtils = require("./util/wrm");
-const ProvidedExternalDependencyModule = require("./ProvidedExternalDependencyModule");
-const WrmDependencyModule = require("./WrmDependencyModule");
-const WrmResourceModule = require("./WrmResourceModule");
+const ProvidedExternalDependencyModule = require("./webpack-modules/ProvidedExternalDependencyModule");
+const WrmDependencyModule = require("./webpack-modules/WrmDependencyModule");
+const WrmResourceModule = require("./webpack-modules/WrmResourceModule");
 const baseContexts = require("./base-context");
 const qUnitRequireMock = require("./qunit-require-test-mock");
 
