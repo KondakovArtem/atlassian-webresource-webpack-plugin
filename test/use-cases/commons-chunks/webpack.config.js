@@ -18,7 +18,7 @@ providedDependencies.set('underscore', {
 module.exports = {
     entry: {
         'app': path.join(FRONTEND_SRC_DIR, 'app.js'),
-        'foo': path.join(FRONTEND_SRC_DIR, 'foo.js')
+        'app2': path.join(FRONTEND_SRC_DIR, 'app2.js')
     },
     plugins: [
         new webpack.optimize.CommonsChunkPlugin({
