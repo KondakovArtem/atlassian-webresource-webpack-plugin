@@ -371,6 +371,16 @@ ${standardScript}`
             const entryPointNames = compilation.entrypoints;
             const resourceToAssetMap = this.extractResourceToAssetMapForCompilation(compilation.modules);
 
+            /**
+             * Every entrypoint has an attribute called "chunks".
+             * This contains all chunks that are needed to successfully "load" this entrypoint.
+             * Usually every entrypoint only contains one chunk - the bundle that is build for that entrypoint.
+             * If more than one chunk is present that means they are commons-chunks that contain code needed by the entrypoint to function.
+             * All chunks in the "chunks"-array are in the order they need to be loaded in - therefore the actual entrypoint is always the last in that array.
+             * Hence, if we find an entrypoint with more than one chunk, we can assume that every but the last chunk are commons chunks and have to be handled as such.
+             *
+             * IMPORTANT-NODE: async-chunks required by this entrypoint are not specified in the entrypoint but as sub-chunks of the entrypoint chunk.
+             */
             const commonsChunks = Array.from(Object.keys(entryPointNames)
                 .map(name => entryPointNames[name].chunks) // get chunks per entry
                 .filter(cs => cs.length > 1) // check if commons chunks exist
@@ -381,6 +391,15 @@ ${standardScript}`
                     return set;
                 }, new Set())); // deduplicate
 
+            /**
+             * Create a key and the fully-qualified web-resource descriptor for every commons-chunk.
+             * This is needed to point to reference these chunks as dependency in the entrypoint chunks
+             *
+             * <web-resource>
+             *   ...
+             *   <dependency>this-plugin-key:commons_some_chunk</dependency>
+             *   ...
+             */
             const commonsChunkDependencyKeyMap = new Map();
             for(const c of commonsChunks) {
                 commonsChunkDependencyKeyMap.set(c.name, {
@@ -388,6 +407,11 @@ ${standardScript}`
                     dependency: `${this.options.pluginKey}:commons_${c.name}`
                 })
             }
+
+            /**
+             * Create descriptors for the commons-chunk web-resources that have to be created.
+             * These include - like other chunk-descriptors their assets and external resources etc.
+             */
             const commonDescriptors = commonsChunks.map(c => {
                 const additionalFileDeps = this.getDependencyResourcesFromChunk(c, resourceToAssetMap);
                 return {
@@ -403,7 +427,10 @@ ${standardScript}`
                 const webresourceKey = this._getWebresourceKeyForEntry(name);
                 const entrypointChunks = entryPointNames[name].chunks;
                 const actualEntrypointChunk = entrypointChunks[entrypointChunks.length-1];
+
+                // Retrieve all commons-chunk this entrypoint depends on. These must be added as "<dependency>"s to the web-resource of this entrypoint
                 const commonDeps = entrypointChunks.map(c => commonsChunkDependencyKeyMap.get(c.name)).filter(Boolean).map(val => val.dependency);
+
                 const additionalFileDeps = entrypointChunks.map(c => this.getDependencyResourcesFromChunk(c, resourceToAssetMap));
                 const extractedTestResources = Array.from(this.extractAllFiles([actualEntrypointChunk], compiler.options.context))
                     .map(resource => {
