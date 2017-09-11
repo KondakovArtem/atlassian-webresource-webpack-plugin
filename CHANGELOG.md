@@ -1,3 +1,37 @@
+## 0.4.2 (September 11, 2017)
+
+* bugfix: Common assets extracted via `CommonsChunkPlugin` are correctly de-duplicated across generated web-resource definitions (fixes #20). ([@timse2](https://bitbucket.org/timse2) in [PR #21](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/21)).
+
+## 0.4.1 (September 6, 2017)
+
+* bugfix: Allows `NamedModulesPlugin` to work correctly (fixes #22). ([@timse2](https://bitbucket.org/timse2) in [PR #20](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/20)).
+
+## 0.4.0 (September 5, 2017)
+
+* feature: Legacy QUnit tests that only run during an Atlassian product's runtime are now supported through a (deprecated) configuration option (fixes #12). ([@timse2](https://bitbucket.org/timse2) in [PR #12](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/12)).
+
+The QUnit test bridge is a deprecated feature that will be removed in the v1.0 of this plugin. It is included to provide a graceful rollover period
+for developers wanting to compile their front-end and keep the assurance of some existing tests around while they refactor to a build-time testing solution.
+
+See the README for how to configure and use this behaviour.
+
+## 0.3.0 (September 1, 2017)
+
+* feature: Can load legacy resources with side-effects from an existing Atlassian Plugin's XML using the `wrm-resource!` loader prefix (addresses #19). (([@timse2](https://bitbucket.org/timse2) and [@chrisdarroch](https://bitbucket.org/chrisdarroch) in [PR #16](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/16)).
+
+This feature affords developers a rollover period where they can reference resources from their existing plugin's code in their to-be-compiled code.
+
+By using `wrm-resource!` and `wrm-dependency!`, developers will be able to move the canonical dependency graph of their front-end application
+in to the JavaScript layer. From here, they can be considered a code smell to be refactored away over time by incrementally adopting more
+plugins and capabilities for ahead-of-time compilation via webpack.
+
+## 0.2.2 (August 31, 2017)
+
+* feature: Can provide a plain javascript object for the `providedDependencies` option.
+* feature: Can explicity name the generated web-resources via the `webresourceKeyMap` config option (fixes #9). ([@chrisdarroch](https://bitbucket.org/chrisdarroch) in [PR #15](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/15)).
+* bugfix: Allow to compile directly in to `target/classes` without warning user (fixes #16) ([@timse2](https://bitbucket.org/timse2) in [PR #18](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/18)).
+* bugfix: Only add assets that belong to a chunk to the chunk (fixes #15, #17). ([@timse2](https://bitbucket.org/timse2) in [PR #19](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/19)).
+
 ## 0.2.1 (July 21, 2017)
 
 * Stop `wr-dependency!` import statements from throwing JavaScript exceptions (fixes #11)
