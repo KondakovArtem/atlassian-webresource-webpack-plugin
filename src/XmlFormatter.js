@@ -75,7 +75,7 @@ exports.createResourceDescriptors = function (pathPrefix, jsonDescriptors, testF
         .filter((descriptor) => descriptor.testFiles)
         .map(descriptor => Object.assign({}, descriptor, {resources: undefined, contexts: undefined, key: `__test__${descriptor.key}`, externalResources: descriptor.testFiles, dependencies: descriptor.testDependencies}))
         .map(descriptor => createWebResource("", descriptor));
-        
+
 
     const quniteResources = testFiles.map(createQunitResources).join("");
 

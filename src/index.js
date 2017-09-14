@@ -19,12 +19,12 @@ const glob = require("glob");
 const path = require('path');
 
 const uuidv4Gen = require('uuid/v4');
-const wrmUtils = require("./util/wrm");
-const ProvidedExternalDependencyModule = require("./ProvidedExternalDependencyModule");
-const WrmDependencyModule = require("./WrmDependencyModule");
-const WrmResourceModule = require("./WrmResourceModule");
-const baseContexts = require("./base-context");
-const qUnitRequireMock = require("./qunit-require-test-mock");
+const XMLFormatter = require("./XmlFormatter");
+const ProvidedExternalDependencyModule = require("./webpack-modules/ProvidedExternalDependencyModule");
+const WrmDependencyModule = require("./webpack-modules/WrmDependencyModule");
+const WrmResourceModule = require("./webpack-modules/WrmResourceModule");
+const baseContexts = require("./settings/base-contexts");
+const qUnitRequireMock = require("./shims/qunit-require-shim");
 
 const RESOURCE_JOINER = "__RESOURCE__JOINER__";
 class WrmPlugin {
@@ -33,9 +33,11 @@ class WrmPlugin {
      *
      * @param {Object} options - options passed to WRMPlugin
      * @param {String} options.pluginKey - The fully qualified plugin key. e.g.: com.atlassian.jira.plugins.my-jira-plugin
-     * @param {String} options.contextMap - One or more "context"s to which an entrypoint will be added. e.g.: {\n\t"my-entry": ["my-plugin-context"]\n}
-     * @param {String} options.webresourceKeyMap - Optional map of an explicit name for the web-resource generated per entry point. e.g.: {\n\t"my-entry": "legacy-webresource-name"\n}
+     * @param {Object} options.contextMap - One or more "context"s to which an entrypoint will be added. e.g.: {\n\t"my-entry": ["my-plugin-context"]\n}
+     * @param {Object} options.webresourceKeyMap - Optional map of an explicit name for the web-resource generated per entry point. e.g.: {\n\t"my-entry": "legacy-webresource-name"\n}
+     * @param {Object} options.providedDependencies - Map of provided dependencies. If somewhere in the code this dependency is required, it will not be bundled but instead replaced with the specified placeholder.
      * @param {String} options.xmlDescriptors - Path to the directory where this plugin stores the descriptors about this plugin, used by the WRM to load your frontend code.
+     * @param {Boolean} options.verbose - Indicate if log output should be verbose - default is false.
      */
     constructor(options = {}) {
         assert(options.pluginKey, `Option [String] "pluginKey" not specified. You must specify a valid fully qualified plugin key. e.g.: com.atlassian.jira.plugins.my-jira-plugin`);
@@ -58,13 +60,13 @@ class WrmPlugin {
             contextMap: {},
             webresourceKeyMap: {},
             providedDependencies: new Map(),
-            verbose: true,
+            verbose: false,
         }, options);
 
         // generate an asset uuid per build - this is used to ensure we have a new "cache" for our assets per build.
         // As JIRA-Server does not "rebuild" too often, this can be considered reasonable.
         this.assetUUID = process.env.NODE_ENV === 'production' ? uuidv4Gen() : "DEV_PSEUDO_HASH";
-        this.qunitRequireMockPath = `qunit-require-test-mock-${this.assetUUID}.js`;
+        this.qunitRequireMockPath = `qunit-require-shim-${this.assetUUID}.js`;
     }
 
     checkConfig(compiler) {
@@ -470,7 +472,7 @@ ${standardScript}`
                 .concat(prodEntryPoints)
                 .concat(assets);
 
-            const xmlDescriptors = wrmUtils.createResourceDescriptors(this._extractPathPrefixForXml(compiler.options), wrmDescriptors, qunitTestFiles);
+            const xmlDescriptors = XMLFormatter.createResourceDescriptors(this._extractPathPrefixForXml(compiler.options), wrmDescriptors, qunitTestFiles);
             const xmlDescriptorWebpackPath = path.relative(compiler.options.output.path, this.options.xmlDescriptors);
             compilation.assets[xmlDescriptorWebpackPath] = {
                 source: () => new Buffer(xmlDescriptors),
