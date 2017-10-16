@@ -72,7 +72,8 @@ class WrmPlugin {
     checkConfig(compiler) {
         compiler.plugin("after-environment", () => {
             // check if output path points to somewhere in target/classes
-            const outputPath = compiler.options.output.path;
+            const outputOptions = compiler.options.output;
+            const outputPath = outputOptions.path;
             if (!outputPath.includes(path.join('target', 'classes'))) {
                 this.options.verbose && console.warn(`
 *********************************************************************************
@@ -84,6 +85,22 @@ This is very likely to cause issues - please double check your settings!
 *********************************************************************************
 
 `);
+            }
+
+            // check for the jsonp function option
+            const {jsonpFunction} = outputOptions;
+            if (!jsonpFunction || jsonpFunction === "webpackJsonp") {
+                const generatedJsonpFunction = this.options.pluginKey.replace(/[.-](.)/g, (_, char) => char.toUpperCase())
+                this.options.verbose && console.warn(`
+*********************************************************************************
+The output.jsonpFunction is not specified. This needs to be done to prevent clashes.
+An automated jsonpFunction name for this plugin was created:
+
+"${generatedJsonpFunction}"
+*********************************************************************************
+
+`);
+                outputOptions.jsonpFunction = generatedJsonpFunction;
             }
         });
     }
