@@ -17,6 +17,7 @@ const assert = require("assert");
 const fs = require("fs");
 const glob = require("glob");
 const path = require('path');
+const { createHash } = require('crypto');
 
 const uuidv4Gen = require('uuid/v4');
 const XMLFormatter = require("./XmlFormatter");
@@ -90,7 +91,7 @@ This is very likely to cause issues - please double check your settings!
             // check for the jsonp function option
             const {jsonpFunction} = outputOptions;
             if (!jsonpFunction || jsonpFunction === "webpackJsonp") {
-                const generatedJsonpFunction = this.options.pluginKey.replace(/[.-](.)/g, (_, char) => char.toUpperCase())
+                const generatedJsonpFunction = `atlassianWebpackJsonp${createHash('md5').update(this.options.pluginKey).digest("hex")}`;
                 this.options.verbose && console.warn(`
 *********************************************************************************
 The output.jsonpFunction is not specified. This needs to be done to prevent clashes.
