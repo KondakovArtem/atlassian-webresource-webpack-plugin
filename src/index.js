@@ -17,6 +17,7 @@ const assert = require("assert");
 const fs = require("fs");
 const glob = require("glob");
 const path = require('path');
+const { createHash } = require('crypto');
 
 const uuidv4Gen = require('uuid/v4');
 const XMLFormatter = require("./XmlFormatter");
@@ -72,7 +73,8 @@ class WrmPlugin {
     checkConfig(compiler) {
         compiler.plugin("after-environment", () => {
             // check if output path points to somewhere in target/classes
-            const outputPath = compiler.options.output.path;
+            const outputOptions = compiler.options.output;
+            const outputPath = outputOptions.path;
             if (!outputPath.includes(path.join('target', 'classes'))) {
                 this.options.verbose && console.warn(`
 *********************************************************************************
@@ -84,6 +86,22 @@ This is very likely to cause issues - please double check your settings!
 *********************************************************************************
 
 `);
+            }
+
+            // check for the jsonp function option
+            const {jsonpFunction} = outputOptions;
+            if (!jsonpFunction || jsonpFunction === "webpackJsonp") {
+                const generatedJsonpFunction = `atlassianWebpackJsonp${createHash('md5').update(this.options.pluginKey).digest("hex")}`;
+                this.options.verbose && console.warn(`
+*********************************************************************************
+The output.jsonpFunction is not specified. This needs to be done to prevent clashes.
+An automated jsonpFunction name for this plugin was created:
+
+"${generatedJsonpFunction}"
+*********************************************************************************
+
+`);
+                outputOptions.jsonpFunction = generatedJsonpFunction;
             }
         });
     }
