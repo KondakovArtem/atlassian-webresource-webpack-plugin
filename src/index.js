@@ -326,7 +326,13 @@ ${standardScript}`
     // this is needed to create a web-resource that can be used by qunit tests.
     // this is a "sledgehammer approach" to avoid having to create an entry point per qunit tests and building it via webpack.
     extractAllFiles(chunks, context) {
+        const circularDepCheck = new Set();
         function addModule(m, container) {
+            if (circularDepCheck.has(m)) {
+                return;
+            } else {
+                circularDepCheck.add(m);
+            }
             const deps = m.dependencies
                 .map(d => d.module)
                 .filter(Boolean)
