@@ -327,12 +327,20 @@ ${standardScript}`
     // this is a "sledgehammer approach" to avoid having to create an entry point per qunit tests and building it via webpack.
     extractAllFiles(chunks, context) {
         const circularDepCheck = new Set();
-        function addModule(m, container) {
+        const addModule = (m, container) => {
             if (circularDepCheck.has(m)) {
+                this.options.verbose && console.warn(`
+*********************************************************************************
+Circular dependency detected.
+The module ${m.userRequest}/${m.resource} is involved in a circular dependency.
+This might be worth looking into as it could be an issue.
+*********************************************************************************
+
+`);
                 return;
-            } else {
-                circularDepCheck.add(m);
-            }
+            } 
+            circularDepCheck.add(m);
+
             const deps = m.dependencies
                 .map(d => d.module)
                 .filter(Boolean)
