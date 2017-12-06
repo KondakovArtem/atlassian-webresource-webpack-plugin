@@ -47,6 +47,7 @@ function createWebResource(pathPrefix, resource) {
             </transformation>
              <transformation extension="soy">
                 <transformer key="soyTransformer"/>
+                <transformer key="jsI18n" />
             </transformation>
             <transformation extension="less">
                 <transformer key="lessTransformer"/>
