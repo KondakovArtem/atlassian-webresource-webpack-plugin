@@ -7,14 +7,14 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const appOutput = path.join(targetDir, 'app.js');
 
-describe('jsonp-function-name-default', function () {
+describe('jsonp-function-name-default', function() {
     const config = require('./webpack.config.js');
 
     let appCode;
     let error;
     let stats;
 
-    before((done) => {
+    before(done => {
         webpack(config, (err, st) => {
             error = err;
             stats = st;
@@ -30,6 +30,10 @@ describe('jsonp-function-name-default', function () {
     });
 
     it('should rename the webpack jsonp function to a unique name for the plugin', () => {
-        assert.include(appCode, 'var parentJsonpFunction = window["atlassianWebpackJsonp83fba49a01db9a0da5906cb1dd5f4166"];', "expect the webpack jsonp global function to be renamed");
+        assert.include(
+            appCode,
+            'var parentJsonpFunction = window["atlassianWebpackJsonp83fba49a01db9a0da5906cb1dd5f4166"];',
+            'expect the webpack jsonp global function to be renamed'
+        );
     });
 });

@@ -1,4 +1,4 @@
-const EmptyExportsModule = require("./EmptyExportsModule");
+const EmptyExportsModule = require('./EmptyExportsModule');
 
 module.exports = class extends EmptyExportsModule {
     constructor(dependency, type) {

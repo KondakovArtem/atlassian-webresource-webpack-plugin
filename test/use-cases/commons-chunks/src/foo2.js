@@ -1,2 +1,2 @@
 import _ from 'underscore';
-export default "foo2";
+export default 'foo2';

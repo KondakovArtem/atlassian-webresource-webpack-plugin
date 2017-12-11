@@ -7,7 +7,7 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('qunit-test-wrm-web-resource', function () {
+describe('qunit-test-wrm-web-resource', function() {
     const config = require('./webpack.config.js');
 
     let stats;
@@ -19,11 +19,11 @@ describe('qunit-test-wrm-web-resource', function () {
     let qunitResources;
 
     function getDependencies(node) {
-        return node.children.filter(node => node.name === "dependency")
+        return node.children.filter(node => node.name === 'dependency');
     }
 
     function getResources(node) {
-        return node.children.filter(node => node.name === "resource")
+        return node.children.filter(node => node.name === 'resource');
     }
 
     function getContent(nodes) {
@@ -34,32 +34,36 @@ describe('qunit-test-wrm-web-resource', function () {
         return nodes.map(node => node.attributes.name);
     }
 
-    before((done) => {
+    before(done => {
         webpack(config, (err, st) => {
             error = err;
             stats = st;
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            [entry1, entry2] = results.root.children.filter(node => node.attributes.key && node.attributes.key.startsWith("entrypoint"));
-            [testEntry1, testEntry2] = results.root.children.filter(node => node.attributes.key && node.attributes.key.startsWith("__test__entrypoint"));
-            qunitResources = results.root.children.filter(node => node.attributes.type === "qunit");
+            [entry1, entry2] = results.root.children.filter(
+                node => node.attributes.key && node.attributes.key.startsWith('entrypoint')
+            );
+            [testEntry1, testEntry2] = results.root.children.filter(
+                node => node.attributes.key && node.attributes.key.startsWith('__test__entrypoint')
+            );
+            qunitResources = results.root.children.filter(node => node.attributes.type === 'qunit');
             done();
         });
     });
 
     it('should create an xml file without errors', () => {
         // check
-        assert.equal(stats.hasErrors(), false, "should not have errors");
-        assert.equal(stats.hasWarnings(), false, "should not have warnings");
+        assert.equal(stats.hasErrors(), false, 'should not have errors');
+        assert.equal(stats.hasWarnings(), false, 'should not have warnings');
     });
 
     it('should create a "normal" and a "test" web-resource per entry', () => {
         // check
-        assert.ok(entry1, "entry1 does not exist");
-        assert.ok(entry2, "entry2 does not exist");
-        assert.ok(testEntry1, "testEntry1 does not exist");
-        assert.ok(testEntry2, "testEntry2 does not exist");
+        assert.ok(entry1, 'entry1 does not exist');
+        assert.ok(entry2, 'entry2 does not exist');
+        assert.ok(testEntry1, 'testEntry1 does not exist');
+        assert.ok(testEntry2, 'testEntry2 does not exist');
     });
 
     it('should create qunit-resource entries per found test file - as specified by the glob', () => {
@@ -67,9 +71,17 @@ describe('qunit-test-wrm-web-resource', function () {
         const [barResource, fooResource] = getName(qunitResources);
 
         // check
-        assert.equal(qunitResources.length, 2, "qunit resources not found");
-        assert.equal(barResource, 'test/use-cases/qunit-test-wrm-web-resource/src/bar-dep_test.js', "expected to find qunit resources for bar-dep.js");
-        assert.equal(fooResource, 'test/use-cases/qunit-test-wrm-web-resource/src/foo-dep_test.js', "expected to find qunit resources for foo-dep.js");
+        assert.equal(qunitResources.length, 2, 'qunit resources not found');
+        assert.equal(
+            barResource,
+            'test/use-cases/qunit-test-wrm-web-resource/src/bar-dep_test.js',
+            'expected to find qunit resources for bar-dep.js'
+        );
+        assert.equal(
+            fooResource,
+            'test/use-cases/qunit-test-wrm-web-resource/src/foo-dep_test.js',
+            'expected to find qunit resources for foo-dep.js'
+        );
     });
 
     describe('test web-resources', () => {
@@ -79,8 +91,12 @@ describe('qunit-test-wrm-web-resource', function () {
             const deps2 = getContent(getDependencies(testEntry2));
 
             // check
-            assert.deepEqual(deps1, ['some.weird:web-resource', 'foo-bar:baz'], "unexpected dependencies for first entry");
-            assert.deepEqual(deps2, ['some.weird:web-resource'], "unexpected dependencies for second entry");
+            assert.deepEqual(
+                deps1,
+                ['some.weird:web-resource', 'foo-bar:baz'],
+                'unexpected dependencies for first entry'
+            );
+            assert.deepEqual(deps2, ['some.weird:web-resource'], 'unexpected dependencies for second entry');
         });
 
         it('should contain a mock-require as the first file dependency per entry', () => {
@@ -90,8 +106,16 @@ describe('qunit-test-wrm-web-resource', function () {
             const expectedFirstResource = 'qunit-require-shim-DEV_PSEUDO_HASH.js';
 
             // check
-            assert.equal(actualFirstResource1, expectedFirstResource, "unexpected first file in test entry 1 - expected require mock");
-            assert.equal(actualFirstResource2, expectedFirstResource, "unexpected first file in test entry 2 - expected require mock");
+            assert.equal(
+                actualFirstResource1,
+                expectedFirstResource,
+                'unexpected first file in test entry 1 - expected require mock'
+            );
+            assert.equal(
+                actualFirstResource2,
+                expectedFirstResource,
+                'unexpected first file in test entry 2 - expected require mock'
+            );
         });
 
         it('should not contain the files from another entry', () => {
@@ -102,10 +126,10 @@ describe('qunit-test-wrm-web-resource', function () {
             const expectedOnlyInEntry2 = 'test/use-cases/qunit-test-wrm-web-resource/src/app.2.js';
 
             // check
-            assert.include(actualFirstResource1, expectedOnlyInEntry1, "missing resource in first entry");
-            assert.include(actualFirstResource2, expectedOnlyInEntry2, "missing resource in second entry");
-            assert.notInclude(actualFirstResource1, expectedOnlyInEntry2, "unexpected resource in second entry");
-            assert.notInclude(actualFirstResource2, expectedOnlyInEntry1, "unexpected resource in second entry");
+            assert.include(actualFirstResource1, expectedOnlyInEntry1, 'missing resource in first entry');
+            assert.include(actualFirstResource2, expectedOnlyInEntry2, 'missing resource in second entry');
+            assert.notInclude(actualFirstResource1, expectedOnlyInEntry2, 'unexpected resource in second entry');
+            assert.notInclude(actualFirstResource2, expectedOnlyInEntry1, 'unexpected resource in second entry');
         });
 
         it('should only contain the files contained in the respective entrypoint', () => {
@@ -118,18 +142,18 @@ describe('qunit-test-wrm-web-resource', function () {
                 'test/use-cases/qunit-test-wrm-web-resource/src/bar-dep.js',
                 'ultimate/name/at/runtime.css',
                 'test/use-cases/qunit-test-wrm-web-resource/src/foo-dep.js',
-                'test/use-cases/qunit-test-wrm-web-resource/src/app.js'
+                'test/use-cases/qunit-test-wrm-web-resource/src/app.js',
             ];
             const expectedResources2 = [
                 'qunit-require-shim-DEV_PSEUDO_HASH.js',
                 'ultimate/name/at/runtime.js',
                 'test/use-cases/qunit-test-wrm-web-resource/src/bar-dep.js',
-                'test/use-cases/qunit-test-wrm-web-resource/src/app.2.js'
+                'test/use-cases/qunit-test-wrm-web-resource/src/app.2.js',
             ];
 
             // check
-            assert.deepEqual(actualResources1, expectedResources1, "unexpected files in test resources for entry 1");
-            assert.deepEqual(actualResources2, expectedResources2, "unexpected files in test resources for entry 2");
+            assert.deepEqual(actualResources1, expectedResources1, 'unexpected files in test resources for entry 1');
+            assert.deepEqual(actualResources2, expectedResources2, 'unexpected files in test resources for entry 2');
         });
     });
 });

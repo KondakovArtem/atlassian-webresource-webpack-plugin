@@ -7,43 +7,41 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('async-chunks', function () {
+describe('async-chunks', function() {
     const config = require('./webpack.config.js');
 
     let stats;
-    let error;
     let entry;
     let asyncChunk1;
     let asyncChunk2;
 
     function getDependencies(node) {
-        return node.children.filter(node => node.name === "dependency")
+        return node.children.filter(n => n.name === 'dependency');
     }
 
     function getContent(nodes) {
         return nodes.map(node => node.content);
     }
 
-    beforeEach((done) => {
+    beforeEach(done => {
         webpack(config, (err, st) => {
-            error = err;
             stats = st;
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            entry = results.root.children.find(node => node.attributes.key.startsWith("entry"));
-            asyncChunk1 = results.root.children.find(node => node.attributes.key === "0");
-            asyncChunk2 = results.root.children.find(node => node.attributes.key === "1");
+            entry = results.root.children.find(node => node.attributes.key.startsWith('entry'));
+            asyncChunk1 = results.root.children.find(node => node.attributes.key === '0');
+            asyncChunk2 = results.root.children.find(node => node.attributes.key === '1');
             done();
         });
     });
 
     it('should create a webresource for each async chunk', () => {
-        assert.ok(entry, "entry does not exist");
-        assert.ok(asyncChunk1, "asyncChunk1 does not exist");
-        assert.ok(asyncChunk2, "asyncChunk2 does not exist");
-        assert.equal(stats.hasErrors(), false, "should not have errors");
-        assert.equal(stats.hasWarnings(), false, "should not have warnings");
+        assert.ok(entry, 'entry does not exist');
+        assert.ok(asyncChunk1, 'asyncChunk1 does not exist');
+        assert.ok(asyncChunk2, 'asyncChunk2 does not exist');
+        assert.equal(stats.hasErrors(), false, 'should not have errors');
+        assert.equal(stats.hasWarnings(), false, 'should not have warnings');
     });
 
     it('should inject a WRM pre-condition checker into the webpack runtime', () => {

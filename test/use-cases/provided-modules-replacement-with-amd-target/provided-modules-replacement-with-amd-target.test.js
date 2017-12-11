@@ -10,7 +10,7 @@ chai.use(require('chai-string'));
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('provided-modules-replacement', function () {
+describe('provided-modules-replacement', function() {
     const config = require('./webpack.config.js');
 
     let stats;
@@ -19,21 +19,21 @@ describe('provided-modules-replacement', function () {
     let dependencies;
 
     function getDependencies(node) {
-        return node.children.filter(node => node.name === "dependency")
+        return node.children.filter(node => node.name === 'dependency');
     }
 
     function getContent(nodes) {
         return nodes.map(node => node.content);
     }
 
-    beforeEach((done) => {
+    beforeEach(done => {
         webpack(config, (err, st) => {
             error = err;
             stats = st;
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            entry = results.root.children.find(node => node.attributes.key.startsWith("entry"));
+            entry = results.root.children.find(node => node.attributes.key.startsWith('entry'));
             dependencies = getContent(getDependencies(entry));
             done();
         });
@@ -55,7 +55,7 @@ describe('provided-modules-replacement', function () {
     it('should specify the provided dependencies as proper amd dependencies', () => {
         // setup
         const bundleFile = fs.readFileSync(path.join(targetDir, 'app.js'), 'utf-8');
-        const bundleLines = bundleFile.split("\n");
+        const bundleLines = bundleFile.split('\n');
 
         assert.startsWith(bundleLines[0], `define(["jquery","underscore"],`);
     });

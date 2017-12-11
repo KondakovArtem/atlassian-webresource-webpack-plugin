@@ -7,7 +7,7 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('specify-explicit-context', function () {
+describe('specify-explicit-context', function() {
     const config = require('./webpack.config.js');
 
     let stats;
@@ -19,21 +19,21 @@ describe('specify-explicit-context', function () {
     }
 
     function getContexts(node) {
-        return node.children.filter(node => node.name === "context")
+        return node.children.filter(node => node.name === 'context');
     }
 
     function getContent(nodes) {
         return nodes.map(node => node.content);
     }
 
-    beforeEach((done) => {
+    beforeEach(done => {
         webpack(config, (err, st) => {
             error = err;
             stats = st;
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            wrNodes = results.root.children.filter(node => node.attributes.key.startsWith("entry"));
+            wrNodes = results.root.children.filter(node => node.attributes.key.startsWith('entry'));
             done();
         });
     });
@@ -86,5 +86,4 @@ describe('specify-explicit-context', function () {
         assert.include(contexts, 'app-bad-emptyvalues');
         assert.include(contexts, 'foo.bar');
     });
-
 });

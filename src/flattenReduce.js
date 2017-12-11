@@ -1,1 +1,1 @@
-module.exports = (a, b) => a.concat(b)
+module.exports = (a, b) => a.concat(b);

@@ -1,5 +1,5 @@
 import $ from 'jquery';
 
 $(() => {
-    $('body').html("hello world");
-})
+    $('body').html('hello world');
+});

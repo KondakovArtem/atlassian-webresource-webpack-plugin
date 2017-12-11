@@ -1,11 +1,11 @@
 const path = require('path');
-const WrmPlugin = require('../../../src/index');
+const WrmPlugin = require('../../../src/WRMPlugin');
 const FRONTEND_SRC_DIR = path.join(__dirname, 'src');
 const OUTPUT_DIR = path.join(__dirname, 'target');
 
 module.exports = {
     entry: {
-        'app': path.join(FRONTEND_SRC_DIR, 'app.js')
+        app: path.join(FRONTEND_SRC_DIR, 'app.js'),
     },
     module: {
         rules: [
@@ -13,20 +13,20 @@ module.exports = {
                 test: /\.(css)$/,
                 use: [
                     {
-                        loader: "style-loader",    
+                        loader: 'style-loader',
                     },
                     {
-                        loader: "css-loader",    
+                        loader: 'css-loader',
                         options: {
                             modules: true,
-                            localIdentName: '[local]'
-                        }
-                    }
-                ]
+                            localIdentName: '[local]',
+                        },
+                    },
+                ],
             },
             {
                 test: /\.(png|svg)$/,
-                loader: "file-loader",
+                loader: 'file-loader',
             },
         ],
     },
@@ -39,6 +39,6 @@ module.exports = {
     ],
     output: {
         filename: '[name].js',
-        path: OUTPUT_DIR
-    }
+        path: OUTPUT_DIR,
+    },
 };

@@ -1,3 +1,4 @@
+/* eslint-disable filenames/match-exported */
 /**
  * A Webpack plugin that takes the compilation tree and creates <web-resource> XML definitions.
  * - A <web-resource> for each entry point, including:
@@ -13,27 +14,24 @@
  *     * [named-chunk].chunk.js files
  */
 
-const assert = require("assert");
-const fs = require("fs");
+const assert = require('assert');
 const path = require('path');
 const { createHash } = require('crypto');
 const PrettyData = require('pretty-data').pd;
 const uuidv4Gen = require('uuid/v4');
 
-const XMLFormatter = require("./XmlFormatter");
-const ProvidedExternalDependencyModule = require("./webpack-modules/ProvidedExternalDependencyModule");
-const WrmDependencyModule = require("./webpack-modules/WrmDependencyModule");
-const WrmResourceModule = require("./webpack-modules/WrmResourceModule");
-const WRMHelpers = require("./WRMHelpers");
-const WebpackHelpers = require("./WebpackHelpers");
-const WebpackRuntimeHelpers = require("./WebpackRuntimeHelpers");
-const flattenReduce = require('./flattenReduce');
-const logger = require("./logger");
-const QUnitTestResources = require("./QUnitTestResources");
-const AppResources = require("./AppResources");
+const XMLFormatter = require('./XmlFormatter');
+const ProvidedExternalDependencyModule = require('./webpack-modules/ProvidedExternalDependencyModule');
+const WrmDependencyModule = require('./webpack-modules/WrmDependencyModule');
+const WrmResourceModule = require('./webpack-modules/WrmResourceModule');
+const WRMHelpers = require('./WRMHelpers');
+const WebpackHelpers = require('./WebpackHelpers');
+const WebpackRuntimeHelpers = require('./WebpackRuntimeHelpers');
+const logger = require('./logger');
+const QUnitTestResources = require('./QUnitTestResources');
+const AppResources = require('./AppResources');
 
-class WrmPlugin {
-
+class WRMPlugin {
     /**
      *
      * @param {Object} options - options passed to WRMPlugin
@@ -45,38 +43,47 @@ class WrmPlugin {
      * @param {Boolean} options.verbose - Indicate if log output should be verbose - default is false.
      */
     constructor(options = {}) {
-        assert(options.pluginKey, `Option [String] "pluginKey" not specified. You must specify a valid fully qualified plugin key. e.g.: com.atlassian.jira.plugins.my-jira-plugin`);
-        assert(options.xmlDescriptors, `Option [String] "xmlDescriptors" not specified. You must specify the path to the directory where this plugin stores the descriptors about this plugin, used by the WRM to load your frontend code. This should point somewhere in the "target/classes" directory.`);
+        assert(
+            options.pluginKey,
+            `Option [String] "pluginKey" not specified. You must specify a valid fully qualified plugin key. e.g.: com.atlassian.jira.plugins.my-jira-plugin`
+        );
+        assert(
+            options.xmlDescriptors,
+            `Option [String] "xmlDescriptors" not specified. You must specify the path to the directory where this plugin stores the descriptors about this plugin, used by the WRM to load your frontend code. This should point somewhere in the "target/classes" directory.`
+        );
         assert(path.isAbsolute(options.xmlDescriptors), `Option [String] "xmlDescriptors" must be absolute!`);
 
         // convert providedDependencies object to map
         if (typeof options.providedDependencies === 'object' && !(options.providedDependencies instanceof Map)) {
             const deps = options.providedDependencies;
             const map = new Map();
-            Object.keys(deps).forEach((key) => {
+            Object.keys(deps).forEach(key => {
                 map.set(key, deps[key]);
             });
             options.providedDependencies = map;
         }
 
         // pull out our options
-        this.options = Object.assign({
-            conditionMap: {},
-            contextMap: {},
-            webresourceKeyMap: {},
-            providedDependencies: new Map(),
-            verbose: false,
-        }, options);
+        this.options = Object.assign(
+            {
+                conditionMap: {},
+                contextMap: {},
+                webresourceKeyMap: {},
+                providedDependencies: new Map(),
+                verbose: false,
+            },
+            options
+        );
 
         logger.setVerbose(this.options.verbose);
 
         // generate an asset uuid per build - this is used to ensure we have a new "cache" for our assets per build.
         // As JIRA-Server does not "rebuild" too often, this can be considered reasonable.
-        this.assetUUID = process.env.NODE_ENV === 'production' ? uuidv4Gen() : "DEV_PSEUDO_HASH";
+        this.assetUUID = process.env.NODE_ENV === 'production' ? uuidv4Gen() : 'DEV_PSEUDO_HASH';
     }
 
     checkConfig(compiler) {
-        compiler.plugin("after-environment", () => {
+        compiler.plugin('after-environment', () => {
             // check if output path points to somewhere in target/classes
             const outputOptions = compiler.options.output;
             const outputPath = outputOptions.path;
@@ -94,9 +101,11 @@ This is very likely to cause issues - please double check your settings!
             }
 
             // check for the jsonp function option
-            const {jsonpFunction} = outputOptions;
-            if (!jsonpFunction || jsonpFunction === "webpackJsonp") {
-                const generatedJsonpFunction = `atlassianWebpackJsonp${createHash('md5').update(this.options.pluginKey).digest("hex")}`;
+            const { jsonpFunction } = outputOptions;
+            if (!jsonpFunction || jsonpFunction === 'webpackJsonp') {
+                const generatedJsonpFunction = `atlassianWebpackJsonp${createHash('md5')
+                    .update(this.options.pluginKey)
+                    .digest('hex')}`;
                 logger.warn(`
 *********************************************************************************
 The output.jsonpFunction is not specified. This needs to be done to prevent clashes.
@@ -111,38 +120,15 @@ An automated jsonpFunction name for this plugin was created:
         });
     }
 
-    getTestFiles() {
-        const context = this.options.context;
-        const testGlobs = this.options.__testGlobs__;
-
-        if(!testGlobs) {
-            return [];
-        }
-                
-        logger.warn(`
-******************************************************************************
-The option "__testGlobs__" is only available to allow migrating old code. Consider
-this option deprecated and try to migrate your code to a proper JS-Testrunner.
-******************************************************************************
-`);
-        return testGlobs.map( g => glob.sync(g, {absolute: true})) // get all matching files
-            .reduce((_, _v, _i, files) => { // flatten them and make them unique
-                const uniqueFiles = new Set([].concat(...files));
-                files.length = 0;
-                return Array.from(uniqueFiles);
-            })
-            .map(file => path.relative(context, file)); // make them relative to the context
-    }
-
     overwritePublicPath(compiler) {
         const that = this;
-        compiler.plugin("compilation", (compilation) => {
-            compilation.mainTemplate.plugin("require-extensions", function (standardScript) {
+        compiler.plugin('compilation', compilation => {
+            compilation.mainTemplate.plugin('require-extensions', function(standardScript) {
                 return `${standardScript}
 if (typeof AJS !== "undefined") {
     ${this.requireFn}.p = AJS.contextPath() + "/download/resources/${that.options.pluginKey}:assets-${that.assetUUID}/";
 }
-`
+`;
             });
         });
     }
@@ -153,7 +139,7 @@ if (typeof AJS !== "undefined") {
             const request = data.dependencies[0].request;
             // get globally available libraries through wrm
             if (this.options.providedDependencies.has(request)) {
-                logger.log("plugging hole into request to %s, will be provided as a dependency through WRM", request);
+                logger.log('plugging hole into request to %s, will be provided as a dependency through WRM', request);
                 const p = this.options.providedDependencies.get(request);
                 callback(null, new ProvidedExternalDependencyModule(p.import, p.dependency, target));
                 return;
@@ -168,17 +154,17 @@ if (typeof AJS !== "undefined") {
             const target = compiler.options.output.libraryTarget;
             const request = data.dependencies[0].request;
             // import web-resources we find static import statements for
-            if (request.startsWith("wr-dependency!")) {
-                const res = request.substr("wr-dependency!".length);
-                logger.log("adding %s as a web-resource dependency through WRM", res);
+            if (request.startsWith('wr-dependency!')) {
+                const res = request.substr('wr-dependency!'.length);
+                logger.log('adding %s as a web-resource dependency through WRM', res);
                 callback(null, new WrmDependencyModule(res, target));
                 return;
             }
 
             // import resources we find static import statements for
-            if (request.startsWith("wr-resource!")) {
-                const res = request.substr("wr-resource!".length);
-                logger.log("adding %s as a resource through WRM", res);
+            if (request.startsWith('wr-resource!')) {
+                const res = request.substr('wr-resource!'.length);
+                logger.log('adding %s as a resource through WRM', res);
                 callback(null, new WrmResourceModule(res, target));
                 return;
             }
@@ -189,29 +175,29 @@ if (typeof AJS !== "undefined") {
     }
 
     enableAsyncLoadingWithWRM(compiler) {
-        compiler.plugin("compilation", (compilation) => {
-            compilation.mainTemplate.plugin("jsonp-script", (standardScript) => {
+        compiler.plugin('compilation', compilation => {
+            compilation.mainTemplate.plugin('jsonp-script', standardScript => {
                 // mostly async?
-                const entryPointsChildChunks = WebpackHelpers.getChunksWithEntrypointName(compilation.entrypoints, compilation.chunks);
+                const entryPointsChildChunks = WebpackHelpers.getChunksWithEntrypointName(
+                    compilation.entrypoints,
+                    compilation.chunks
+                );
                 const childChunkIds = entryPointsChildChunks.map(c => c.id).reduce((map, id) => {
                     map[id] = true;
                     return map;
                 }, {});
-                return (
-                    `
+                return `
 var WRMChildChunkIds = ${JSON.stringify(childChunkIds)};
 if (WRMChildChunkIds[chunkId]) {
     WRM.require('wrc!${this.options.pluginKey}:' + chunkId)
     return promise;
 }
-${standardScript}`
-                );
+${standardScript}`;
             });
         });
     }
 
     apply(compiler) {
-
         // ensure settings make sense
         this.checkConfig(compiler);
 
@@ -224,24 +210,31 @@ ${standardScript}`
         this.enableAsyncLoadingWithWRM(compiler);
 
         // When the compiler is about to emit files, we jump in to produce our resource descriptors for the WRM.
-        compiler.plugin("emit", (compilation, callback) => {
-
-            
+        compiler.plugin('emit', (compilation, callback) => {
             const pathPrefix = WRMHelpers.extractPathPrefixForXml(compiler.options);
             const appResourceGenerator = new AppResources(this.assetUUID, this.options, compiler, compilation);
             const testResourcesGenerator = new QUnitTestResources(this.assetUUID, this.options, compiler, compilation);
-            
-            const resourceDescriptors = XMLFormatter.createResourceDescriptors(pathPrefix, appResourceGenerator.getResourceDescriptors());
-            
-            testResourcesGenerator.injectQUnitShim();
-            const testResourceDescriptors = XMLFormatter.createTestResourceDescriptors(testResourcesGenerator.createAllFileTestWebResources());
-            const qUnitTestResourceDescriptors = XMLFormatter.createQUnitResourceDescriptors(testResourcesGenerator.getTestFiles());
 
-            const xmlDescriptors = PrettyData.xml(`<bundles>${resourceDescriptors}${testResourceDescriptors}${qUnitTestResourceDescriptors}</bundles>`);
+            const resourceDescriptors = XMLFormatter.createResourceDescriptors(
+                pathPrefix,
+                appResourceGenerator.getResourceDescriptors()
+            );
+
+            testResourcesGenerator.injectQUnitShim();
+            const testResourceDescriptors = XMLFormatter.createTestResourceDescriptors(
+                testResourcesGenerator.createAllFileTestWebResources()
+            );
+            const qUnitTestResourceDescriptors = XMLFormatter.createQUnitResourceDescriptors(
+                testResourcesGenerator.getTestFiles()
+            );
+
+            const xmlDescriptors = PrettyData.xml(
+                `<bundles>${resourceDescriptors}${testResourceDescriptors}${qUnitTestResourceDescriptors}</bundles>`
+            );
             const xmlDescriptorWebpackPath = path.relative(compiler.options.output.path, this.options.xmlDescriptors);
             compilation.assets[xmlDescriptorWebpackPath] = {
                 source: () => new Buffer(xmlDescriptors),
-                size: () => Buffer.byteLength(xmlDescriptors)
+                size: () => Buffer.byteLength(xmlDescriptors),
             };
 
             callback();
@@ -249,4 +242,4 @@ ${standardScript}`
     }
 }
 
-module.exports = WrmPlugin;
+module.exports = WRMPlugin;

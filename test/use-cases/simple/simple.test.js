@@ -10,7 +10,7 @@ const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 
 describe('simple', function() {
     let config = require('./webpack.config.js');
 
-    it('compiles an xml file', (done) => {
+    it('compiles an xml file', done => {
         webpack(config, (err, stats) => {
             if (err) throw err;
             assert.equal(stats.hasErrors(), false);
@@ -23,11 +23,13 @@ describe('simple', function() {
     describe('a web-resource for a webpack entry point', function() {
         let results, contextEntryNode;
 
-        before((done) => {
+        before(done => {
             webpack(config, (err, stats) => {
                 let xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
                 results = parse(xmlFile);
-                contextEntryNode = results.root.children.find(node => node.attributes.key === 'entrypoint-simple-entry');
+                contextEntryNode = results.root.children.find(
+                    node => node.attributes.key === 'entrypoint-simple-entry'
+                );
                 done();
             });
         });
@@ -49,7 +51,7 @@ describe('simple', function() {
                 .filter(node => node.name === 'context')
                 .find(node => node.content === 'simple-entry');
             assert.deepPropertyVal(node, 'name', 'context');
-            assert.deepPropertyVal(node, 'content', 'simple-entry');                
+            assert.deepPropertyVal(node, 'content', 'simple-entry');
         });
 
         it('has a resource that references the generated bundle file', () => {
@@ -64,7 +66,7 @@ describe('simple', function() {
     describe('a web-resource for the (web-resource) deps of an entry point', function() {
         let results, contextDepsNode;
 
-        before((done) => {
+        before(done => {
             webpack(config, (err, stats) => {
                 let xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
                 results = parse(xmlFile);

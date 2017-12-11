@@ -1,26 +1,28 @@
-const path = require("path");
+const path = require('path');
 
-const ProvidedExternalDependencyModule = require("./webpack-modules/ProvidedExternalDependencyModule");
-const WrmDependencyModule = require("./webpack-modules/WrmDependencyModule");
-const WrmResourceModule = require("./webpack-modules/WrmResourceModule");
+const ProvidedExternalDependencyModule = require('./webpack-modules/ProvidedExternalDependencyModule');
+const WrmDependencyModule = require('./webpack-modules/WrmDependencyModule');
+const WrmResourceModule = require('./webpack-modules/WrmResourceModule');
 
 const logger = require('./logger');
 const flattenReduce = require('./flattenReduce');
 
 module.exports = class WebpackHelpers {
-    
     static getChunksWithEntrypointName(entrypointNames, chunks) {
         const entryPoints = Object.keys(entrypointNames).map(key => chunks.find(c => c.name === key));
         return entryPoints.map(e => e.chunks).reduce(flattenReduce, []);
     }
 
     static _getExternalResourceModules(chunk) {
-        return chunk.getModules().filter(m => m instanceof WrmResourceModule).map(m => m.getResourcePair())
+        return chunk
+            .getModules()
+            .filter(m => m instanceof WrmResourceModule)
+            .map(m => m.getResourcePair());
     }
 
     static getExternalResourcesForChunk(chunk) {
         const externalResources = new Set();
-            
+
         for (const dep of WebpackHelpers._getExternalResourceModules(chunk)) {
             externalResources.add(dep);
         }
@@ -28,10 +30,12 @@ module.exports = class WebpackHelpers {
     }
 
     static _getExternalDependencyModules(chunk) {
-        return chunk.getModules().filter(m => {
-            return m instanceof ProvidedExternalDependencyModule
-                || m instanceof WrmDependencyModule
-        }).map(m => m.getDependency())
+        return chunk
+            .getModules()
+            .filter(m => {
+                return m instanceof ProvidedExternalDependencyModule || m instanceof WrmDependencyModule;
+            })
+            .map(m => m.getDependency());
     }
 
     static getDependenciesForChunks(chunks) {
@@ -47,9 +51,14 @@ module.exports = class WebpackHelpers {
     static extractAdditionalAssetsFromChunk(chunk) {
         const ownDeps = chunk.getModules().map(m => m.resource);
         const ownDepsSet = new Set(ownDeps);
-        const fileDeps = chunk.getModules().map(m => m.fileDependencies).reduce(flattenReduce, []);
+        const fileDeps = chunk
+            .getModules()
+            .map(m => m.fileDependencies)
+            .reduce(flattenReduce, []);
         const fileDepsSet = new Set(fileDeps);
-        return Array.from(fileDepsSet).filter(filename => !ownDepsSet.has(filename) && !/\.(js|css|soy)(\.map)?$/.test(filename));
+        return Array.from(fileDepsSet).filter(
+            filename => !ownDepsSet.has(filename) && !/\.(js|css|soy)(\.map)?$/.test(filename)
+        );
     }
 
     static extractResourceToAssetMapForCompilation(compilationModules) {
@@ -64,16 +73,14 @@ module.exports = class WebpackHelpers {
 
     static getDependencyResourcesFromChunk(chunk, resourceToAssetMap) {
         const deps = WebpackHelpers.extractAdditionalAssetsFromChunk(chunk);
-        return deps
-            .filter(dep => resourceToAssetMap.has(dep))
-            .map(dep => resourceToAssetMap.get(dep))
+        return deps.filter(dep => resourceToAssetMap.has(dep)).map(dep => resourceToAssetMap.get(dep));
     }
 
     // find all dependencies defined in the specified chunks
     // needed to build a web-resource for qunit tests
     static extractAllDependenciesFromChunk(chunks) {
         let dependencyTreeSet = new Set();
-        for(const chunk of chunks) {
+        for (const chunk of chunks) {
             // filter out "runtime" chunk
             if (chunk.getModules().length > 0) {
                 const subChunkSet = WebpackHelpers.extractAllDependenciesFromChunk(chunk.chunks);
@@ -89,46 +96,50 @@ module.exports = class WebpackHelpers {
     // this is a "sledgehammer approach" to avoid having to create an entry point per qunit tests and building it via webpack.
     static extractAllFilesFromChunks(chunks, context, RESOURCE_JOINER) {
         const circularDepCheck = new Set();
-        const addModule = (m, container) => {
-            if (circularDepCheck.has(m)) {
+        const addModule = (mod, container) => {
+            if (circularDepCheck.has(mod)) {
                 logger.warn(`
 *********************************************************************************
 Circular dependency detected.
-The module ${m.userRequest}/${m.resource} is involved in a circular dependency.
+The module ${mod.userRequest}/${mod.resource} is involved in a circular dependency.
 This might be worth looking into as it could be an issue.
 *********************************************************************************
 
 `);
                 return;
-            } 
-            circularDepCheck.add(m);
+            }
+            circularDepCheck.add(mod);
 
-            const deps = m.dependencies
+            mod.dependencies
                 .map(d => d.module)
                 .filter(Boolean)
                 .filter(m => {
                     // filter out all "virtual" modules that do not reference an actual file (or a wrm web-resource)
-                    if(m.resource) return true;
-                    if(m instanceof WrmResourceModule) return true;
+                    if (m.resource) {
+                        return true;
+                    }
+                    if (m instanceof WrmResourceModule) {
+                        return true;
+                    }
                     return false;
                 })
-                
-                .filter(m => !m.resource || !m.resource.includes("node_modules")) // if it references a file remove it if it comes from "node_modules"
-                .forEach(m => addModule(m, container)); // recursively add modules own dependencies first
 
-            if(m.resource && !m.resource.includes("node_modules")) {
-                const reference = path.relative(context, m.resource);
+                .filter(actualModule => !actualModule.resource || !actualModule.resource.includes('node_modules')) // if it references a file remove it if it comes from "node_modules"
+                .forEach(localModule => addModule(localModule, container)); // recursively add modules own dependencies first
+
+            if (mod.resource && !mod.resource.includes('node_modules')) {
+                const reference = path.relative(context, mod.resource);
                 container.add(reference);
             }
 
-            // handle imports of resources through "wr-resource!..."-syntax 
-            if(m instanceof WrmResourceModule) {
-                container.add(m.getResourcePair().join(RESOURCE_JOINER));
+            // handle imports of resources through "wr-resource!..."-syntax
+            if (mod instanceof WrmResourceModule) {
+                container.add(mod.getResourcePair().join(RESOURCE_JOINER));
             }
-        }
+        };
 
         let dependencyTreeSet = new Set();
-        for(const chunk of chunks) {
+        for (const chunk of chunks) {
             // make sure only the files for this entrypoint end up in the test-files chunk
             if (chunk.getModules().length > 0) {
                 const subchunkSet = WebpackHelpers.extractAllFilesFromChunks(chunk.chunks, context);
@@ -141,4 +152,4 @@ This might be worth looking into as it could be an issue.
         }
         return dependencyTreeSet;
     }
-}
+};

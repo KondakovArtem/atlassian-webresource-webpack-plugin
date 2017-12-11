@@ -1,5 +1,5 @@
-const DllModule = require("webpack/lib/DllModule");
-const RawSource = require("webpack-sources").RawSource;
+const DllModule = require('webpack/lib/DllModule');
+const RawSource = require('webpack-sources').RawSource;
 
 /**
  * This module type allows inclusion of special dependencies in the webpack compilation process
@@ -19,7 +19,7 @@ class EmptyExportsModule extends DllModule {
     }
 
     source() {
-        return new RawSource("module.exports = undefined;");
+        return new RawSource('module.exports = undefined;');
     }
 }
 

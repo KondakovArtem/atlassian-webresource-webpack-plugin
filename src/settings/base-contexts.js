@@ -1,3 +1,1 @@
-module.exports = [
-    "com.atlassian.plugins.atlassian-plugins-webresource-plugin:data",
-];
+module.exports = ['com.atlassian.plugins.atlassian-plugins-webresource-plugin:data'];

@@ -8,9 +8,8 @@ const baseContexts = require('../../../src/settings/base-contexts');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('wrm-resource-loading', function () {
+describe('wrm-resource-loading', function() {
     let stats;
-    let error;
     let entry;
 
     function getContent(nodes) {
@@ -19,18 +18,17 @@ describe('wrm-resource-loading', function () {
 
     function runWebpack(config, done) {
         webpack(config, (err, st) => {
-            error = err;
             stats = st;
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            entry = results.root.children.find(node => node.attributes.key.startsWith("entry"));
+            entry = results.root.children.find(node => node.attributes.key.startsWith('entry'));
             done();
         });
     }
 
     function runTheTestsFor(config) {
-        beforeEach((done) => runWebpack(config, done));
+        beforeEach(done => runWebpack(config, done));
 
         it('should run without error', () => {
             assert.ok(entry);
@@ -59,7 +57,7 @@ describe('wrm-resource-loading', function () {
             let resources = resourceNodes.map(node => node.attributes);
             assert.includeDeepMembers(resources, [
                 { name: 'ultimate/name/at/runtime.js', location: 'path/to/my/template.soy', type: 'download' },
-                { name: 'ultimate/name/at/runtime.css', location: 'path/to/my/styles.less', type: 'download' }
+                { name: 'ultimate/name/at/runtime.css', location: 'path/to/my/styles.less', type: 'download' },
             ]);
         });
 
@@ -70,12 +68,12 @@ describe('wrm-resource-loading', function () {
         });
     }
 
-    describe('in ES6 modules', function () {
+    describe('in ES6 modules', function() {
         const config = require('./webpack.config.es6.js');
         runTheTestsFor(config);
     });
 
-    describe('in AMD', function () {
+    describe('in AMD', function() {
         const config = require('./webpack.config.amd.js');
         runTheTestsFor(config);
     });
