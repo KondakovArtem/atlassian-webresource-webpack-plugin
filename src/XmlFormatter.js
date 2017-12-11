@@ -1,6 +1,3 @@
-const path = require('path');
-const PrettyData = require('pretty-data').pd;
-
 class XMLFormatter {
     static context(contexts) {
         return contexts.map(context => `<context>${context}</context>`).join('');
@@ -61,9 +58,9 @@ function createWebResource(pathPrefix, resource) {
     `;
 }
 
-const createQunitResources = (filename) => `<resource type="qunit" name="${filename}" location="${filename}" />`;
+const createQUnitResources = (filename) => `<resource type="qunit" name="${filename}" location="${filename}" />`;
 
-exports.createResourceDescriptors = function (pathPrefix, jsonDescriptors, testFiles) {
+exports.createResourceDescriptors = function (pathPrefix, jsonDescriptors) {
     const descriptors = jsonDescriptors.map((descriptor) => {
         // TODO: Introduce pluggability for web-resource conditions here.
         // e.g., Allow for ServiceDesk to inject their licensed condition, or for a devmode hotreload server condition.
@@ -72,15 +69,15 @@ exports.createResourceDescriptors = function (pathPrefix, jsonDescriptors, testF
         }
     });
 
-    const testDescriptors = jsonDescriptors
-        .filter((descriptor) => descriptor.testFiles)
-        .map(descriptor => Object.assign({}, descriptor, {resources: undefined, contexts: undefined, key: `__test__${descriptor.key}`, externalResources: descriptor.testFiles, dependencies: descriptor.testDependencies}))
-        .map(descriptor => createWebResource("", descriptor));
-
-
-    const quniteResources = testFiles.map(createQunitResources).join("");
-
-    const descriptorsStr = descriptors.join("\n\n");
-    const testDescriptorsStr = testDescriptors.join("");
-    return PrettyData.xml(`<bundles>\n${descriptorsStr}\n${testDescriptorsStr}${quniteResources}</bundles>`);
+    return descriptors.join("");
 };
+
+exports.createTestResourceDescriptors = function (jsonTestDescriptors) {
+    const testDescriptors = jsonTestDescriptors
+        .map(descriptor => createWebResource("", descriptor));
+    return testDescriptors.join("");
+};
+
+exports.createQUnitResourceDescriptors = function(qUnitTestFiles) {
+    return qUnitTestFiles.map(createQUnitResources).join("");
+}
