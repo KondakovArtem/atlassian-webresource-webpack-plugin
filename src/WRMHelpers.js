@@ -3,7 +3,6 @@ const path = require('path');
 const logger = require('./logger');
 
 module.exports = class WRMHelpers {
-
     static getContextForEntry(entry, contextMap) {
         const contexts = [].concat(entry).concat(contextMap[entry]);
         const validContexts = contexts.filter(context => context && typeof context === 'string');
@@ -17,7 +16,7 @@ module.exports = class WRMHelpers {
         }
         return wrKey;
     }
-    
+
     static getConditionForEntry(entry, conditionMap) {
         return conditionMap[entry];
     }
@@ -26,7 +25,7 @@ module.exports = class WRMHelpers {
         const outputPath = options.output.path;
         // get everything "past" the /target/classes
         const pathPrefix = outputPath.split(path.join('target', 'classes'))[1];
-        if (pathPrefix === "" || pathPrefix === "/") {
+        if (pathPrefix === '' || pathPrefix === '/') {
             return '';
         } else if (pathPrefix === undefined) {
             logger.warn(`
@@ -42,8 +41,11 @@ Not adding any path prefix - WRM will probably not be able to find your files!
         }
 
         // remove leading/trailing path separator
-        const withoutLeadingTrailingSeparators = pathPrefix.replace(new RegExp(`^\\${path.sep}|\\${path.sep}$`, 'g'), '');
+        const withoutLeadingTrailingSeparators = pathPrefix.replace(
+            new RegExp(`^\\${path.sep}|\\${path.sep}$`, 'g'),
+            ''
+        );
         // readd trailing slash - this time OS independent always a "/"
-        return withoutLeadingTrailingSeparators + "/";
+        return withoutLeadingTrailingSeparators + '/';
     }
-}
+};

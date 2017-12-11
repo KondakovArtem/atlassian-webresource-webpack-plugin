@@ -7,14 +7,14 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('provided-modules-replacement', function () {
+describe('provided-modules-replacement', function() {
     let stats;
     let error;
     let entry;
     let dependencies;
 
     function getDependencies(node) {
-        return node.children.filter(node => node.name === "dependency")
+        return node.children.filter(node => node.name === 'dependency');
     }
 
     function getContent(nodes) {
@@ -28,14 +28,14 @@ describe('provided-modules-replacement', function () {
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            entry = results.root.children.find(node => node.attributes.key.startsWith("entry"));
+            entry = results.root.children.find(node => node.attributes.key.startsWith('entry'));
             dependencies = getContent(getDependencies(entry));
             done();
         });
     }
 
     function runTheTestsFor(config) {
-        beforeEach((done) => runWebpack(config, done));
+        beforeEach(done => runWebpack(config, done));
 
         it('should create a webresource with dependencies for each async chunk', () => {
             assert.ok(entry);

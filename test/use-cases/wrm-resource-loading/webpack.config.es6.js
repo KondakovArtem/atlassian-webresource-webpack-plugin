@@ -1,11 +1,11 @@
 const path = require('path');
-const WrmPlugin = require('../../../src/index');
+const WrmPlugin = require('../../../src/WRMPlugin');
 const FRONTEND_SRC_DIR = path.join(__dirname, 'src-es6');
 const OUTPUT_DIR = path.join(__dirname, 'target');
 
 module.exports = {
     entry: {
-        'app-es6': path.join(FRONTEND_SRC_DIR, 'app.js')
+        'app-es6': path.join(FRONTEND_SRC_DIR, 'app.js'),
     },
     plugins: [
         new WrmPlugin({
@@ -16,6 +16,6 @@ module.exports = {
     ],
     output: {
         filename: '[name].js',
-        path: OUTPUT_DIR
-    }
+        path: OUTPUT_DIR,
+    },
 };

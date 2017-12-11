@@ -7,16 +7,17 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('css-and-assets-via-extract-text-plugin', function () {
+describe('css-and-assets-via-extract-text-plugin', function() {
     const config = require('./webpack.config.js');
 
     let stats;
     let error;
     let entrypoints;
 
-    const getResourceNodes = (webresource) => webresource && webresource.children.filter(node => node.name === 'resource');
+    const getResourceNodes = webresource =>
+        webresource && webresource.children.filter(node => node.name === 'resource');
 
-    before((done) => {
+    before(done => {
         webpack(config, (err, st) => {
             error = err;
             stats = st;
@@ -34,7 +35,7 @@ describe('css-and-assets-via-extract-text-plugin', function () {
         assert.equal(stats.hasWarnings(), false);
     });
 
-    describe('for feature one', function () {
+    describe('for feature one', function() {
         let resources;
 
         before(() => {

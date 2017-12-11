@@ -1,7 +1,7 @@
-const flattenReduce = require("./flattenReduce");
-const WebpackHelpers = require("./WebpackHelpers");
-const WRMHelpers = require("./WRMHelpers");
-const baseContexts = require("./settings/base-contexts");
+const flattenReduce = require('./flattenReduce');
+const WebpackHelpers = require('./WebpackHelpers');
+const WRMHelpers = require('./WRMHelpers');
+const baseContexts = require('./settings/base-contexts');
 
 module.exports = class AppResources {
     constructor(assetUUID, options, compiler, compilation) {
@@ -12,8 +12,7 @@ module.exports = class AppResources {
     }
 
     getAssetResourceDescriptor() {
-        const assetFiles = Object.keys(this.compilation.assets)
-            .filter(p => !/\.(js|css|soy)(\.map)?$/.test(p)); // remove anything that we know is handled differently
+        const assetFiles = Object.keys(this.compilation.assets).filter(p => !/\.(js|css|soy)(\.map)?$/.test(p)); // remove anything that we know is handled differently
 
         const assets = {
             key: `assets-${this.assetUUID}`,
@@ -36,14 +35,14 @@ module.exports = class AppResources {
     getCommonsChunks() {
         const entryPointNames = this.compilation.entrypoints;
         const commonsChunksSet = Object.keys(entryPointNames)
-        .map(name => entryPointNames[name].chunks) // get chunks per entry
-        .filter(cs => cs.length > 1) // check if commons chunks exist
-        .map(cs => cs.slice(0, -1)) // only take all chunks up to the actual entry chunk
-        .reduce(flattenReduce, []) // flatten arrays
-        .reduce((set, c) => {
-            set.add(c);
-            return set;
-        }, new Set()); // deduplicate
+            .map(name => entryPointNames[name].chunks) // get chunks per entry
+            .filter(cs => cs.length > 1) // check if commons chunks exist
+            .map(cs => cs.slice(0, -1)) // only take all chunks up to the actual entry chunk
+            .reduce(flattenReduce, []) // flatten arrays
+            .reduce((set, c) => {
+                set.add(c);
+                return set;
+            }, new Set()); // deduplicate
 
         return Array.from(commonsChunksSet);
     }
@@ -62,8 +61,8 @@ module.exports = class AppResources {
         for (const c of commonsChunks) {
             commonsChunkDependencyKeyMap.set(c.name, {
                 key: `commons_${c.name}`,
-                dependency: `${pluginKey}:commons_${c.name}`
-            })
+                dependency: `${pluginKey}:commons_${c.name}`,
+            });
         }
 
         return commonsChunkDependencyKeyMap;
@@ -73,20 +72,23 @@ module.exports = class AppResources {
         const resourceToAssetMap = WebpackHelpers.extractResourceToAssetMapForCompilation(this.compilation.modules);
 
         const commonsChunks = this.getCommonsChunks();
-        const commonsChunkDependencyKeyMap = this.getCommonsChunkDependenciesKeyMap(this.options.pluginKey, commonsChunks);
+        const commonsChunkDependencyKeyMap = this.getCommonsChunkDependenciesKeyMap(
+            this.options.pluginKey,
+            commonsChunks
+        );
 
         /**
-        * Create descriptors for the commons-chunk web-resources that have to be created.
-        * These include - like other chunk-descriptors their assets and external resources etc.
-        */
+         * Create descriptors for the commons-chunk web-resources that have to be created.
+         * These include - like other chunk-descriptors their assets and external resources etc.
+         */
         const commonDescriptors = commonsChunks.map(c => {
             const additionalFileDeps = WebpackHelpers.getDependencyResourcesFromChunk(c, resourceToAssetMap);
             return {
                 key: commonsChunkDependencyKeyMap.get(c.name).key,
                 externalResources: WebpackHelpers.getExternalResourcesForChunk(c),
                 resources: Array.from(new Set(c.files.concat(additionalFileDeps))),
-                dependencies: WebpackHelpers.getDependenciesForChunks([c])
-            }
+                dependencies: WebpackHelpers.getDependenciesForChunks([c]),
+            };
         });
 
         return commonDescriptors;
@@ -95,15 +97,18 @@ module.exports = class AppResources {
     getAsyncChunksResourceDescriptors() {
         const entryPointNames = this.compilation.entrypoints;
         const resourceToAssetMap = WebpackHelpers.extractResourceToAssetMapForCompilation(this.compilation.modules);
-        
-        const asyncChunkDescriptors = WebpackHelpers.getChunksWithEntrypointName(entryPointNames, this.compilation.chunks).map(c => {
+
+        const asyncChunkDescriptors = WebpackHelpers.getChunksWithEntrypointName(
+            entryPointNames,
+            this.compilation.chunks
+        ).map(c => {
             const additionalFileDeps = WebpackHelpers.getDependencyResourcesFromChunk(c, resourceToAssetMap);
             return {
                 key: `${c.id}`,
                 externalResources: WebpackHelpers.getExternalResourcesForChunk(c),
                 resources: Array.from(new Set(c.files.concat(additionalFileDeps))),
-                dependencies: WebpackHelpers.getDependenciesForChunks([c])
-            }
+                dependencies: WebpackHelpers.getDependenciesForChunks([c]),
+            };
         });
 
         return asyncChunkDescriptors;
@@ -114,7 +119,10 @@ module.exports = class AppResources {
         const resourceToAssetMap = WebpackHelpers.extractResourceToAssetMapForCompilation(this.compilation.modules);
 
         const commonsChunks = this.getCommonsChunks();
-        const commonsChunkDependencyKeyMap = this.getCommonsChunkDependenciesKeyMap(this.options.pluginKey, commonsChunks);
+        const commonsChunkDependencyKeyMap = this.getCommonsChunkDependenciesKeyMap(
+            this.options.pluginKey,
+            commonsChunks
+        );
 
         // Used in prod
         const prodEntryPoints = Object.keys(entryPointNames).map(name => {
@@ -123,16 +131,24 @@ module.exports = class AppResources {
             const actualEntrypointChunk = entrypointChunks[entrypointChunks.length - 1];
 
             // Retrieve all commons-chunk this entrypoint depends on. These must be added as "<dependency>"s to the web-resource of this entrypoint
-            const commonDeps = entrypointChunks.map(c => commonsChunkDependencyKeyMap.get(c.name)).filter(Boolean).map(val => val.dependency);
+            const commonDeps = entrypointChunks
+                .map(c => commonsChunkDependencyKeyMap.get(c.name))
+                .filter(Boolean)
+                .map(val => val.dependency);
 
-            const additionalFileDeps = entrypointChunks.map(c => WebpackHelpers.getDependencyResourcesFromChunk(c, resourceToAssetMap));
+            const additionalFileDeps = entrypointChunks.map(c =>
+                WebpackHelpers.getDependencyResourcesFromChunk(c, resourceToAssetMap)
+            );
             return {
                 key: webresourceKey,
                 contexts: WRMHelpers.getContextForEntry(name, this.options.contextMap),
                 externalResources: WebpackHelpers.getExternalResourcesForChunk(actualEntrypointChunk),
                 resources: Array.from(new Set([].concat(actualEntrypointChunk.files, ...additionalFileDeps))),
-                dependencies: baseContexts.concat(WebpackHelpers.getDependenciesForChunks([actualEntrypointChunk]), commonDeps),
-                conditions: WRMHelpers.getConditionForEntry(name, this.options.conditionMap)
+                dependencies: baseContexts.concat(
+                    WebpackHelpers.getDependenciesForChunks([actualEntrypointChunk]),
+                    commonDeps
+                ),
+                conditions: WRMHelpers.getConditionForEntry(name, this.options.conditionMap),
             };
         });
 
@@ -145,4 +161,4 @@ module.exports = class AppResources {
             .concat(this.getEntryPointsResourceDescriptors())
             .concat(this.getAssetResourceDescriptor());
     }
-}
+};

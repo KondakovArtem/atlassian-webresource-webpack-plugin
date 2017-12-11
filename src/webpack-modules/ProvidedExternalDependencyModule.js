@@ -1,4 +1,4 @@
-const ExternalModule = require("webpack/lib/ExternalModule");
+const ExternalModule = require('webpack/lib/ExternalModule');
 
 /**
  * ProvidedExternalModule ensures that the `chunkCondition` is true to allow proper asyncChunk context handling
@@ -27,5 +27,4 @@ module.exports = class ProvidedExternalDependencyModule extends ExternalModule {
     getDependency() {
         return this._dependency;
     }
-
-}
+};

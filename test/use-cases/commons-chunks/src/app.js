@@ -4,4 +4,4 @@ import bar from './bar';
 
 $(() => {
     $('body').html(`hello world, ${bar} ${foo}`);
-})
+});
