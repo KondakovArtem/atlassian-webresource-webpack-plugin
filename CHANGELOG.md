@@ -1,3 +1,16 @@
+## 0.5.0 (December 11, 2017)
+
+The plugin just got a whole lot more modular and module-friendly!
+* refactor: the plugin's behaviour is now composed of multiple smaller modules (closes #21).
+    * [@timse2](https://bitbucket.org/timse2) in [PR #22](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/22).
+    * [@timse2](https://bitbucket.org/timse2) in [PR #26](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/26).
+* refactor: cleanup of gitignore files. ([@fgdreis](https://bitbucket.org/fgdreis/) in [PR #31](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/31)).
+* bugfix: multiple webpack runtimes on the same page will now work, thanks to the jsonp function being given a unique name per compilation (fixes #23). ([@timse2](https://bitbucket.org/timse2) in [PR #23](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/23)).
+* bugfix: circular dependencies will be handled appropriately -- namely, they won't crash the plugin :P (fixes #29).
+    * [@timse2](https://bitbucket.org/timse2) in [PR #24](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/24).
+    * [@fgdreis](https://bitbucket.org/fgdreis/) in [PR #28](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/28).
+* bugfix: soy templates should be translated correctly, since we now load the i18n transformer at runtime (fixes #26). ([@timse2](https://bitbucket.org/timse2) in [PR #25](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/25)).
+
 ## 0.4.2 (September 11, 2017)
 
 * bugfix: Common assets extracted via `CommonsChunkPlugin` are correctly de-duplicated across generated web-resource definitions (fixes #20). ([@timse2](https://bitbucket.org/timse2) in [PR #21](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/21)).
