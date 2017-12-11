@@ -1,4 +1,3 @@
-/* eslint-disable filenames/match-exported */
 /**
  * A Webpack plugin that takes the compilation tree and creates <web-resource> XML definitions.
  * - A <web-resource> for each entry point, including:
