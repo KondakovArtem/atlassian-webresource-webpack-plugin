@@ -76,6 +76,9 @@ class WrmPlugin {
                 webresourceKeyMap: {},
                 providedDependencies: new Map(),
                 verbose: false,
+                assetContentTypes: {
+                    svg: 'image/svg+xml',
+                },
             },
             options
         );

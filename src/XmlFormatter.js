@@ -10,7 +10,8 @@ class XMLFormatter {
     }
 
     static generateResourceElement(name, location, contentType) {
-        const contentTypeForAsset = contentType[path.extname(location)];
+        const assetContentTyp = path.extname(location).substr(1);
+        const contentTypeForAsset = contentType[assetContentTyp];
         if (!contentTypeForAsset) {
             return `<resource name="${name}" type="download" location="${location}" />`;
         }

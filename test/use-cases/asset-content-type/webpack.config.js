@@ -21,7 +21,7 @@ module.exports = {
             xmlDescriptors: path.join(OUTPUT_DIR, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml'),
             verbose: false,
             assetContentTypes: {
-                '.svg': 'image/svg+xml',
+                svg: 'image/svg+xml',
             },
         }),
     ],
