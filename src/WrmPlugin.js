@@ -18,6 +18,9 @@ const path = require('path');
 const { createHash } = require('crypto');
 const PrettyData = require('pretty-data').pd;
 const uuidv4Gen = require('uuid/v4');
+const fs = require('fs');
+const mkdirp = require('mkdirp');
+const urlJoin = require('url-join');
 
 const XMLFormatter = require('./XmlFormatter');
 const ProvidedExternalDependencyModule = require('./webpack-modules/ProvidedExternalDependencyModule');
@@ -29,6 +32,7 @@ const WebpackRuntimeHelpers = require('./WebpackRuntimeHelpers');
 const logger = require('./logger');
 const QUnitTestResources = require('./QUnitTestResources');
 const AppResources = require('./AppResources');
+const flattenReduce = require('./flattenReduce');
 
 class WrmPlugin {
     /**
@@ -39,6 +43,7 @@ class WrmPlugin {
      * @param {Object} options.webresourceKeyMap - Optional map of an explicit name for the web-resource generated per entry point. e.g.: {\n\t"my-entry": "legacy-webresource-name"\n}
      * @param {Object} options.providedDependencies - Map of provided dependencies. If somewhere in the code this dependency is required, it will not be bundled but instead replaced with the specified placeholder.
      * @param {String} options.xmlDescriptors - Path to the directory where this plugin stores the descriptors about this plugin, used by the WRM to load your frontend code.
+     * @param {String} options.watch - Trigger watch mode - this requires webpack-dev-server and will redirect requests to the entrypoints to the dev-server that must be running under webpacks "options.output.publicPath"
      * @param {Boolean} options.verbose - Indicate if log output should be verbose - default is false.
      */
     constructor(options = {}) {
@@ -205,8 +210,10 @@ ${standardScript}`;
         // allow `wr-dependency/wr-resource` require calls.
         this.injectWRMSpecificRequestTypes(compiler);
 
-        this.overwritePublicPath(compiler);
-        this.enableAsyncLoadingWithWRM(compiler);
+        if (!this.options.watch) {
+            this.overwritePublicPath(compiler);
+            this.enableAsyncLoadingWithWRM(compiler);
+        }
 
         // When the compiler is about to emit files, we jump in to produce our resource descriptors for the WRM.
         compiler.plugin('emit', (compilation, callback) => {
@@ -222,7 +229,7 @@ ${standardScript}`;
             );
             webResources.push(resourceDescriptors);
 
-            if (this.options.__testGlobs__) {
+            if (this.options.__testGlobs__ && !this.options.watch) {
                 testResourcesGenerator.injectQUnitShim();
                 const testResourceDescriptors = XMLFormatter.createTestResourceDescriptors(
                     testResourcesGenerator.createAllFileTestWebResources()
@@ -240,6 +247,36 @@ ${standardScript}`;
                 source: () => new Buffer(xmlDescriptors),
                 size: () => Buffer.byteLength(xmlDescriptors),
             };
+
+            if (this.options.watch && !this.watchDoneOnce) {
+                this.watchDoneOnce = true;
+                const outputPath = compiler.options.output.path;
+                const entrypointDescriptors = appResourceGenerator.getEntryPointsResourceDescriptors();
+                const redirectDescriptors = entrypointDescriptors
+                    .map(c => c.resources)
+                    .reduce(flattenReduce, [])
+                    .filter(res => path.extname(res) === '.js')
+                    .map(r => ({ fileName: r, writePath: path.join(outputPath, r) }));
+
+                compiler.plugin('done', () => {
+                    mkdirp.sync(path.dirname(this.options.xmlDescriptors));
+                    fs.writeFileSync(this.options.xmlDescriptors, xmlDescriptors, 'utf8');
+                    function generateAssetCall(file) {
+                        const pathName = urlJoin(compiler.options.output.publicPath, file);
+                        return `
+!function(){
+    var script = document.createElement('script');
+    script.src = '${pathName}';
+    script.async = false;
+    document.head.appendChild(script);
+}();
+`.trim();
+                    }
+                    for (const { fileName, writePath } of redirectDescriptors) {
+                        fs.writeFileSync(writePath, generateAssetCall(fileName), 'utf8');
+                    }
+                });
+            }
 
             callback();
         });
