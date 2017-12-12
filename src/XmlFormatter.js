@@ -1,3 +1,5 @@
+const path = require('path');
+
 class XMLFormatter {
     static context(contexts) {
         return contexts.map(context => `<context>${context}</context>`).join('');
@@ -7,15 +9,24 @@ class XMLFormatter {
         return dependencies.map(dependency => `<dependency>${dependency}</dependency>`).join('\n');
     }
 
-    static externalResources(resourcesPairs) {
+    static generateResourceElement(name, location, contentType) {
+        const contentTypeForAsset = contentType[path.extname(location)];
+        if (!contentTypeForAsset) {
+            return `<resource name="${name}" type="download" location="${location}" />`;
+        }
+
+        return `<resource name="${name}" type="download" location="${location}"><param name="content-type" value="${contentTypeForAsset}"/></resource>`;
+    }
+
+    static externalResources(resourcesPairs, contentTypes) {
         return resourcesPairs
-            .map(resourcePair => `<resource name="${resourcePair[0]}" type="download" location="${resourcePair[1]}" />`)
+            .map(resourcePair => XMLFormatter.generateResourceElement(resourcePair[0], resourcePair[1], contentTypes))
             .join('\n');
     }
 
-    static resources(pathPrefix, resources) {
+    static resources(pathPrefix, contentTypes, resources) {
         return resources
-            .map(resource => `<resource name="${resource}" type="download" location="${pathPrefix}${resource}" />`)
+            .map(resource => XMLFormatter.generateResourceElement(resource, pathPrefix + resource, contentTypes))
             .join('\n');
     }
 
@@ -36,7 +47,7 @@ class XMLFormatter {
     }
 }
 
-function createWebResource(pathPrefix, resource) {
+function createWebResource(resource, pathPrefix = '', contentTypes = {}) {
     return `
         <web-resource key="${resource.key}">
             <transformation extension="js">
@@ -51,8 +62,12 @@ function createWebResource(pathPrefix, resource) {
             </transformation>
             ${resource.contexts ? XMLFormatter.context(resource.contexts) : ''}
             ${resource.dependencies ? XMLFormatter.dependencies(resource.dependencies) : ''}
-            ${resource.externalResources ? XMLFormatter.externalResources(resource.externalResources) : ''}
-            ${resource.resources ? XMLFormatter.resources(pathPrefix, resource.resources) : ''}
+            ${
+                resource.externalResources
+                    ? XMLFormatter.externalResources(resource.externalResources, contentTypes)
+                    : ''
+            }
+            ${resource.resources ? XMLFormatter.resources(pathPrefix, contentTypes, resource.resources) : ''}
             ${resource.conditions ? XMLFormatter.condition(resource.conditions) : ''}
         </web-resource>
     `;
@@ -60,12 +75,12 @@ function createWebResource(pathPrefix, resource) {
 
 const createQUnitResources = filename => `<resource type="qunit" name="${filename}" location="${filename}" />`;
 
-exports.createResourceDescriptors = function(pathPrefix, jsonDescriptors) {
+exports.createResourceDescriptors = function(jsonDescriptors, pathPrefix, contentTypes) {
     const descriptors = jsonDescriptors.map(descriptor => {
         // TODO: Introduce pluggability for web-resource conditions here.
         // e.g., Allow for ServiceDesk to inject their licensed condition, or for a devmode hotreload server condition.
         if (!descriptor.isDevModeOnly) {
-            return createWebResource(pathPrefix, descriptor);
+            return createWebResource(descriptor, pathPrefix, contentTypes);
         }
     });
 
@@ -73,7 +88,7 @@ exports.createResourceDescriptors = function(pathPrefix, jsonDescriptors) {
 };
 
 exports.createTestResourceDescriptors = function(jsonTestDescriptors) {
-    const testDescriptors = jsonTestDescriptors.map(descriptor => createWebResource('', descriptor));
+    const testDescriptors = jsonTestDescriptors.map(descriptor => createWebResource(descriptor));
     return testDescriptors.join('');
 };
 

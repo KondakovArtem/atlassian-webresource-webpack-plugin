@@ -43,6 +43,7 @@ class WrmPlugin {
      * @param {Object} options.webresourceKeyMap - Optional map of an explicit name for the web-resource generated per entry point. e.g.: {\n\t"my-entry": "legacy-webresource-name"\n}
      * @param {Object} options.providedDependencies - Map of provided dependencies. If somewhere in the code this dependency is required, it will not be bundled but instead replaced with the specified placeholder.
      * @param {String} options.xmlDescriptors - Path to the directory where this plugin stores the descriptors about this plugin, used by the WRM to load your frontend code.
+     * @param {String} options.assetContentTypes - Specific content-types to be used for certain asset types. Will be added as '<param name="content-type"...' to the resource of the asset.
      * @param {String} options.watch - Trigger watch mode - this requires webpack-dev-server and will redirect requests to the entrypoints to the dev-server that must be running under webpacks "options.output.publicPath"
      * @param {Boolean} options.verbose - Indicate if log output should be verbose - default is false.
      */
@@ -224,8 +225,9 @@ ${standardScript}`;
             const webResources = [];
 
             const resourceDescriptors = XMLFormatter.createResourceDescriptors(
+                appResourceGenerator.getResourceDescriptors(),
                 pathPrefix,
-                appResourceGenerator.getResourceDescriptors()
+                this.options.assetContentTypes
             );
             webResources.push(resourceDescriptors);
 
