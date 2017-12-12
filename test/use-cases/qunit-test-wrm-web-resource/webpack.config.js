@@ -1,6 +1,6 @@
 const path = require('path');
 const webpack = require('webpack');
-const WrmPlugin = require('../../../src/WRMPlugin');
+const WrmPlugin = require('../../../src/WrmPlugin');
 const FRONTEND_SRC_DIR = path.join(__dirname, 'src');
 const OUTPUT_DIR = path.join(__dirname, 'target');
 
@@ -14,7 +14,7 @@ module.exports = {
             pluginKey: 'com.atlassian.plugin.test',
             xmlDescriptors: path.join(OUTPUT_DIR, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml'),
             verbose: false,
-            __testGlobs__: ['**/src/*_test.js'],
+            __testGlobs__: ['**/qunit-test-wrm-web-resource/src/*_test.js'],
         }),
         new webpack.optimize.CommonsChunkPlugin({
             name: 'runtime',

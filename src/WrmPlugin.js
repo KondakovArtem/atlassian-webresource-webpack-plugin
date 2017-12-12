@@ -30,7 +30,7 @@ const logger = require('./logger');
 const QUnitTestResources = require('./QUnitTestResources');
 const AppResources = require('./AppResources');
 
-class WRMPlugin {
+class WrmPlugin {
     /**
      *
      * @param {Object} options - options passed to WRMPlugin
@@ -214,22 +214,27 @@ ${standardScript}`;
             const appResourceGenerator = new AppResources(this.assetUUID, this.options, compiler, compilation);
             const testResourcesGenerator = new QUnitTestResources(this.assetUUID, this.options, compiler, compilation);
 
+            const webResources = [];
+
             const resourceDescriptors = XMLFormatter.createResourceDescriptors(
                 pathPrefix,
                 appResourceGenerator.getResourceDescriptors()
             );
+            webResources.push(resourceDescriptors);
 
-            testResourcesGenerator.injectQUnitShim();
-            const testResourceDescriptors = XMLFormatter.createTestResourceDescriptors(
-                testResourcesGenerator.createAllFileTestWebResources()
-            );
-            const qUnitTestResourceDescriptors = XMLFormatter.createQUnitResourceDescriptors(
-                testResourcesGenerator.getTestFiles()
-            );
+            if (this.options.__testGlobs__) {
+                testResourcesGenerator.injectQUnitShim();
+                const testResourceDescriptors = XMLFormatter.createTestResourceDescriptors(
+                    testResourcesGenerator.createAllFileTestWebResources()
+                );
+                const qUnitTestResourceDescriptors = XMLFormatter.createQUnitResourceDescriptors(
+                    testResourcesGenerator.getTestFiles()
+                );
 
-            const xmlDescriptors = PrettyData.xml(
-                `<bundles>${resourceDescriptors}${testResourceDescriptors}${qUnitTestResourceDescriptors}</bundles>`
-            );
+                webResources.push(testResourceDescriptors, qUnitTestResourceDescriptors);
+            }
+
+            const xmlDescriptors = PrettyData.xml(`<bundles>${webResources.join('')}</bundles>`);
             const xmlDescriptorWebpackPath = path.relative(compiler.options.output.path, this.options.xmlDescriptors);
             compilation.assets[xmlDescriptorWebpackPath] = {
                 source: () => new Buffer(xmlDescriptors),
@@ -241,4 +246,4 @@ ${standardScript}`;
     }
 }
 
-module.exports = WRMPlugin;
+module.exports = WrmPlugin;

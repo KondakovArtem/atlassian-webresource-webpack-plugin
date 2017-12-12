@@ -121,9 +121,101 @@ describe('commons-chunks', function() {
     });
 
     describe('test web-resources', () => {
-        it('should not have any test entries', () => {
-            assert.equal(testEntryApp, undefined, 'test entrypoint is undefined');
-            assert.equal(testEntryApp2, undefined, 'test entrypoint is undefined');
+        let depsTestApp;
+        let depsTestApp2;
+        let resourcesTestApp;
+        let resourcesTestApp2;
+        beforeEach(() => {
+            depsTestApp = getContent(getChild(testEntryApp, 'dependency'));
+            depsTestApp2 = getContent(getChild(testEntryApp2, 'dependency'));
+            resourcesTestApp = getAttribute(getChild(testEntryApp, 'resource'), 'name');
+            resourcesTestApp2 = getAttribute(getChild(testEntryApp2, 'resource'), 'name');
+        });
+
+        it('should contain the dependencies as specified in the commons chunks', () => {
+            assert.include(depsTestApp, 'jira.webresources:jquery', 'expected dependency not found');
+            assert.include(
+                depsTestApp,
+                'com.atlassian.plugin.jslibs:underscore-1.4.4',
+                'expected dependency not found'
+            );
+            assert.include(depsTestApp2, 'jira.webresources:jquery', 'expected dependency not found');
+            assert.include(
+                depsTestApp2,
+                'com.atlassian.plugin.jslibs:underscore-1.4.4',
+                'expected dependency not found'
+            );
+        });
+
+        it('should contain the resources as specified in its entry point - including commons ones', () => {
+            assert.strictEqual(
+                resourcesTestApp[0],
+                'qunit-require-shim-DEV_PSEUDO_HASH.js',
+                'expected resource not found'
+            );
+            assert.strictEqual(
+                resourcesTestApp[1],
+                'test/use-cases/commons-chunks-with-tests/src/foo.js',
+                'expected resource not found'
+            );
+            assert.strictEqual(
+                resourcesTestApp[2],
+                'test/use-cases/commons-chunks-with-tests/src/bar.js',
+                'expected resource not found'
+            );
+            assert.strictEqual(
+                resourcesTestApp[3],
+                'test/use-cases/commons-chunks-with-tests/src/app.js',
+                'expected resource not found'
+            );
+
+            assert.strictEqual(
+                resourcesTestApp2[0],
+                'qunit-require-shim-DEV_PSEUDO_HASH.js',
+                'expected resource not found'
+            );
+            assert.strictEqual(
+                resourcesTestApp2[1],
+                'test/use-cases/commons-chunks-with-tests/src/foo2.js',
+                'expected resource not found'
+            );
+            assert.strictEqual(
+                resourcesTestApp2[2],
+                'test/use-cases/commons-chunks-with-tests/src/bar.js',
+                'expected resource not found'
+            );
+            assert.strictEqual(
+                resourcesTestApp2[3],
+                'test/use-cases/commons-chunks-with-tests/src/app2.js',
+                'expected resource not found'
+            );
+
+            assert.strictEqual(resourcesTestApp.length, 4, 'unexpected number of resources');
+            assert.strictEqual(resourcesTestApp2.length, 4, 'unexpected number of resources');
+        });
+
+        it('should not contain resources from other entry points', () => {
+            assert.notInclude(
+                resourcesTestApp2,
+                'test/use-cases/commons-chunks-with-tests/src/foo.js',
+                'unexpected resource found'
+            );
+            assert.notInclude(
+                resourcesTestApp2,
+                'test/use-cases/commons-chunks-with-tests/src/app.js',
+                'unexpected resource found'
+            );
+
+            assert.notInclude(
+                resourcesTestApp,
+                'test/use-cases/commons-chunks-with-tests/src/foo2.js',
+                'unexpected resource found'
+            );
+            assert.notInclude(
+                resourcesTestApp,
+                'test/use-cases/commons-chunks-with-tests/src/app2.js',
+                'unexpected resource found'
+            );
         });
     });
 });

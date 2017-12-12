@@ -1,7 +1,7 @@
 const path = require('path');
 const webpack = require('webpack');
 
-const WrmPlugin = require('../../../src/WRMPlugin');
+const WrmPlugin = require('../../../src/WrmPlugin');
 const FRONTEND_SRC_DIR = path.join(__dirname, 'src');
 const OUTPUT_DIR = path.join(__dirname, 'target');
 
