@@ -291,6 +291,11 @@ When your code is compiled through webpack, any occurrence of `dependency-name` 
 statement will be replaced in the webpack output, and an appropriate web-resource `<dependency>` will be
 added to the generated web-resource.
 
+### `watch` (Optional)
+Activates "watch-mode". This must be run in conjuction with webpack-dev-server.
+Instead of writing to file this will only once write out xml-descriptors redirecting requests to the webpack-dev-server.
+In order for this to run webpacks "options.output.publicPath" must point to the webpack-dev-server. (e.g. http://localhost:9000)
+
 ### `__testGlobs__` (Optional) (Deprecated)
 
 When provided, the Webpack compilation will generate `<resource type="qunit"/>` entries for each test file
