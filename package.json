@@ -24,7 +24,9 @@
   ],
   "dependencies": {
     "glob": "^7.1.2",
+    "mkdirp": "^0.5.1",
     "pretty-data": "^0.40.0",
+    "url-join": "^2.0.2",
     "uuid": "^3.1.0"
   },
   "devDependencies": {
