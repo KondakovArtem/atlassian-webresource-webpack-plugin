@@ -1,8 +1,8 @@
-import logo from './logo.png';
-import logo2 from './jira_logo.svg';
+import ice from './ice.png';
+import rect from './rect.svg';
 
 const image = new Image();
-image.src = logo;
+image.src = ice;
 
 const image2 = new Image();
-image2.src = logo2;
+image2.src = rect;
