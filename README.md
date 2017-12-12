@@ -272,7 +272,7 @@ as when you refactor an existing feature (and its web-resource) to be generated 
 
 ### `providedDependencies` (Optional)
 
-An map of objects that let you associate what web-resources house particular external JS dependencies.
+A map of objects that let you associate what web-resources house particular external JS dependencies.
 The format of an external dependency mapping is as follows:
 
 ```json
@@ -290,6 +290,21 @@ The format of an external dependency mapping is as follows:
 When your code is compiled through webpack, any occurrence of `dependency-name` found in a module import
 statement will be replaced in the webpack output, and an appropriate web-resource `<dependency>` will be
 added to the generated web-resource.
+
+### `assetContentTypes` (Optional)
+
+An object specifying content-types the server should respond with for a certain assets file-type (e.g. images/fonts):
+
+```json
+{
+  "assetContentTypes": {
+    "svg": "image/svg+xml"
+  }
+}
+```
+
+This may be required by certain Atlassian products depending on the file-type to load.
+*Contains content-type for svg as "image/svg+xml" by default*
 
 ### `watch` (Optional)
 Activates "watch-mode". This must be run in conjuction with webpack-dev-server.
