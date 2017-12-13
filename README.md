@@ -263,6 +263,90 @@ should be present in what web-resource contexts at an Atlassian product runtime.
 
 You can provide either a single web-resource context as a string, or an array of context strings.
 
+### `conditionMap` (Optional)
+
+An object specifying what conditions should be applied to a certain entry-point.
+Simple example:
+```json
+{
+    "class": "foo.bar"
+}
+```
+
+will yield:
+```xml
+<condition class="foo.bar" />
+```
+
+Complex nested example with params:
+```json
+{
+    "conditionMap": {
+        "type": "AND",
+        "conditions": [
+            {
+                "type": "OR",
+                "conditions": [
+                    {
+                        "class": "foo.bar.baz",
+                        "invert": true,
+                        "params": [
+                            {
+                                "attributes": {
+                                    "name": "permission"
+                                },
+                                "value": "admin"
+                            }
+                        ]
+                    },
+                    {
+                        "class": "foo.bar.baz2",
+                        "params": [
+                            {
+                                "attributes": {
+                                    "name": "permission"
+                                },
+                                "value": "project"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "class": "foo.bar.baz3",
+                "params": [
+                    {
+                        "attributes": {
+                            "name": "permission"
+                        },
+                        "value": "admin"
+                    }
+                ]
+            }
+        ]
+    }
+}
+```
+
+will yield:
+```xml
+<conditions type="AND">
+  <conditions type="OR">
+    <condition class="foo.bar.baz" invert="true">
+      <param name="permission">admin</param>
+    </condition>
+    <condition class="foo.bar.baz2" >
+      <param name="permission">project</param>
+    </condition>
+  </conditions>
+  <condition class="foo.bar.baz3" >
+    <param name="permission">admin</param>
+  </condition>
+</conditions>
+```
+
+see also "specify-conditions" use-case test case in source.
+
 ### `webresourceKeyMap` (Optional)
 
 Allows you to change the name of the web-resource that is generated for a given webpack entry-point.
