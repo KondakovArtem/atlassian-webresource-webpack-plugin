@@ -7,6 +7,7 @@ module.exports = {
     entry: {
         'app-amd': path.join(FRONTEND_SRC_DIR, 'app.js'),
     },
+    context: __dirname,
     plugins: [
         new WrmPlugin({
             pluginKey: 'com.atlassian.plugin.test',

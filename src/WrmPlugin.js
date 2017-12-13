@@ -173,7 +173,8 @@ if (typeof AJS !== "undefined") {
             if (request.startsWith('wr-resource!')) {
                 const res = request.substr('wr-resource!'.length);
                 logger.log('adding %s as a resource through WRM', res);
-                callback(null, new WrmResourceModule(res, target));
+
+                callback(null, new WrmResourceModule(res, target, data.context, compiler.options.context));
                 return;
             }
 
