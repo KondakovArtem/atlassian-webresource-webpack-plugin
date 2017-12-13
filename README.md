@@ -345,7 +345,34 @@ will yield:
 </conditions>
 ```
 
-see also "specify-conditions" use-case test case in source.
+### `transformationMap` (Optional)
+
+An object specifying transformations to be applied to file types.
+The default transformations that will always get applied are:
+
+- js-files => jsI18n
+- soy-files => soyTransformer, jsI18n
+- less-files => lessTransformer
+
+Example configuration for additional transformations:
+```json
+{
+    "transformationMap": {
+        "js": ["myOwnJsTransformer"],
+        "sass": ["myOwnSassTransformer"]
+    }
+}
+```
+
+This would add the following transformations to every generated web-resource:
+```xml
+<transformation extension="js">
+  <transformer key="myOwnJsTransformer"/>
+</transformation>
+<transformation extension="sass">
+  <transformer key="myOwnSassTransformer"/>
+</transformation>
+```
 
 ### `webresourceKeyMap` (Optional)
 
