@@ -1,4 +1,5 @@
 const path = require('path');
+const renderCondition = require('./renderCondition');
 
 class XMLFormatter {
     static context(contexts) {
@@ -30,22 +31,6 @@ class XMLFormatter {
             .map(resource => XMLFormatter.generateResourceElement(resource, pathPrefix + resource, contentTypes))
             .join('\n');
     }
-
-    static condition(conditions) {
-        const conditionsStr = conditions
-            .map(condition => {
-                return `<condition class="${condition.condition}" invert="${condition.invert || false}" />`;
-            })
-            .join('\n');
-
-        if (conditions.length > 1) {
-            return `
-            <conditions type="AND">
-                ${conditionsStr}
-            </conditions>`;
-        }
-        return conditionsStr;
-    }
 }
 
 function createWebResource(resource, pathPrefix = '', contentTypes = {}) {
@@ -69,7 +54,7 @@ function createWebResource(resource, pathPrefix = '', contentTypes = {}) {
                     : ''
             }
             ${resource.resources ? XMLFormatter.resources(pathPrefix, contentTypes, resource.resources) : ''}
-            ${resource.conditions ? XMLFormatter.condition(resource.conditions) : ''}
+            ${resource.conditions ? renderCondition(resource.conditions) : ''}
         </web-resource>
     `;
 }
