@@ -256,9 +256,7 @@ ${standardScript}`;
             if (this.options.watch && !this.watchDoneOnce) {
                 this.watchDoneOnce = true;
                 const outputPath = compiler.options.output.path;
-                const entrypointDescriptors = appResourceGenerator
-                    .getAsyncChunksResourceDescriptors()
-                    .concat(appResourceGenerator.getEntryPointsResourceDescriptors());
+                const entrypointDescriptors = appResourceGenerator.getResourceDescriptors();
                 const redirectDescriptors = entrypointDescriptors
                     .map(c => c.resources)
                     .reduce(flattenReduce, [])
