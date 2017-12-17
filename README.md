@@ -263,6 +263,117 @@ should be present in what web-resource contexts at an Atlassian product runtime.
 
 You can provide either a single web-resource context as a string, or an array of context strings.
 
+### `conditionMap` (Optional)
+
+An object specifying what conditions should be applied to a certain entry-point.
+Simple example:
+```json
+{
+    "class": "foo.bar"
+}
+```
+
+will yield:
+```xml
+<condition class="foo.bar" />
+```
+
+Complex nested example with params:
+```json
+{
+    "conditionMap": {
+        "type": "AND",
+        "conditions": [
+            {
+                "type": "OR",
+                "conditions": [
+                    {
+                        "class": "foo.bar.baz",
+                        "invert": true,
+                        "params": [
+                            {
+                                "attributes": {
+                                    "name": "permission"
+                                },
+                                "value": "admin"
+                            }
+                        ]
+                    },
+                    {
+                        "class": "foo.bar.baz2",
+                        "params": [
+                            {
+                                "attributes": {
+                                    "name": "permission"
+                                },
+                                "value": "project"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "class": "foo.bar.baz3",
+                "params": [
+                    {
+                        "attributes": {
+                            "name": "permission"
+                        },
+                        "value": "admin"
+                    }
+                ]
+            }
+        ]
+    }
+}
+```
+
+will yield:
+```xml
+<conditions type="AND">
+  <conditions type="OR">
+    <condition class="foo.bar.baz" invert="true">
+      <param name="permission">admin</param>
+    </condition>
+    <condition class="foo.bar.baz2" >
+      <param name="permission">project</param>
+    </condition>
+  </conditions>
+  <condition class="foo.bar.baz3" >
+    <param name="permission">admin</param>
+  </condition>
+</conditions>
+```
+
+### `transformationMap` (Optional)
+
+An object specifying transformations to be applied to file types.
+The default transformations that will always get applied are:
+
+- js-files => jsI18n
+- soy-files => soyTransformer, jsI18n
+- less-files => lessTransformer
+
+Example configuration for additional transformations:
+```json
+{
+    "transformationMap": {
+        "js": ["myOwnJsTransformer"],
+        "sass": ["myOwnSassTransformer"]
+    }
+}
+```
+
+This would add the following transformations to every generated web-resource:
+```xml
+<transformation extension="js">
+  <transformer key="myOwnJsTransformer"/>
+</transformation>
+<transformation extension="sass">
+  <transformer key="myOwnSassTransformer"/>
+</transformation>
+```
+
 ### `webresourceKeyMap` (Optional)
 
 Allows you to change the name of the web-resource that is generated for a given webpack entry-point.
