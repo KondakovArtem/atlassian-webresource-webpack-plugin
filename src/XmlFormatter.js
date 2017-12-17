@@ -1,5 +1,6 @@
 const path = require('path');
 const renderCondition = require('./renderCondition');
+const renderTransformation = require('./renderTransformation');
 
 class XMLFormatter {
     static context(contexts) {
@@ -33,19 +34,10 @@ class XMLFormatter {
     }
 }
 
-function createWebResource(resource, pathPrefix = '', contentTypes = {}) {
+function createWebResource(resource, transformations, pathPrefix = '', contentTypes = {}) {
     return `
         <web-resource key="${resource.key}">
-            <transformation extension="js">
-                <transformer key="jsI18n"/>
-            </transformation>
-             <transformation extension="soy">
-                <transformer key="soyTransformer"/>
-                <transformer key="jsI18n" />
-            </transformation>
-            <transformation extension="less">
-                <transformer key="lessTransformer"/>
-            </transformation>
+            ${renderTransformation(transformations)}
             ${resource.contexts ? XMLFormatter.context(resource.contexts) : ''}
             ${resource.dependencies ? XMLFormatter.dependencies(resource.dependencies) : ''}
             ${
@@ -61,20 +53,15 @@ function createWebResource(resource, pathPrefix = '', contentTypes = {}) {
 
 const createQUnitResources = filename => `<resource type="qunit" name="${filename}" location="${filename}" />`;
 
-exports.createResourceDescriptors = function(jsonDescriptors, pathPrefix, contentTypes) {
-    const descriptors = jsonDescriptors.map(descriptor => {
-        // TODO: Introduce pluggability for web-resource conditions here.
-        // e.g., Allow for ServiceDesk to inject their licensed condition, or for a devmode hotreload server condition.
-        if (!descriptor.isDevModeOnly) {
-            return createWebResource(descriptor, pathPrefix, contentTypes);
-        }
-    });
-
+exports.createResourceDescriptors = function(jsonDescriptors, transformations, pathPrefix, contentTypes) {
+    const descriptors = jsonDescriptors.map(descriptor =>
+        createWebResource(descriptor, transformations, pathPrefix, contentTypes)
+    );
     return descriptors.join('');
 };
 
-exports.createTestResourceDescriptors = function(jsonTestDescriptors) {
-    const testDescriptors = jsonTestDescriptors.map(descriptor => createWebResource(descriptor));
+exports.createTestResourceDescriptors = function(jsonTestDescriptors, transformations) {
+    const testDescriptors = jsonTestDescriptors.map(descriptor => createWebResource(descriptor, transformations));
     return testDescriptors.join('');
 };
 

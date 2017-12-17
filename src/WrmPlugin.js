@@ -41,6 +41,7 @@ class WrmPlugin {
      * @param {String} options.pluginKey - The fully qualified plugin key. e.g.: com.atlassian.jira.plugins.my-jira-plugin
      * @param {Object} options.contextMap - One or more "context"s to which an entrypoint will be added. e.g.: {\n\t"my-entry": ["my-plugin-context"]\n}
      * @param {Object} options.conditionMap - Map of conditions to be applied to the specified entry-point
+     * @param {Object} options.transformationMap - Map of transformations to be applied to the specified file-types
      * @param {Object} options.webresourceKeyMap - Optional map of an explicit name for the web-resource generated per entry point. e.g.: {\n\t"my-entry": "legacy-webresource-name"\n}
      * @param {Object} options.providedDependencies - Map of provided dependencies. If somewhere in the code this dependency is required, it will not be bundled but instead replaced with the specified placeholder.
      * @param {String} options.xmlDescriptors - Path to the directory where this plugin stores the descriptors about this plugin, used by the WRM to load your frontend code.
@@ -80,15 +81,33 @@ class WrmPlugin {
                 assetContentTypes: {
                     svg: 'image/svg+xml',
                 },
+                transformationMap: {},
             },
             options
         );
+
+        // make sure default transformations are set
+        this.ensureTransformation(this.options.transformationMap, {
+            js: ['jsI18n'],
+            soy: ['soyTransformer', 'jsI18n'],
+            less: ['lessTransformer'],
+        });
 
         logger.setVerbose(this.options.verbose);
 
         // generate an asset uuid per build - this is used to ensure we have a new "cache" for our assets per build.
         // As JIRA-Server does not "rebuild" too often, this can be considered reasonable.
         this.assetUUID = process.env.NODE_ENV === 'production' ? uuidv4Gen() : 'DEV_PSEUDO_HASH';
+    }
+
+    ensureTransformation(transformationLookup, defaultTransformations) {
+        for (const key of Object.keys(defaultTransformations)) {
+            const combinedTransformers = []
+                .concat(defaultTransformations[key], transformationLookup[key])
+                .filter(Boolean);
+            // ensure they stay unique
+            transformationLookup[key] = Array.from(new Set(combinedTransformers));
+        }
     }
 
     checkConfig(compiler) {
@@ -230,6 +249,7 @@ ${standardScript}`;
 
             const resourceDescriptors = XMLFormatter.createResourceDescriptors(
                 appResourceGenerator.getResourceDescriptors(),
+                this.options.transformationMap,
                 pathPrefix,
                 this.options.assetContentTypes
             );
@@ -238,7 +258,8 @@ ${standardScript}`;
             if (this.options.__testGlobs__ && !this.options.watch) {
                 testResourcesGenerator.injectQUnitShim();
                 const testResourceDescriptors = XMLFormatter.createTestResourceDescriptors(
-                    testResourcesGenerator.createAllFileTestWebResources()
+                    testResourcesGenerator.createAllFileTestWebResources(),
+                    this.options.transformationMap
                 );
                 const qUnitTestResourceDescriptors = XMLFormatter.createQUnitResourceDescriptors(
                     testResourcesGenerator.getTestFiles()
