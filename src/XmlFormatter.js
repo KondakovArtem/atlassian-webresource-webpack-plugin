@@ -54,14 +54,9 @@ function createWebResource(resource, transformations, pathPrefix = '', contentTy
 const createQUnitResources = filename => `<resource type="qunit" name="${filename}" location="${filename}" />`;
 
 exports.createResourceDescriptors = function(jsonDescriptors, transformations, pathPrefix, contentTypes) {
-    const descriptors = jsonDescriptors.map(descriptor => {
-        // TODO: Introduce pluggability for web-resource conditions here.
-        // e.g., Allow for ServiceDesk to inject their licensed condition, or for a devmode hotreload server condition.
-        if (!descriptor.isDevModeOnly) {
-            return createWebResource(descriptor, transformations, pathPrefix, contentTypes);
-        }
-    });
-
+    const descriptors = jsonDescriptors.map(descriptor =>
+        createWebResource(descriptor, transformations, pathPrefix, contentTypes)
+    );
     return descriptors.join('');
 };
 
