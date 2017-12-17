@@ -20,7 +20,7 @@ function renderElement(name, attributes, children) {
 
 function renderParams(params) {
     if (!params) {
-        return undefined;
+        return '';
     }
     return params.map(param => renderElement('param', stringifyAttributes(param.attributes), param.value)).join('');
 }
