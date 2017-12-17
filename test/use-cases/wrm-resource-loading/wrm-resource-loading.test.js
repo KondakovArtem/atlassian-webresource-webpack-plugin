@@ -27,7 +27,7 @@ describe('wrm-resource-loading', function() {
         });
     }
 
-    function runTheTestsFor(config) {
+    function runTheTestsFor(config, context) {
         beforeEach(done => runWebpack(config, done));
 
         it('should run without error', () => {
@@ -56,8 +56,8 @@ describe('wrm-resource-loading', function() {
             let resourceNodes = entry.children.filter(node => node.name === 'resource');
             let resources = resourceNodes.map(node => node.attributes);
             assert.includeDeepMembers(resources, [
-                { name: 'ultimate/name/at/runtime.js', location: 'path/to/my/template.soy', type: 'download' },
-                { name: 'ultimate/name/at/runtime.css', location: 'path/to/my/styles.less', type: 'download' },
+                { name: 'ultimate/name/at/runtime.js', location: `${context}/template.soy`, type: 'download' },
+                { name: 'ultimate/name/at/runtime.css', location: `${context}/styles.less`, type: 'download' },
             ]);
         });
 
@@ -70,11 +70,16 @@ describe('wrm-resource-loading', function() {
 
     describe('in ES6 modules', function() {
         const config = require('./webpack.config.es6.js');
-        runTheTestsFor(config);
+        runTheTestsFor(config, 'src-es6');
     });
 
     describe('in AMD', function() {
         const config = require('./webpack.config.amd.js');
-        runTheTestsFor(config);
+        runTheTestsFor(config, 'src-amd');
+    });
+
+    describe('with relative paths', function() {
+        const config = require('./webpack.config.relative.js');
+        runTheTestsFor(config, 'src-relative');
     });
 });
