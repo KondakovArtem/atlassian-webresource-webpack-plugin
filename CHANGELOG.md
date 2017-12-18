@@ -1,3 +1,21 @@
+## 0.6.0 (December 18, 2017)
+
+Some more features needed to allow internal adoption.
+* feature: allow to specify (custom-)transformations on web-resources
+    * [@timse2](https://bitbucket.org/timse2) in [PR #36](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/36).
+* chore: allow relative resource imports
+    * [@timse2](https://bitbucket.org/timse2) in [PR #35](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/35).
+* feature: allow to specify content-types for assets
+    * [@timse2](https://bitbucket.org/timse2) in [PR #32](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/32).
+* feature: introduce "hot-mode" - to enable hot-reload and hot-module-replacement
+    * [@timse2](https://bitbucket.org/timse2) in [PR #30](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/30).
+    * [@timse2](https://bitbucket.org/timse2) in [PR #37](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/37).
+    * [@timse2](https://bitbucket.org/timse2) in [PR #38](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/38).
+* chore: only generate test-resources when necessary
+    * [@timse2](https://bitbucket.org/timse2) in [PR #29](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/29).
+* chore: add eslint and prettier
+    * [@timse2](https://bitbucket.org/timse2) in [PR #27](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/27).
+
 ## 0.5.0 (December 11, 2017)
 
 The plugin just got a whole lot more modular and module-friendly!
