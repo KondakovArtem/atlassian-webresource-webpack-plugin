@@ -57,13 +57,6 @@ describe('async-chunks', function() {
         assert.ok(containsRuntime);
     });
 
-    it('should create a webresource for each async chunk', () => {
-        assert.ok(asyncChunk1);
-        assert.ok(asyncChunk2);
-        assert.equal(stats.hasErrors(), false);
-        assert.equal(stats.hasWarnings(), false);
-    });
-
     it('adds shared provided dependencies only to the entry point', () => {
         const entryDeps = getContent(getDependencies(entry));
         const async1Deps = getContent(getDependencies(asyncChunk1));
