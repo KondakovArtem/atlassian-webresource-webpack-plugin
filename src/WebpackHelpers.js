@@ -8,9 +8,21 @@ const logger = require('./logger');
 const flattenReduce = require('./flattenReduce');
 
 module.exports = class WebpackHelpers {
-    static getChunksWithEntrypointName(entrypointNames, chunks) {
-        const entryPoints = Object.keys(entrypointNames).map(key => chunks.find(c => c.name === key));
-        return entryPoints.map(e => e.chunks).reduce(flattenReduce, []);
+    static getChunksWithEntrypointName(entrypointNames, allChunks) {
+        const entryPoints = Object.keys(entrypointNames).map(key => allChunks.find(c => c.name === key));
+
+        const getAllChunks = chunks => {
+            if (!chunks) {
+                return [];
+            }
+            return chunks.map(c => getAllChunks(c.chunks).concat(c)).reduce(flattenReduce, []);
+        };
+
+        // get all async chunks "deep"
+        const allAsyncChunks = entryPoints.map(e => getAllChunks(e.chunks)).reduce(flattenReduce, []);
+
+        // dedupe
+        return Array.from(new Set(allAsyncChunks));
     }
 
     static _getExternalResourceModules(chunk) {
