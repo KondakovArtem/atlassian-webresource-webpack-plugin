@@ -154,7 +154,7 @@ This might be worth looking into as it could be an issue.
         for (const chunk of chunks) {
             // make sure only the files for this entrypoint end up in the test-files chunk
             if (chunk.getModules().length > 0) {
-                const subchunkSet = WebpackHelpers.extractAllFilesFromChunks(chunk.chunks, context);
+                const subchunkSet = WebpackHelpers.extractAllFilesFromChunks(chunk.chunks, context, RESOURCE_JOINER);
                 dependencyTreeSet = new Set([...dependencyTreeSet, ...subchunkSet]);
             }
 

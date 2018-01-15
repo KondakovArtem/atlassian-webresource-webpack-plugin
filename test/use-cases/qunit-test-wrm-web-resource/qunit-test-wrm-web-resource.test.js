@@ -138,6 +138,8 @@ describe('qunit-test-wrm-web-resource', function() {
             const actualResources2 = getName(getResources(testEntry2));
             const expectedResources1 = [
                 'qunit-require-shim-DEV_PSEUDO_HASH.js',
+                'very_async_less.less',
+                'test/use-cases/qunit-test-wrm-web-resource/src/foo-async.js',
                 'ultimate/name/at/runtime.js',
                 'test/use-cases/qunit-test-wrm-web-resource/src/bar-dep.js',
                 'ultimate/name/at/runtime.css',
