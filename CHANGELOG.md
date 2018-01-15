@@ -1,3 +1,8 @@
+## 0.6.2 (January 15, 2018)
+
+* bug: fix issue with generated test resources required from async chunks
+    * [@timse2](https://bitbucket.org/timse2) in [PR #36](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/40).
+
 ## 0.6.1 (January 10, 2018)
 
 * bug: fix issue where async chunks of async chunks were not correctly considered
