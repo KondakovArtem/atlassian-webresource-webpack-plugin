@@ -65,7 +65,8 @@ module.exports = class WebpackHelpers {
         const ownDepsSet = new Set(ownDeps);
         const fileDeps = chunk
             .getModules()
-            .map(m => m.fileDependencies)
+            .filter(m => m.buildInfo.fileDependencies)
+            .map(m => [...m.buildInfo.fileDependencies])
             .reduce(flattenReduce, []);
         const fileDepsSet = new Set(fileDeps);
         return Array.from(fileDepsSet).filter(
@@ -75,8 +76,8 @@ module.exports = class WebpackHelpers {
 
     static extractResourceToAssetMapForCompilation(compilationModules) {
         return compilationModules
-            .filter(m => m.resource && Object.keys(m.assets).length > 0) // is an actual asset thingy
-            .map(m => [m.resource, Object.keys(m.assets)[0]])
+            .filter(m => m.resource && m.buildInfo.assets) // is an actual asset thingy
+            .map(m => [m.resource, Object.keys(m.buildInfo.assets)[0]])
             .reduce((set, [resource, asset]) => {
                 set.set(resource, asset);
                 return set;

@@ -115,7 +115,7 @@ module.exports = class AppResources {
     }
 
     getEntryPointsResourceDescriptors() {
-        const entryPointNames = this.compilation.entrypoints;
+        const entrypoints = this.compilation.entrypoints;
         const resourceToAssetMap = WebpackHelpers.extractResourceToAssetMapForCompilation(this.compilation.modules);
 
         const commonsChunks = this.getCommonsChunks();
@@ -125,10 +125,10 @@ module.exports = class AppResources {
         );
 
         // Used in prod
-        const prodEntryPoints = Object.keys(entryPointNames).map(name => {
+        const prodEntryPoints = [...entrypoints].map(([name, entrypoint]) => {
             const webresourceKey = WRMHelpers.getWebresourceKeyForEntry(name, this.options.webresourceKeyMap);
-            const entrypointChunks = entryPointNames[name].chunks;
-            const actualEntrypointChunk = entrypointChunks[entrypointChunks.length - 1];
+            const entrypointChunks = entrypoint.chunks;
+            const runtimeChunk = entrypoint.runtimeChunk;
 
             // Retrieve all commons-chunk this entrypoint depends on. These must be added as "<dependency>"s to the web-resource of this entrypoint
             const commonDeps = entrypointChunks
@@ -142,12 +142,9 @@ module.exports = class AppResources {
             return {
                 key: webresourceKey,
                 contexts: WRMHelpers.getContextForEntry(name, this.options.contextMap),
-                externalResources: WebpackHelpers.getExternalResourcesForChunk(actualEntrypointChunk),
-                resources: Array.from(new Set([].concat(actualEntrypointChunk.files, ...additionalFileDeps))),
-                dependencies: baseContexts.concat(
-                    WebpackHelpers.getDependenciesForChunks([actualEntrypointChunk]),
-                    commonDeps
-                ),
+                externalResources: WebpackHelpers.getExternalResourcesForChunk(runtimeChunk),
+                resources: Array.from(new Set([].concat(runtimeChunk.files, ...additionalFileDeps))),
+                dependencies: baseContexts.concat(WebpackHelpers.getDependenciesForChunks([runtimeChunk]), commonDeps),
                 conditions: WRMHelpers.getConditionForEntry(name, this.options.conditionMap),
             };
         });
