@@ -1,11 +1,7 @@
 module.exports = class WebpackRuntimeHelpers {
     static hookIntoNormalModuleFactory(compiler, cb) {
-        compiler.plugin('compile', params => {
-            params.normalModuleFactory.apply({
-                apply(normalModuleFactory) {
-                    normalModuleFactory.plugin('factory', cb);
-                },
-            });
+        compiler.hooks.compile.tap('RuntimeHelper Compiler', params => {
+            params.normalModuleFactory.hooks.factory.tap('RuntimeHelper NormalModuleFactory', cb);
         });
     }
 };
