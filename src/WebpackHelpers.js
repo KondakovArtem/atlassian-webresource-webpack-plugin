@@ -8,7 +8,7 @@ const logger = require('./logger');
 const flattenReduce = require('./flattenReduce');
 
 module.exports = class WebpackHelpers {
-    static getChunksWithEntrypointName(entrypointNames, allChunks) {
+    static getAllAsyncChunks(entrypointNames, allChunks) {
         const entryPoints = Object.keys(entrypointNames).map(key => allChunks.find(c => c.name === key));
 
         const getAllChunks = chunks => {

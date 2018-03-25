@@ -7,7 +7,7 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('css-and-assets-via-extract-text-plugin', function() {
+describe('css-and-assets-distribution-via-extract-css-chunks-webpack-plugin', function() {
     const config = require('./webpack.config.js');
 
     let stats;

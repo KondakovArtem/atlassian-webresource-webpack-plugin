@@ -26,10 +26,6 @@ module.exports = {
         app: path.join(FRONTEND_SRC_DIR, 'app.js'),
     },
     plugins: [
-        new webpack.optimize.CommonsChunkPlugin({
-            name: 'runtime',
-            minChunks: Infinity,
-        }),
         new WrmPlugin({
             pluginKey: 'com.atlassian.plugin.test',
             xmlDescriptors: path.join(OUTPUT_DIR, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml'),

@@ -33,18 +33,10 @@ module.exports = class AppResources {
      * IMPORTANT-NOTE: async-chunks required by this entrypoint are not specified in the entrypoint but as sub-chunks of the entrypoint chunk.
      */
     getCommonsChunks() {
-        const entryPointNames = this.compilation.entrypoints;
-        const commonsChunksSet = Object.keys(entryPointNames)
-            .map(name => entryPointNames[name].chunks) // get chunks per entry
-            .filter(cs => cs.length > 1) // check if commons chunks exist
-            .map(cs => cs.slice(0, -1)) // only take all chunks up to the actual entry chunk
-            .reduce(flattenReduce, []) // flatten arrays
-            .reduce((set, c) => {
-                set.add(c);
-                return set;
-            }, new Set()); // deduplicate
+        const entryPoints = [...this.compilation.entrypoints.values()];
+        const commonChunks = entryPoints.map(e => e.chunks.filter(c => c !== e.runtimeChunk));
 
-        return Array.from(commonsChunksSet);
+        return Array.from(new Set(commonChunks.reduce(flattenReduce, [])));
     }
 
     /**
@@ -98,18 +90,17 @@ module.exports = class AppResources {
         const entryPointNames = this.compilation.entrypoints;
         const resourceToAssetMap = WebpackHelpers.extractResourceToAssetMapForCompilation(this.compilation.modules);
 
-        const asyncChunkDescriptors = WebpackHelpers.getChunksWithEntrypointName(
-            entryPointNames,
-            this.compilation.chunks
-        ).map(c => {
-            const additionalFileDeps = WebpackHelpers.getDependencyResourcesFromChunk(c, resourceToAssetMap);
-            return {
-                key: `${c.id}`,
-                externalResources: WebpackHelpers.getExternalResourcesForChunk(c),
-                resources: Array.from(new Set(c.files.concat(additionalFileDeps))),
-                dependencies: WebpackHelpers.getDependenciesForChunks([c]),
-            };
-        });
+        const asyncChunkDescriptors = WebpackHelpers.getAllAsyncChunks(entryPointNames, this.compilation.chunks).map(
+            c => {
+                const additionalFileDeps = WebpackHelpers.getDependencyResourcesFromChunk(c, resourceToAssetMap);
+                return {
+                    key: `${c.id}`,
+                    externalResources: WebpackHelpers.getExternalResourcesForChunk(c),
+                    resources: Array.from(new Set(c.files.concat(additionalFileDeps))),
+                    dependencies: WebpackHelpers.getDependenciesForChunks([c]),
+                };
+            }
+        );
 
         return asyncChunkDescriptors;
     }
