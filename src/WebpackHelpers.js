@@ -96,8 +96,7 @@ module.exports = class WebpackHelpers {
         for (const chunk of chunks) {
             // filter out "runtime" chunk
             if (chunk.getModules().length > 0) {
-                const subChunkSet = WebpackHelpers.extractAllDependenciesFromChunk(chunk.chunks);
-                dependencyTreeSet = new Set([...dependencyTreeSet, ...subChunkSet]);
+                dependencyTreeSet = new Set([...dependencyTreeSet]);
             }
         }
         dependencyTreeSet = new Set([...dependencyTreeSet, ...WebpackHelpers.getDependenciesForChunks(chunks)]);
@@ -124,7 +123,7 @@ This might be worth looking into as it could be an issue.
             circularDepCheck.add(mod);
 
             mod.dependencies
-                .map(d => d.module)
+                .map(d => d.module || d.originModule)
                 .filter(Boolean)
                 .filter(m => {
                     // filter out all "virtual" modules that do not reference an actual file (or a wrm web-resource)
@@ -153,13 +152,7 @@ This might be worth looking into as it could be an issue.
 
         let dependencyTreeSet = new Set();
         for (const chunk of chunks) {
-            // make sure only the files for this entrypoint end up in the test-files chunk
-            if (chunk.getModules().length > 0) {
-                const subchunkSet = WebpackHelpers.extractAllFilesFromChunks(chunk.chunks, context, RESOURCE_JOINER);
-                dependencyTreeSet = new Set([...dependencyTreeSet, ...subchunkSet]);
-            }
-
-            for (const mod of chunk.modules) {
+            for (const mod of chunk.getModules()) {
                 addModule(mod, dependencyTreeSet);
             }
         }

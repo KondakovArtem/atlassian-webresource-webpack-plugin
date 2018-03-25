@@ -16,16 +16,13 @@ module.exports = class QUnitTestResources {
     }
 
     createAllFileTestWebResources() {
-        const entryPointNames = this.compilation.entrypoints;
-
-        return Object.keys(entryPointNames).map(name => {
+        return [...this.compilation.entrypoints.entries()].map(([name, entrypoint]) => {
             const webresourceKey = WRMHelpers.getWebresourceKeyForEntry(name, this.options.webresourceKeyMap);
-            const entrypointChunks = entryPointNames[name].chunks;
-            const actualEntrypointChunk = entrypointChunks[entrypointChunks.length - 1];
+            const entrypointChunks = entrypoint.chunks;
 
             const extractedTestResources = Array.from(
                 WebpackHelpers.extractAllFilesFromChunks(
-                    [actualEntrypointChunk],
+                    entrypointChunks,
                     this.compiler.options.context,
                     RESOURCE_JOINER
                 )
