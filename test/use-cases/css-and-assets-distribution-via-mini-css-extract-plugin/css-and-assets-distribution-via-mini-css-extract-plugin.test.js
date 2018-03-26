@@ -62,7 +62,8 @@ describe('css-and-assets-distribution-via-mini-css-extract-plugin', function() {
     it('should create an asset resource containing all "other" assets', () => {
         const assetWebResourceResources = getResources(assetWebResource);
         assert.equal(assetWebResourceResources.length, 2);
-        assert.equal(path.extname(assetWebResourceResources[0].attributes.name), '.svg');
-        assert.equal(path.extname(assetWebResourceResources[1].attributes.name), '.png');
+        const names = assetWebResourceResources.map(awrr => path.extname(awrr.attributes.name));
+        assert.include(names, '.svg', 'fails to include the svg file');
+        assert.include(names, '.png', 'fails to include the png file');
     });
 });

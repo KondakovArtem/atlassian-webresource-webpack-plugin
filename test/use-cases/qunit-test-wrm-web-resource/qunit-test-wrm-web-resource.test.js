@@ -8,6 +8,7 @@ const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
 describe('qunit-test-wrm-web-resource', function() {
+    this.timeout(10000);
     const config = require('./webpack.config.js');
 
     let stats;
@@ -93,7 +94,7 @@ describe('qunit-test-wrm-web-resource', function() {
             // check
             assert.deepEqual(
                 deps1,
-                ['some.weird:web-resource', 'foo-bar:baz'],
+                ['foo-bar:baz', 'some.weird:web-resource'],
                 'unexpected dependencies for first entry'
             );
             assert.deepEqual(deps2, ['some.weird:web-resource'], 'unexpected dependencies for second entry');

@@ -39,7 +39,7 @@ describe('css-and-assets-via-style-loader', function() {
     it('should overwrite webpack output path to point to a wrm-resource', () => {
         // setup
         const bundleFile = fs.readFileSync(path.join(targetDir, 'app.js'), 'utf-8');
-        const expectedLine = `__WEBPACK_IMPORTED_MODULE_0_jquery___default()('body').append(\`<div class="\${__WEBPACK_IMPORTED_MODULE_1__styles_css___default.a.wurst}"><div class="\${__WEBPACK_IMPORTED_MODULE_1__styles_css___default.a.tricky}"></div></div>\`);`;
+        const expectedLine = `jquery__WEBPACK_IMPORTED_MODULE_0___default()('body').append(\`<div class="\${_styles_css__WEBPACK_IMPORTED_MODULE_1___default.a.wurst}"><div class="\${_styles_css__WEBPACK_IMPORTED_MODULE_1___default.a.tricky}"></div></div>\`);`;
 
         assert.include(bundleFile, expectedLine);
     });
