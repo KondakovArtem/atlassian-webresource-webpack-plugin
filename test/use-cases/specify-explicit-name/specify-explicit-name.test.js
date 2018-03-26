@@ -11,12 +11,10 @@ describe('specify-explicit-webresource-name', function() {
     const config = require('./webpack.config.js');
 
     let stats;
-    let error;
     let wrNodes;
 
     beforeEach(done => {
         webpack(config, (err, st) => {
-            error = err;
             stats = st;
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');

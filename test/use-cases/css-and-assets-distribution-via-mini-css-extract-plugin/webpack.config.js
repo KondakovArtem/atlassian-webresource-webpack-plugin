@@ -1,11 +1,13 @@
 const path = require('path');
-const ExtractTextPlugin = require('extract-css-chunks-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 const WrmPlugin = require('../../../src/WrmPlugin');
 const FRONTEND_SRC_DIR = path.join(__dirname, 'src');
 const OUTPUT_DIR = path.join(__dirname, 'target');
 
 module.exports = {
+    mode: 'development',
+    devtool: false,
     entry: {
         app: path.join(FRONTEND_SRC_DIR, 'app.js'),
     },
@@ -13,15 +15,15 @@ module.exports = {
         rules: [
             {
                 test: /\.(css)$/,
-                loader: ExtractTextPlugin.extract({
-                    fallback: 'style-loader',
-                    use: {
+                use: [
+                    MiniCssExtractPlugin.loader,
+                    {
                         loader: 'css-loader',
                         options: {
                             modules: true,
                         },
                     },
-                }),
+                ],
             },
             {
                 test: /\.(png|svg)$/,
@@ -30,11 +32,16 @@ module.exports = {
         ],
     },
     plugins: [
-        new ExtractTextPlugin('[name].css'),
         new WrmPlugin({
             pluginKey: 'com.atlassian.plugin.test',
             xmlDescriptors: path.join(OUTPUT_DIR, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml'),
             verbose: false,
+        }),
+        new MiniCssExtractPlugin({
+            // Options similar to the same options in webpackOptions.output
+            // both options are optional
+            filename: '[name].css',
+            chunkFilename: '[id].css',
         }),
     ],
     output: {

@@ -61,7 +61,9 @@ module.exports = class AppResources {
     }
 
     getCommonsChunksResourceDescriptors() {
-        const resourceToAssetMap = WebpackHelpers.extractResourceToAssetMapForCompilation(this.compilation.modules);
+        const resourceToAssetMap = WebpackHelpers.extractResourceToAssetMapForCompilation(
+            WebpackHelpers.extractAllModulesFromCompilatationAndChildCompilations(this.compilation)
+        );
 
         const commonsChunks = this.getCommonsChunks();
         const commonsChunkDependencyKeyMap = this.getCommonsChunkDependenciesKeyMap(
@@ -87,27 +89,29 @@ module.exports = class AppResources {
     }
 
     getAsyncChunksResourceDescriptors() {
-        const entryPointNames = this.compilation.entrypoints;
-        const resourceToAssetMap = WebpackHelpers.extractResourceToAssetMapForCompilation(this.compilation.modules);
-
-        const asyncChunkDescriptors = WebpackHelpers.getAllAsyncChunks(entryPointNames, this.compilation.chunks).map(
-            c => {
-                const additionalFileDeps = WebpackHelpers.getDependencyResourcesFromChunk(c, resourceToAssetMap);
-                return {
-                    key: `${c.id}`,
-                    externalResources: WebpackHelpers.getExternalResourcesForChunk(c),
-                    resources: Array.from(new Set(c.files.concat(additionalFileDeps))),
-                    dependencies: WebpackHelpers.getDependenciesForChunks([c]),
-                };
-            }
+        const entryPoints = [...this.compilation.entrypoints.values()];
+        const resourceToAssetMap = WebpackHelpers.extractResourceToAssetMapForCompilation(
+            WebpackHelpers.extractAllModulesFromCompilatationAndChildCompilations(this.compilation)
         );
+
+        const asyncChunkDescriptors = WebpackHelpers.getAllAsyncChunks(entryPoints).map(c => {
+            const additionalFileDeps = WebpackHelpers.getDependencyResourcesFromChunk(c, resourceToAssetMap);
+            return {
+                key: `${c.id}`,
+                externalResources: WebpackHelpers.getExternalResourcesForChunk(c),
+                resources: Array.from(new Set(c.files.concat(additionalFileDeps))),
+                dependencies: WebpackHelpers.getDependenciesForChunks([c]),
+            };
+        });
 
         return asyncChunkDescriptors;
     }
 
     getEntryPointsResourceDescriptors() {
         const entrypoints = this.compilation.entrypoints;
-        const resourceToAssetMap = WebpackHelpers.extractResourceToAssetMapForCompilation(this.compilation.modules);
+        const resourceToAssetMap = WebpackHelpers.extractResourceToAssetMapForCompilation(
+            WebpackHelpers.extractAllModulesFromCompilatationAndChildCompilations(this.compilation)
+        );
 
         const commonsChunks = this.getCommonsChunks();
         const commonsChunkDependencyKeyMap = this.getCommonsChunkDependenciesKeyMap(

@@ -218,10 +218,9 @@ if (typeof AJS !== "undefined") {
                 'enable async loading with wrm - jsonp-script',
                 standardScript => {
                     // mostly async?
-                    const entryPointsChildChunks = WebpackHelpers.getAllAsyncChunks(
-                        compilation.entrypoints,
-                        compilation.chunks
-                    );
+                    const entryPointsChildChunks = WebpackHelpers.getAllAsyncChunks([
+                        ...compilation.entrypoints.values(),
+                    ]);
                     const childChunkIds = entryPointsChildChunks.map(c => c.id).reduce((map, id) => {
                         map[id] = true;
                         return map;

@@ -4,6 +4,7 @@ const FRONTEND_SRC_DIR = path.join(__dirname, 'src-relative');
 const OUTPUT_DIR = path.join(__dirname, 'target');
 
 module.exports = {
+    mode: 'development',
     entry: {
         'app-relative': path.join(FRONTEND_SRC_DIR, 'app.js'),
     },

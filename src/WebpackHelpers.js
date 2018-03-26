@@ -8,18 +8,29 @@ const logger = require('./logger');
 const flattenReduce = require('./flattenReduce');
 
 module.exports = class WebpackHelpers {
-    static getAllAsyncChunks(entrypointNames, allChunks) {
-        const entryPoints = Object.keys(entrypointNames).map(key => allChunks.find(c => c.name === key));
-
-        const getAllChunks = chunks => {
-            if (!chunks) {
+    static getAllAsyncChunks(entryPoints) {
+        const seenChunkGroups = new Set();
+        const recursivelyGetAllAsyncChunks = chunkGroups => {
+            if (!chunkGroups.length === 0) {
                 return [];
             }
-            return chunks.map(c => getAllChunks(c.chunks).concat(c)).reduce(flattenReduce, []);
+
+            return chunkGroups
+                .filter(cg => {
+                    // circuit breaker
+                    // dont use a chunk group more than once
+                    const alreadySeen = seenChunkGroups.has(cg);
+                    seenChunkGroups.has(cg);
+                    return !alreadySeen;
+                })
+                .map(cg => [...cg.chunks, ...recursivelyGetAllAsyncChunks(cg.getChildren())])
+                .reduce(flattenReduce, []);
         };
 
         // get all async chunks "deep"
-        const allAsyncChunks = entryPoints.map(e => getAllChunks(e.chunks)).reduce(flattenReduce, []);
+        const allAsyncChunks = entryPoints
+            .map(e => recursivelyGetAllAsyncChunks(e.getChildren()))
+            .reduce(flattenReduce, []);
 
         // dedupe
         return Array.from(new Set(allAsyncChunks));
@@ -72,6 +83,18 @@ module.exports = class WebpackHelpers {
         return Array.from(fileDepsSet).filter(
             filename => !ownDepsSet.has(filename) && !/\.(js|css|soy)(\.map)?$/.test(filename)
         );
+    }
+
+    static extractAllModulesFromCompilatationAndChildCompilations(compilation) {
+        function extractAllModules(compilations) {
+            if (compilations.length === 0) {
+                return [];
+            }
+
+            return compilations.map(c => [...c.modules, ...extractAllModules(c.children)]).reduce(flattenReduce, []);
+        }
+
+        return Array.from(new Set(extractAllModules([compilation])));
     }
 
     static extractResourceToAssetMapForCompilation(compilationModules) {
