@@ -16,13 +16,13 @@ module.exports = class QUnitTestResources {
     }
 
     createAllFileTestWebResources() {
-        return [...this.compilation.entrypoints.entries()].map(([name, entrypoint]) => {
-            const webresourceKey = WRMHelpers.getWebresourceKeyForEntry(name, this.options.webresourceKeyMap);
-            const entrypointChunks = entrypoint.chunks;
+        return [...this.compilation.entrypoints.entries()].map(([name, entryPoint]) => {
+            const webResourceKey = WRMHelpers.getWebresourceKeyForEntry(name, this.options.webresourceKeyMap);
+            const allEntryPointChunks = [...entryPoint.chunks, ...WebpackHelpers.getAllAsyncChunks([entryPoint])];
 
             const extractedTestResources = Array.from(
                 WebpackHelpers.extractAllFilesFromChunks(
-                    entrypointChunks,
+                    allEntryPointChunks,
                     this.compiler.options.context,
                     RESOURCE_JOINER
                 )
@@ -36,9 +36,9 @@ module.exports = class QUnitTestResources {
             const testFiles = [
                 [`${pathPrefix}${this.qunitRequireMockPath}`, `${pathPrefix}${this.qunitRequireMockPath}`], // require mock to allow imports like "wr-dependency!context"
             ].concat(extractedTestResources);
-            const testDependencies = Array.from(WebpackHelpers.extractAllDependenciesFromChunk(entrypointChunks));
+            const testDependencies = Array.from(WebpackHelpers.getDependenciesForChunks(allEntryPointChunks));
             return {
-                key: `__test__${webresourceKey}`,
+                key: `__test__${webResourceKey}`,
                 externalResources: testFiles,
                 dependencies: testDependencies,
             };

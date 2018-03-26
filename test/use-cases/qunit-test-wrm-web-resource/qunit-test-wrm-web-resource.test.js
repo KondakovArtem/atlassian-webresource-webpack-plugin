@@ -12,7 +12,6 @@ describe('qunit-test-wrm-web-resource', function() {
     const config = require('./webpack.config.js');
 
     let stats;
-    let error;
     let entry1;
     let entry2;
     let testEntry1;
@@ -20,11 +19,11 @@ describe('qunit-test-wrm-web-resource', function() {
     let qunitResources;
 
     function getDependencies(node) {
-        return node.children.filter(node => node.name === 'dependency');
+        return node.children.filter(n => n.name === 'dependency');
     }
 
     function getResources(node) {
-        return node.children.filter(node => node.name === 'resource');
+        return node.children.filter(n => n.name === 'resource');
     }
 
     function getContent(nodes) {
@@ -37,7 +36,6 @@ describe('qunit-test-wrm-web-resource', function() {
 
     before(done => {
         webpack(config, (err, st) => {
-            error = err;
             stats = st;
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
@@ -139,13 +137,13 @@ describe('qunit-test-wrm-web-resource', function() {
             const actualResources2 = getName(getResources(testEntry2));
             const expectedResources1 = [
                 'qunit-require-shim-DEV_PSEUDO_HASH.js',
-                'very_async_less.less',
-                'test/use-cases/qunit-test-wrm-web-resource/src/foo-async.js',
-                'ultimate/name/at/runtime.js',
-                'test/use-cases/qunit-test-wrm-web-resource/src/bar-dep.js',
                 'ultimate/name/at/runtime.css',
                 'test/use-cases/qunit-test-wrm-web-resource/src/foo-dep.js',
+                'ultimate/name/at/runtime.js',
+                'test/use-cases/qunit-test-wrm-web-resource/src/bar-dep.js',
                 'test/use-cases/qunit-test-wrm-web-resource/src/app.js',
+                'very_async_less.less',
+                'test/use-cases/qunit-test-wrm-web-resource/src/foo-async.js',
             ];
             const expectedResources2 = [
                 'qunit-require-shim-DEV_PSEUDO_HASH.js',

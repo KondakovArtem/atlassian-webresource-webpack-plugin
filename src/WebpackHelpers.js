@@ -112,20 +112,6 @@ module.exports = class WebpackHelpers {
         return deps.filter(dep => resourceToAssetMap.has(dep)).map(dep => resourceToAssetMap.get(dep));
     }
 
-    // find all dependencies defined in the specified chunks
-    // needed to build a web-resource for qunit tests
-    static extractAllDependenciesFromChunk(chunks) {
-        let dependencyTreeSet = new Set();
-        for (const chunk of chunks) {
-            // filter out "runtime" chunk
-            if (chunk.getModules().length > 0) {
-                dependencyTreeSet = new Set([...dependencyTreeSet]);
-            }
-        }
-        dependencyTreeSet = new Set([...dependencyTreeSet, ...WebpackHelpers.getDependenciesForChunks(chunks)]);
-        return dependencyTreeSet;
-    }
-
     // get all files used in a chunk
     // this is needed to create a web-resource that can be used by qunit tests.
     // this is a "sledgehammer approach" to avoid having to create an entry point per qunit tests and building it via webpack.
