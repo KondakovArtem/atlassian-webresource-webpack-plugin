@@ -1,3 +1,7 @@
+## 1.0.0 (March 29, 2018)
+
+Migrate plugin to support webpack 4
+
 ## 0.6.2 (January 15, 2018)
 
 * bug: fix issue with generated test resources required from async chunks
