@@ -4,6 +4,7 @@ const FRONTEND_SRC_DIR = path.resolve(__dirname, 'src');
 const OUTPUT_DIR = path.resolve(__dirname, 'target');
 
 module.exports = {
+    mode: 'development',
     context: FRONTEND_SRC_DIR,
     entry: {
         'cyclic-entry': path.join(FRONTEND_SRC_DIR, 'root.js'),

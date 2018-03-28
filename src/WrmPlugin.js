@@ -111,7 +111,7 @@ class WrmPlugin {
     }
 
     checkConfig(compiler) {
-        compiler.plugin('after-environment', () => {
+        compiler.hooks.afterEnvironment.tap('Check Config', () => {
             // check if output path points to somewhere in target/classes
             const outputOptions = compiler.options.output;
             const outputPath = outputOptions.path;
@@ -150,11 +150,15 @@ An automated jsonpFunction name for this plugin was created:
 
     overwritePublicPath(compiler) {
         const that = this;
-        compiler.plugin('compilation', compilation => {
-            compilation.mainTemplate.plugin('require-extensions', function(standardScript) {
+        compiler.hooks.compilation.tap('OverwritePublicPath Compilation', compilation => {
+            compilation.mainTemplate.hooks.requireExtensions.tap('OverwritePublicPath Require-Extensions', function(
+                standardScript
+            ) {
                 return `${standardScript}
 if (typeof AJS !== "undefined") {
-    ${this.requireFn}.p = AJS.contextPath() + "/download/resources/${that.options.pluginKey}:assets-${that.assetUUID}/";
+    ${compilation.mainTemplate.requireFn}.p = AJS.contextPath() + "/download/resources/${
+                    that.options.pluginKey
+                }:assets-${that.assetUUID}/";
 }
 `;
             });
@@ -204,25 +208,32 @@ if (typeof AJS !== "undefined") {
     }
 
     enableAsyncLoadingWithWRM(compiler) {
-        compiler.plugin('compilation', compilation => {
-            compilation.mainTemplate.plugin('jsonp-script', standardScript => {
-                // mostly async?
-                const entryPointsChildChunks = WebpackHelpers.getChunksWithEntrypointName(
-                    compilation.entrypoints,
-                    compilation.chunks
-                );
-                const childChunkIds = entryPointsChildChunks.map(c => c.id).reduce((map, id) => {
-                    map[id] = true;
-                    return map;
-                }, {});
-                return `
+        compiler.hooks.compilation.tap('enable async loading with wrm - compilation', compilation => {
+            // copy & pasted hack from webpack
+            if (!compilation.mainTemplate.hooks.jsonpScript) {
+                const SyncWaterfallHook = require('tapable').SyncWaterfallHook;
+                compilation.mainTemplate.hooks.jsonpScript = new SyncWaterfallHook(['source', 'chunk', 'hash']);
+            }
+            compilation.mainTemplate.hooks.jsonpScript.tap(
+                'enable async loading with wrm - jsonp-script',
+                standardScript => {
+                    // mostly async?
+                    const entryPointsChildChunks = WebpackHelpers.getAllAsyncChunks([
+                        ...compilation.entrypoints.values(),
+                    ]);
+                    const childChunkIds = entryPointsChildChunks.map(c => c.id).reduce((map, id) => {
+                        map[id] = true;
+                        return map;
+                    }, {});
+                    return `
 var WRMChildChunkIds = ${JSON.stringify(childChunkIds)};
 if (WRMChildChunkIds[chunkId]) {
     WRM.require('wrc!${this.options.pluginKey}:' + chunkId)
     return promise;
 }
 ${standardScript}`;
-            });
+                }
+            );
         });
     }
 
@@ -241,7 +252,7 @@ ${standardScript}`;
         this.enableAsyncLoadingWithWRM(compiler);
 
         // When the compiler is about to emit files, we jump in to produce our resource descriptors for the WRM.
-        compiler.plugin('emit', (compilation, callback) => {
+        compiler.hooks.emit.tapAsync('wrm plugin emit phase', (compilation, callback) => {
             const pathPrefix = WRMHelpers.extractPathPrefixForXml(compiler.options);
             const appResourceGenerator = new AppResources(this.assetUUID, this.options, compiler, compilation);
             const testResourcesGenerator = new QUnitTestResources(this.assetUUID, this.options, compiler, compilation);
@@ -286,7 +297,7 @@ ${standardScript}`;
                     .filter(res => path.extname(res) === '.js')
                     .map(r => ({ fileName: r, writePath: path.join(outputPath, r) }));
 
-                compiler.plugin('done', () => {
+                compiler.hooks.done.tap('add watch mode modules', () => {
                     mkdirp.sync(path.dirname(this.options.xmlDescriptors));
                     fs.writeFileSync(this.options.xmlDescriptors, xmlDescriptors, 'utf8');
                     function generateAssetCall(file) {

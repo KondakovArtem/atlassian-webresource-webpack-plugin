@@ -15,6 +15,7 @@ const providedDependencies = {
 };
 
 module.exports = {
+    mode: 'development',
     entry: {
         app: path.join(FRONTEND_SRC_DIR, 'app.js'),
     },

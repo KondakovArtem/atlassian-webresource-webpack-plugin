@@ -11,7 +11,8 @@ describe('async-chunks', function() {
     const config = require('./webpack.config.js');
 
     let stats;
-    let entry;
+    let runtime;
+    let app;
     let asyncChunk1;
     let asyncChunk2;
 
@@ -29,7 +30,8 @@ describe('async-chunks', function() {
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            entry = results.root.children.find(node => node.attributes.key.startsWith('entry'));
+            runtime = results.root.children.find(node => node.attributes.key.startsWith('entry'));
+            app = results.root.children.find(node => node.attributes.key === 'commons_app');
             asyncChunk1 = results.root.children.find(node => node.attributes.key === '0');
             asyncChunk2 = results.root.children.find(node => node.attributes.key === '1');
             done();
@@ -37,7 +39,7 @@ describe('async-chunks', function() {
     });
 
     it('should create a webresource for each async chunk', () => {
-        assert.ok(entry, 'entry does not exist');
+        assert.ok(app, 'entry does not exist');
         assert.ok(asyncChunk1, 'asyncChunk1 does not exist');
         assert.ok(asyncChunk2, 'asyncChunk2 does not exist');
         assert.equal(stats.hasErrors(), false, 'should not have errors');
@@ -46,29 +48,29 @@ describe('async-chunks', function() {
 
     it('should inject a WRM pre-condition checker into the webpack runtime', () => {
         // setup
-        const bundleFile = fs.readFileSync(path.join(targetDir, 'app.js'), 'utf-8');
-        const containsRuntime = bundleFile.includes(`
-/******/ 		var WRMChildChunkIds = {"0":true,"1":true};
-/******/ 		if (WRMChildChunkIds[chunkId]) {
-/******/ 		    WRM.require('wrc!com.atlassian.plugin.test:' + chunkId)
-/******/ 		    return promise;
-/******/ 		}`);
+        const bundleFile = fs.readFileSync(path.join(targetDir, 'runtime~app.js'), 'utf-8');
+        const expectedRuntimeAdjustment = `
+/******/ 				var WRMChildChunkIds = {"0":true,"1":true};
+/******/ 				if (WRMChildChunkIds[chunkId]) {
+/******/ 				    WRM.require('wrc!com.atlassian.plugin.test:' + chunkId)
+/******/ 				    return promise;
+/******/ 				}`;
 
-        assert.ok(containsRuntime);
+        assert.include(bundleFile, expectedRuntimeAdjustment);
     });
 
     it('adds shared provided dependencies only to the entry point', () => {
-        const entryDeps = getContent(getDependencies(entry));
+        const appDeps = getContent(getDependencies(app));
         const async1Deps = getContent(getDependencies(asyncChunk1));
         const async2Deps = getContent(getDependencies(asyncChunk2));
 
-        assert.ok(entryDeps.includes('com.atlassian.plugin.jslibs:underscore-1.4.4'));
+        assert.ok(appDeps.includes('com.atlassian.plugin.jslibs:underscore-1.4.4'));
         assert.notEqual(async1Deps.includes('com.atlassian.plugin.jslibs:underscore-1.4.4'), true);
         assert.notEqual(async2Deps.includes('com.atlassian.plugin.jslibs:underscore-1.4.4'), true);
     });
 
     it('adds async-chunk-only deps only to the async-chunk-webresource', () => {
-        const entryDeps = getContent(getDependencies(entry));
+        const entryDeps = getContent(getDependencies(app));
         const async1Deps = getContent(getDependencies(asyncChunk1));
         const async2Deps = getContent(getDependencies(asyncChunk2));
 

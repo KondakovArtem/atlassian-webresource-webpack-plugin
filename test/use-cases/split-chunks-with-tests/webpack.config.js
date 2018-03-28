@@ -1,4 +1,5 @@
 const path = require('path');
+
 const WrmPlugin = require('../../../src/WrmPlugin');
 const FRONTEND_SRC_DIR = path.join(__dirname, 'src');
 const OUTPUT_DIR = path.join(__dirname, 'target');
@@ -14,9 +15,10 @@ providedDependencies.set('underscore', {
 });
 
 module.exports = {
-    mode: 'development',
+    mode: 'production',
     entry: {
         app: path.join(FRONTEND_SRC_DIR, 'app.js'),
+        app2: path.join(FRONTEND_SRC_DIR, 'app2.js'),
     },
     optimization: {
         runtimeChunk: true,
@@ -29,8 +31,9 @@ module.exports = {
         new WrmPlugin({
             pluginKey: 'com.atlassian.plugin.test',
             xmlDescriptors: path.join(OUTPUT_DIR, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml'),
-            providedDependencies,
             verbose: false,
+            providedDependencies,
+            __testGlobs__: ['**/split-chunks-with-tests/src/*_test.js'],
         }),
     ],
     output: {

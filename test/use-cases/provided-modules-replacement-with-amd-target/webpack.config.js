@@ -1,5 +1,4 @@
 const path = require('path');
-const webpack = require('webpack');
 
 const WrmPlugin = require('../../../src/WrmPlugin');
 const FRONTEND_SRC_DIR = path.join(__dirname, 'src');
@@ -22,14 +21,11 @@ providedDependencies.set('underscore', {
 });
 
 module.exports = {
+    mode: 'development',
     entry: {
         app: path.join(FRONTEND_SRC_DIR, 'app.js'),
     },
     plugins: [
-        new webpack.optimize.CommonsChunkPlugin({
-            name: 'runtime',
-            minChunks: Infinity,
-        }),
         new WrmPlugin({
             pluginKey: 'com.atlassian.plugin.test',
             xmlDescriptors: path.join(OUTPUT_DIR, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml'),

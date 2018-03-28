@@ -15,8 +15,16 @@ providedDependencies.set('underscore', {
 });
 
 module.exports = {
+    mode: 'development',
     entry: {
         app: path.join(FRONTEND_SRC_DIR, 'app.js'),
+    },
+    optimization: {
+        runtimeChunk: true,
+        splitChunks: {
+            minSize: 0,
+            chunks: 'all',
+        },
     },
     plugins: [
         new WrmPlugin({

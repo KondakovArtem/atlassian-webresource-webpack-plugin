@@ -7,16 +7,14 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const appOutput = path.join(targetDir, 'app.js');
 
-describe('jsonp-function-name-default', function() {
+describe('jsonp-function-name', function() {
     const config = require('./webpack.config.js');
 
     let appCode;
-    let error;
     let stats;
 
     before(done => {
         webpack(config, (err, st) => {
-            error = err;
             stats = st;
 
             appCode = fs.readFileSync(appOutput, 'utf-8');
@@ -32,7 +30,7 @@ describe('jsonp-function-name-default', function() {
     it('should not overwrite the webpack jsonp function if specified in the options and not the default name', () => {
         assert.include(
             appCode,
-            'var parentJsonpFunction = window["someGivenName"];',
+            'var jsonpArray = window["someGivenName"] = window["someGivenName"] || [];',
             'expect the webpack jsonp global function to be renamed'
         );
     });

@@ -7,15 +7,15 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('commons-chunks', function() {
+describe('split-chunks-with-tests', function() {
+    this.timeout(10000);
     const config = require('./webpack.config.js');
 
     let stats;
     let error;
     let entryApp;
     let entryApp2;
-    let commonsChunkRuntime;
-    let commonsChunkCommons;
+    let splitChunkCommons;
     let testEntryApp;
     let testEntryApp2;
 
@@ -40,8 +40,7 @@ describe('commons-chunks', function() {
             const results = parse(xmlFile);
             entryApp = results.root.children.find(node => node.attributes.key === 'entrypoint-app');
             entryApp2 = results.root.children.find(node => node.attributes.key === 'entrypoint-app2');
-            commonsChunkRuntime = results.root.children.find(node => node.attributes.key === 'commons_runtime');
-            commonsChunkCommons = results.root.children.find(node => node.attributes.key === 'commons_commons');
+            splitChunkCommons = results.root.children.find(node => node.attributes.key === 'commons_app~app2');
             testEntryApp = results.root.children.find(node => node.attributes.key === '__test__entrypoint-app');
             testEntryApp2 = results.root.children.find(node => node.attributes.key === '__test__entrypoint-app2');
             done();
@@ -49,51 +48,37 @@ describe('commons-chunks', function() {
     });
 
     it('should create a webresources with dependencies and resources as appropriate', () => {
-        assert.ok(entryApp);
-        assert.ok(entryApp2);
-        assert.ok(commonsChunkRuntime);
-        assert.ok(commonsChunkCommons);
+        assert.ok(entryApp, 'has entrypoint for app');
+        assert.ok(entryApp2, 'has entrypoint for app2');
+        assert.ok(splitChunkCommons, 'has entrypoint for split chunk');
 
-        assert.equal(stats.hasErrors(), false);
-        assert.equal(stats.hasWarnings(), false);
+        assert.equal(error, null, 'has no error output');
+        assert.equal(stats.hasErrors(), false, 'has no errors');
+        assert.equal(stats.hasWarnings(), false, 'has no warnings');
     });
 
-    it('should create a web-resource for the runtime chunk', () => {
-        assert.ok(commonsChunkRuntime);
-        assert.equal(
-            getChild(commonsChunkRuntime, 'resource').length,
-            1,
-            'runtime contains unexpected amount of resources'
-        );
-        assert.equal(
-            getChild(commonsChunkRuntime, 'dependency').length,
-            0,
-            'runtime contains unexpected amount of dependencies'
-        );
-    });
-
-    describe('commons chunk for common modules', () => {
-        it('should create a web-resource for the commons chunk', () => {
-            assert.ok(commonsChunkCommons);
+    describe('split chunk for common modules', () => {
+        it('should create a web-resource for the split chunk', () => {
+            assert.ok(splitChunkCommons);
             assert.equal(
-                getChild(commonsChunkCommons, 'resource').length,
+                getChild(splitChunkCommons, 'resource').length,
                 1,
-                'commons chunk contains unexpected amount of resources'
+                'split chunk contains unexpected amount of resources'
             );
             assert.equal(
-                getChild(commonsChunkCommons, 'dependency').length,
+                getChild(splitChunkCommons, 'dependency').length,
                 2,
-                'commons chunk contains unexpected amount of dependencies'
+                'split chunk contains unexpected amount of dependencies'
             );
         });
 
         it('should contain all dependencies specified in at least 2 entry-points', () => {
-            const deps = getContent(getChild(commonsChunkCommons, 'dependency'));
-            assert.equal(deps[0], 'jira.webresources:jquery', 'jquery dependency not found in commons chunk');
+            const deps = getContent(getChild(splitChunkCommons, 'dependency'));
+            assert.equal(deps[0], 'jira.webresources:jquery', 'jquery dependency not found in split chunk');
             assert.equal(
                 deps[1],
                 'com.atlassian.plugin.jslibs:underscore-1.4.4',
-                'underscore dependency not found in commons chunk'
+                'underscore dependency not found in split chunk'
             );
         });
     });
@@ -112,11 +97,9 @@ describe('commons-chunks', function() {
             assert.notInclude(depsApp2, 'com.atlassian.plugin.jslibs:underscore-1.4.4', 'unexpected dependency found');
         });
 
-        it('should have dependency to commons chunks', () => {
-            assert.include(depsApp, 'com.atlassian.plugin.test:commons_runtime', 'expected dependency not found');
-            assert.include(depsApp, 'com.atlassian.plugin.test:commons_commons', 'expected dependency not found');
-            assert.include(depsApp2, 'com.atlassian.plugin.test:commons_runtime', 'expected dependency not found');
-            assert.include(depsApp2, 'com.atlassian.plugin.test:commons_commons', 'expected dependency not found');
+        it('should have dependency to split chunks', () => {
+            assert.include(depsApp, 'com.atlassian.plugin.test:commons_app~app2', 'expected dependency not found');
+            assert.include(depsApp2, 'com.atlassian.plugin.test:commons_app~app2', 'expected dependency not found');
         });
     });
 
@@ -132,7 +115,7 @@ describe('commons-chunks', function() {
             resourcesTestApp2 = getAttribute(getChild(testEntryApp2, 'resource'), 'name');
         });
 
-        it('should contain the dependencies as specified in the commons chunks', () => {
+        it('should contain the dependencies as specified in the split chunks', () => {
             assert.include(depsTestApp, 'jira.webresources:jquery', 'expected dependency not found');
             assert.include(
                 depsTestApp,
@@ -155,17 +138,17 @@ describe('commons-chunks', function() {
             );
             assert.strictEqual(
                 resourcesTestApp[1],
-                'test/use-cases/commons-chunks-with-tests/src/foo.js',
+                'test/use-cases/split-chunks-with-tests/src/bar.js',
                 'expected resource not found'
             );
             assert.strictEqual(
                 resourcesTestApp[2],
-                'test/use-cases/commons-chunks-with-tests/src/bar.js',
+                'test/use-cases/split-chunks-with-tests/src/foo.js',
                 'expected resource not found'
             );
             assert.strictEqual(
                 resourcesTestApp[3],
-                'test/use-cases/commons-chunks-with-tests/src/app.js',
+                'test/use-cases/split-chunks-with-tests/src/app.js',
                 'expected resource not found'
             );
 
@@ -176,17 +159,17 @@ describe('commons-chunks', function() {
             );
             assert.strictEqual(
                 resourcesTestApp2[1],
-                'test/use-cases/commons-chunks-with-tests/src/foo2.js',
+                'test/use-cases/split-chunks-with-tests/src/bar.js',
                 'expected resource not found'
             );
             assert.strictEqual(
                 resourcesTestApp2[2],
-                'test/use-cases/commons-chunks-with-tests/src/bar.js',
+                'test/use-cases/split-chunks-with-tests/src/foo2.js',
                 'expected resource not found'
             );
             assert.strictEqual(
                 resourcesTestApp2[3],
-                'test/use-cases/commons-chunks-with-tests/src/app2.js',
+                'test/use-cases/split-chunks-with-tests/src/app2.js',
                 'expected resource not found'
             );
 
@@ -197,23 +180,23 @@ describe('commons-chunks', function() {
         it('should not contain resources from other entry points', () => {
             assert.notInclude(
                 resourcesTestApp2,
-                'test/use-cases/commons-chunks-with-tests/src/foo.js',
+                'test/use-cases/split-chunks-with-tests/src/foo.js',
                 'unexpected resource found'
             );
             assert.notInclude(
                 resourcesTestApp2,
-                'test/use-cases/commons-chunks-with-tests/src/app.js',
+                'test/use-cases/split-chunks-with-tests/src/app.js',
                 'unexpected resource found'
             );
 
             assert.notInclude(
                 resourcesTestApp,
-                'test/use-cases/commons-chunks-with-tests/src/foo2.js',
+                'test/use-cases/split-chunks-with-tests/src/foo2.js',
                 'unexpected resource found'
             );
             assert.notInclude(
                 resourcesTestApp,
-                'test/use-cases/commons-chunks-with-tests/src/app2.js',
+                'test/use-cases/split-chunks-with-tests/src/app2.js',
                 'unexpected resource found'
             );
         });

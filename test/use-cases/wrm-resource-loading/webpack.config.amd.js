@@ -4,6 +4,7 @@ const FRONTEND_SRC_DIR = path.join(__dirname, 'src-amd');
 const OUTPUT_DIR = path.join(__dirname, 'target');
 
 module.exports = {
+    mode: 'development',
     entry: {
         'app-amd': path.join(FRONTEND_SRC_DIR, 'app.js'),
     },

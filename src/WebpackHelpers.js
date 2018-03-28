@@ -8,18 +8,29 @@ const logger = require('./logger');
 const flattenReduce = require('./flattenReduce');
 
 module.exports = class WebpackHelpers {
-    static getChunksWithEntrypointName(entrypointNames, allChunks) {
-        const entryPoints = Object.keys(entrypointNames).map(key => allChunks.find(c => c.name === key));
-
-        const getAllChunks = chunks => {
-            if (!chunks) {
+    static getAllAsyncChunks(entryPoints) {
+        const seenChunkGroups = new Set();
+        const recursivelyGetAllAsyncChunks = chunkGroups => {
+            if (!chunkGroups.length === 0) {
                 return [];
             }
-            return chunks.map(c => getAllChunks(c.chunks).concat(c)).reduce(flattenReduce, []);
+
+            return chunkGroups
+                .filter(cg => {
+                    // circuit breaker
+                    // dont use a chunk group more than once
+                    const alreadySeen = seenChunkGroups.has(cg);
+                    seenChunkGroups.has(cg);
+                    return !alreadySeen;
+                })
+                .map(cg => [...cg.chunks, ...recursivelyGetAllAsyncChunks(cg.getChildren())])
+                .reduce(flattenReduce, []);
         };
 
         // get all async chunks "deep"
-        const allAsyncChunks = entryPoints.map(e => getAllChunks(e.chunks)).reduce(flattenReduce, []);
+        const allAsyncChunks = entryPoints
+            .map(e => recursivelyGetAllAsyncChunks(e.getChildren()))
+            .reduce(flattenReduce, []);
 
         // dedupe
         return Array.from(new Set(allAsyncChunks));
@@ -65,7 +76,8 @@ module.exports = class WebpackHelpers {
         const ownDepsSet = new Set(ownDeps);
         const fileDeps = chunk
             .getModules()
-            .map(m => m.fileDependencies)
+            .filter(m => m.buildInfo.fileDependencies)
+            .map(m => [...m.buildInfo.fileDependencies])
             .reduce(flattenReduce, []);
         const fileDepsSet = new Set(fileDeps);
         return Array.from(fileDepsSet).filter(
@@ -73,10 +85,22 @@ module.exports = class WebpackHelpers {
         );
     }
 
+    static extractAllModulesFromCompilatationAndChildCompilations(compilation) {
+        function extractAllModules(compilations) {
+            if (compilations.length === 0) {
+                return [];
+            }
+
+            return compilations.map(c => [...c.modules, ...extractAllModules(c.children)]).reduce(flattenReduce, []);
+        }
+
+        return Array.from(new Set(extractAllModules([compilation])));
+    }
+
     static extractResourceToAssetMapForCompilation(compilationModules) {
         return compilationModules
-            .filter(m => m.resource && Object.keys(m.assets).length > 0) // is an actual asset thingy
-            .map(m => [m.resource, Object.keys(m.assets)[0]])
+            .filter(m => m.resource && m.buildInfo.assets) // is an actual asset thingy
+            .map(m => [m.resource, Object.keys(m.buildInfo.assets)[0]])
             .reduce((set, [resource, asset]) => {
                 set.set(resource, asset);
                 return set;
@@ -86,21 +110,6 @@ module.exports = class WebpackHelpers {
     static getDependencyResourcesFromChunk(chunk, resourceToAssetMap) {
         const deps = WebpackHelpers.extractAdditionalAssetsFromChunk(chunk);
         return deps.filter(dep => resourceToAssetMap.has(dep)).map(dep => resourceToAssetMap.get(dep));
-    }
-
-    // find all dependencies defined in the specified chunks
-    // needed to build a web-resource for qunit tests
-    static extractAllDependenciesFromChunk(chunks) {
-        let dependencyTreeSet = new Set();
-        for (const chunk of chunks) {
-            // filter out "runtime" chunk
-            if (chunk.getModules().length > 0) {
-                const subChunkSet = WebpackHelpers.extractAllDependenciesFromChunk(chunk.chunks);
-                dependencyTreeSet = new Set([...dependencyTreeSet, ...subChunkSet]);
-            }
-        }
-        dependencyTreeSet = new Set([...dependencyTreeSet, ...WebpackHelpers.getDependenciesForChunks(chunks)]);
-        return dependencyTreeSet;
     }
 
     // get all files used in a chunk
@@ -123,7 +132,7 @@ This might be worth looking into as it could be an issue.
             circularDepCheck.add(mod);
 
             mod.dependencies
-                .map(d => d.module)
+                .map(d => d.module || d.originModule)
                 .filter(Boolean)
                 .filter(m => {
                     // filter out all "virtual" modules that do not reference an actual file (or a wrm web-resource)
@@ -152,13 +161,7 @@ This might be worth looking into as it could be an issue.
 
         let dependencyTreeSet = new Set();
         for (const chunk of chunks) {
-            // make sure only the files for this entrypoint end up in the test-files chunk
-            if (chunk.getModules().length > 0) {
-                const subchunkSet = WebpackHelpers.extractAllFilesFromChunks(chunk.chunks, context, RESOURCE_JOINER);
-                dependencyTreeSet = new Set([...dependencyTreeSet, ...subchunkSet]);
-            }
-
-            for (const mod of chunk.modules) {
+            for (const mod of chunk.getModules()) {
                 addModule(mod, dependencyTreeSet);
             }
         }

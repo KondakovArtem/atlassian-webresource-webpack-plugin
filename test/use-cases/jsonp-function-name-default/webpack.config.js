@@ -1,5 +1,4 @@
 const path = require('path');
-const webpack = require('webpack');
 
 const WrmPlugin = require('../../../src/WrmPlugin');
 const FRONTEND_SRC_DIR = path.join(__dirname, 'src');
@@ -16,6 +15,7 @@ providedDependencies.set('underscore', {
 });
 
 module.exports = {
+    mode: 'development',
     entry: {
         app: path.join(FRONTEND_SRC_DIR, 'app.js'),
     },

@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 const WrmPlugin = require('../../../src/WrmPlugin');
 const FRONTEND_SRC_DIR = path.join(__dirname, 'src');
 const OUTPUT_DIR = path.join(__dirname, 'target');
@@ -17,6 +18,7 @@ module.exports = {
     mode: 'development',
     entry: {
         app: path.join(FRONTEND_SRC_DIR, 'app.js'),
+        app2: path.join(FRONTEND_SRC_DIR, 'app2.js'),
     },
     optimization: {
         runtimeChunk: true,
@@ -32,6 +34,7 @@ module.exports = {
             providedDependencies,
             verbose: false,
         }),
+        new webpack.NamedChunksPlugin(),
     ],
     output: {
         filename: '[name].js',

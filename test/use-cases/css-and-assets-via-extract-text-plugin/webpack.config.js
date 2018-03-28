@@ -6,6 +6,7 @@ const FRONTEND_SRC_DIR = path.join(__dirname, 'src');
 const OUTPUT_DIR = path.join(__dirname, 'target');
 
 module.exports = {
+    mode: 'production',
     entry: {
         'feature-one': path.join(FRONTEND_SRC_DIR, 'feature-one.js'),
         'feature-two': path.join(FRONTEND_SRC_DIR, 'feature-two.js'),

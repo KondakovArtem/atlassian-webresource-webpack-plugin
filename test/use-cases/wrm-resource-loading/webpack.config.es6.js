@@ -4,6 +4,7 @@ const FRONTEND_SRC_DIR = path.join(__dirname, 'src-es6');
 const OUTPUT_DIR = path.join(__dirname, 'target');
 
 module.exports = {
+    mode: 'development',
     entry: {
         'app-es6': path.join(FRONTEND_SRC_DIR, 'app.js'),
     },

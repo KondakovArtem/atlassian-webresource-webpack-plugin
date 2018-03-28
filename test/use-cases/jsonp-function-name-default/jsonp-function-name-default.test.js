@@ -32,7 +32,7 @@ describe('jsonp-function-name-default', function() {
     it('should rename the webpack jsonp function to a unique name for the plugin', () => {
         assert.include(
             appCode,
-            'var parentJsonpFunction = window["atlassianWebpackJsonp83fba49a01db9a0da5906cb1dd5f4166"];',
+            'var jsonpArray = window["atlassianWebpackJsonp83fba49a01db9a0da5906cb1dd5f4166"] = window["atlassianWebpackJsonp83fba49a01db9a0da5906cb1dd5f4166"] || [];',
             'expect the webpack jsonp global function to be renamed'
         );
     });
