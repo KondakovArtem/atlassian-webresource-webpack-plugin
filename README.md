@@ -5,8 +5,9 @@
 Auto-generates web-resource definitions from your webpacked code, for usage
 in an Atlassian product or plugin.
 
-**!!!This documentation is for version 1.X and forward which supports Webpack 4!!!**
-**!!!Check version 0.X if you need Webpack 3 support!!!**
+**This documentation is for version 1.X and forward which supports Webpack 4**
+
+**Check version 0.X if you need Webpack 3 support**
 
 ## Upgrading from 0.X to 1.X to support Webpack 4
 Nothing in the configuration of this plugin changed, the only changes needed are to the Webpack config itself!
