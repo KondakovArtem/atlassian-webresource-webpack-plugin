@@ -1,6 +1,14 @@
+## 1.0.2 (March 29, 2018)
+
+* Fixed issue that web-resources might have duplicate keys due to edge case in webpack 4 where split chunks are not getting their chunk name set.
+
+## 1.0.1 (March 29, 2018)
+
+* noop version due to network issues during release
+
 ## 1.0.0 (March 29, 2018)
 
-Migrate plugin to support webpack 4
+* Migrate plugin to support webpack 4
 
 ## 0.6.2 (January 15, 2018)
 
