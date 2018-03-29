@@ -167,4 +167,8 @@ This might be worth looking into as it could be an issue.
         }
         return dependencyTreeSet;
     }
+
+    static getChunkIdentifier(chunk) {
+        return chunk.name || chunk.id;
+    }
 };
