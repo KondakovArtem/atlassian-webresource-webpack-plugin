@@ -51,9 +51,11 @@ module.exports = class AppResources {
     getCommonsChunkDependenciesKeyMap(pluginKey, commonsChunks) {
         const commonsChunkDependencyKeyMap = new Map();
         for (const c of commonsChunks) {
-            commonsChunkDependencyKeyMap.set(c.name, {
-                key: `commons_${c.name}`,
-                dependency: `${pluginKey}:commons_${c.name}`,
+            const chunkIdentifier = WebpackHelpers.getChunkIdentifier(c);
+            const webResourceKey = `commons_${chunkIdentifier}`;
+            commonsChunkDependencyKeyMap.set(chunkIdentifier, {
+                key: webResourceKey,
+                dependency: `${pluginKey}:${webResourceKey}`,
             });
         }
 
@@ -78,7 +80,7 @@ module.exports = class AppResources {
         const commonDescriptors = commonsChunks.map(c => {
             const additionalFileDeps = WebpackHelpers.getDependencyResourcesFromChunk(c, resourceToAssetMap);
             return {
-                key: commonsChunkDependencyKeyMap.get(c.name).key,
+                key: commonsChunkDependencyKeyMap.get(WebpackHelpers.getChunkIdentifier(c)).key,
                 externalResources: WebpackHelpers.getExternalResourcesForChunk(c),
                 resources: Array.from(new Set(c.files.concat(additionalFileDeps))),
                 dependencies: WebpackHelpers.getDependenciesForChunks([c]),
@@ -127,7 +129,7 @@ module.exports = class AppResources {
 
             // Retrieve all commons-chunk this entrypoint depends on. These must be added as "<dependency>"s to the web-resource of this entrypoint
             const commonDeps = entrypointChunks
-                .map(c => commonsChunkDependencyKeyMap.get(c.name))
+                .map(c => commonsChunkDependencyKeyMap.get(WebpackHelpers.getChunkIdentifier(c)))
                 .filter(Boolean)
                 .map(val => val.dependency);
 
