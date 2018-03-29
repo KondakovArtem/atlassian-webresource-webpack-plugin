@@ -52,9 +52,10 @@ module.exports = class AppResources {
         const commonsChunkDependencyKeyMap = new Map();
         for (const c of commonsChunks) {
             const chunkIdentifier = WebpackHelpers.getChunkIdentifier(c);
+            const webResourceKey = `commons_${chunkIdentifier}`;
             commonsChunkDependencyKeyMap.set(chunkIdentifier, {
-                key: `commons_${chunkIdentifier}`,
-                dependency: `${pluginKey}:commons_${chunkIdentifier}`,
+                key: webResourceKey,
+                dependency: `${pluginKey}:${webResourceKey}`,
             });
         }
 
