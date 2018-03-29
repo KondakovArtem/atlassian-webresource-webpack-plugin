@@ -26,17 +26,16 @@ module.exports = class AppResources {
      * Every entrypoint has an attribute called "chunks".
      * This contains all chunks that are needed to successfully "load" this entrypoint.
      * Usually every entrypoint only contains one chunk - the bundle that is build for that entrypoint.
-     * If more than one chunk is present that means they are commons-chunks that contain code needed by the entrypoint to function.
-     * All chunks in the "chunks"-array are in the order they need to be loaded in - therefore the actual entrypoint is always the last in that array.
-     * Hence, if we find an entrypoint with more than one chunk, we can assume that every but the last chunk are commons chunks and have to be handled as such.
+     * If more than one chunk is present that means they are split-chunks that contain code needed by the entrypoint to function.
+     * To get all split chunks we need to get all but the entrypoints "runtimeChunk" which is the chunk solely containing code for this entrypoint and its runtime.
      *
-     * IMPORTANT-NOTE: async-chunks required by this entrypoint are not specified in the entrypoint but as sub-chunks of the entrypoint chunk.
+     * IMPORTANT-NOTE: async-chunks required by this entrypoint are not specified in these chunks but in the childGroups of the entry and/or split chunks.
      */
-    getCommonsChunks() {
+    getSyncSplitChunks() {
         const entryPoints = [...this.compilation.entrypoints.values()];
-        const commonChunks = entryPoints.map(e => e.chunks.filter(c => c !== e.runtimeChunk));
+        const syncSplitChunks = entryPoints.map(e => e.chunks.filter(c => c !== e.runtimeChunk));
 
-        return Array.from(new Set(commonChunks.reduce(flattenReduce, [])));
+        return Array.from(new Set(syncSplitChunks.reduce(flattenReduce, [])));
     }
 
     /**
@@ -45,42 +44,42 @@ module.exports = class AppResources {
      *
      * <web-resource>
      *   ...
-     *   <dependency>this-plugin-key:commons_some_chunk</dependency>
+     *   <dependency>this-plugin-key:split_some_chunk</dependency>
      *   ...
      */
-    getCommonsChunkDependenciesKeyMap(pluginKey, commonsChunks) {
-        const commonsChunkDependencyKeyMap = new Map();
-        for (const c of commonsChunks) {
+    getSyncSplitChunkDependenciesKeyMap(pluginKey, syncSplitChunks) {
+        const syncSplitChunkDependencyKeyMap = new Map();
+        for (const c of syncSplitChunks) {
             const chunkIdentifier = WebpackHelpers.getChunkIdentifier(c);
-            const webResourceKey = `commons_${chunkIdentifier}`;
-            commonsChunkDependencyKeyMap.set(chunkIdentifier, {
+            const webResourceKey = `split_${chunkIdentifier}`;
+            syncSplitChunkDependencyKeyMap.set(chunkIdentifier, {
                 key: webResourceKey,
                 dependency: `${pluginKey}:${webResourceKey}`,
             });
         }
 
-        return commonsChunkDependencyKeyMap;
+        return syncSplitChunkDependencyKeyMap;
     }
 
-    getCommonsChunksResourceDescriptors() {
+    getSyncSplitChunksResourceDescriptors() {
         const resourceToAssetMap = WebpackHelpers.extractResourceToAssetMapForCompilation(
             WebpackHelpers.extractAllModulesFromCompilatationAndChildCompilations(this.compilation)
         );
 
-        const commonsChunks = this.getCommonsChunks();
-        const commonsChunkDependencyKeyMap = this.getCommonsChunkDependenciesKeyMap(
+        const syncSplitChunks = this.getSyncSplitChunks();
+        const syncSplitChunkDependencyKeyMap = this.getSyncSplitChunkDependenciesKeyMap(
             this.options.pluginKey,
-            commonsChunks
+            syncSplitChunks
         );
 
         /**
          * Create descriptors for the commons-chunk web-resources that have to be created.
          * These include - like other chunk-descriptors their assets and external resources etc.
          */
-        const commonDescriptors = commonsChunks.map(c => {
+        const commonDescriptors = syncSplitChunks.map(c => {
             const additionalFileDeps = WebpackHelpers.getDependencyResourcesFromChunk(c, resourceToAssetMap);
             return {
-                key: commonsChunkDependencyKeyMap.get(WebpackHelpers.getChunkIdentifier(c)).key,
+                key: syncSplitChunkDependencyKeyMap.get(WebpackHelpers.getChunkIdentifier(c)).key,
                 externalResources: WebpackHelpers.getExternalResourcesForChunk(c),
                 resources: Array.from(new Set(c.files.concat(additionalFileDeps))),
                 dependencies: WebpackHelpers.getDependenciesForChunks([c]),
@@ -115,10 +114,10 @@ module.exports = class AppResources {
             WebpackHelpers.extractAllModulesFromCompilatationAndChildCompilations(this.compilation)
         );
 
-        const commonsChunks = this.getCommonsChunks();
-        const commonsChunkDependencyKeyMap = this.getCommonsChunkDependenciesKeyMap(
+        const syncSplitChunks = this.getSyncSplitChunks();
+        const syncSplitChunkDependencyKeyMap = this.getSyncSplitChunkDependenciesKeyMap(
             this.options.pluginKey,
-            commonsChunks
+            syncSplitChunks
         );
 
         // Used in prod
@@ -129,7 +128,7 @@ module.exports = class AppResources {
 
             // Retrieve all commons-chunk this entrypoint depends on. These must be added as "<dependency>"s to the web-resource of this entrypoint
             const commonDeps = entrypointChunks
-                .map(c => commonsChunkDependencyKeyMap.get(WebpackHelpers.getChunkIdentifier(c)))
+                .map(c => syncSplitChunkDependencyKeyMap.get(WebpackHelpers.getChunkIdentifier(c)))
                 .filter(Boolean)
                 .map(val => val.dependency);
 
@@ -150,7 +149,7 @@ module.exports = class AppResources {
     }
 
     getResourceDescriptors() {
-        return this.getCommonsChunksResourceDescriptors()
+        return this.getSyncSplitChunksResourceDescriptors()
             .concat(this.getAsyncChunksResourceDescriptors())
             .concat(this.getEntryPointsResourceDescriptors())
             .concat(this.getAssetResourceDescriptor());

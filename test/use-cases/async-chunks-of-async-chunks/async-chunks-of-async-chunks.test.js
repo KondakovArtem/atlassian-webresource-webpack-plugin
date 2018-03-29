@@ -34,7 +34,7 @@ describe('async-chunks-of-async-chunks', function() {
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
             runtime = results.root.children.find(node => node.attributes.key.startsWith('entry'));
-            app = results.root.children.find(node => node.attributes.key === 'commons_app');
+            app = results.root.children.find(node => node.attributes.key === 'split_app');
             asyncBar = results.root.children.find(node => node.attributes.key === 'async-bar');
             asyncFoo = results.root.children.find(node => node.attributes.key === 'async-foo');
             asyncAsyncBar = results.root.children.find(node => node.attributes.key === 'async-async-bar');

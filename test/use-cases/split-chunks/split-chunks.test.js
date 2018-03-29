@@ -39,7 +39,7 @@ describe('split-chunks', function() {
             const results = parse(xmlFile);
             entryApp = results.root.children.find(node => node.attributes.key === 'entrypoint-app');
             entryApp2 = results.root.children.find(node => node.attributes.key === 'entrypoint-app2');
-            splitChunkCommons = results.root.children.find(node => node.attributes.key === 'commons_app~app2');
+            splitChunkCommons = results.root.children.find(node => node.attributes.key === 'split_app~app2');
             testEntryApp = results.root.children.find(node => node.attributes.key === '__test__entrypoint-app');
             testEntryApp2 = results.root.children.find(node => node.attributes.key === '__test__entrypoint-app2');
             done();
@@ -56,18 +56,18 @@ describe('split-chunks', function() {
         assert.equal(stats.hasWarnings(), false);
     });
 
-    describe('commons chunk for common modules', () => {
-        it('should create a web-resource for the commons chunk', () => {
+    describe('split chunk for common modules', () => {
+        it('should create a web-resource for the split chunk', () => {
             assert.ok(splitChunkCommons);
             assert.equal(
                 getChild(splitChunkCommons, 'resource').length,
                 1,
-                'commons chunk contains unexpected amount of resources'
+                'split chunk contains unexpected amount of resources'
             );
             assert.equal(
                 getChild(splitChunkCommons, 'dependency').length,
                 2,
-                'commons chunk contains unexpected amount of dependencies'
+                'split chunk contains unexpected amount of dependencies'
             );
         });
 
@@ -76,9 +76,9 @@ describe('split-chunks', function() {
             assert.equal(
                 deps[0],
                 'com.atlassian.plugin.jslibs:underscore-1.4.4',
-                'underscore dependency not found in commons chunk'
+                'underscore dependency not found in split chunk'
             );
-            assert.equal(deps[1], 'jira.webresources:jquery', 'jquery dependency not found in commons chunk');
+            assert.equal(deps[1], 'jira.webresources:jquery', 'jquery dependency not found in split chunk');
         });
     });
 
@@ -96,9 +96,9 @@ describe('split-chunks', function() {
             assert.notInclude(depsApp2, 'com.atlassian.plugin.jslibs:underscore-1.4.4', 'unexpected dependency found');
         });
 
-        it('should have dependency to commons chunks', () => {
-            assert.include(depsApp, 'com.atlassian.plugin.test:commons_app~app2', 'expected dependency not found');
-            assert.include(depsApp2, 'com.atlassian.plugin.test:commons_app~app2', 'expected dependency not found');
+        it('should have dependency to split chunks', () => {
+            assert.include(depsApp, 'com.atlassian.plugin.test:split_app~app2', 'expected dependency not found');
+            assert.include(depsApp2, 'com.atlassian.plugin.test:split_app~app2', 'expected dependency not found');
         });
     });
 

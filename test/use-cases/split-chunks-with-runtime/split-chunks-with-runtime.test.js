@@ -41,9 +41,9 @@ describe('split-chunks-with-runtime', function() {
             const results = parse(xmlFile);
             entryApp = results.root.children.find(node => node.attributes.key === 'entrypoint-app');
             entryApp2 = results.root.children.find(node => node.attributes.key === 'entrypoint-app2');
-            splitChunkApp = results.root.children.find(node => node.attributes.key === 'commons_app');
-            splitChunkApp2 = results.root.children.find(node => node.attributes.key === 'commons_app2');
-            splitChunkCommon = results.root.children.find(node => node.attributes.key === 'commons_app~app2');
+            splitChunkApp = results.root.children.find(node => node.attributes.key === 'split_app');
+            splitChunkApp2 = results.root.children.find(node => node.attributes.key === 'split_app2');
+            splitChunkCommon = results.root.children.find(node => node.attributes.key === 'split_app~app2');
             testEntryApp = results.root.children.find(node => node.attributes.key === '__test__entrypoint-app');
             testEntryApp2 = results.root.children.find(node => node.attributes.key === '__test__entrypoint-app2');
             done();
@@ -103,10 +103,10 @@ describe('split-chunks-with-runtime', function() {
         });
 
         it('should have dependency to split chunks', () => {
-            assert.include(depsApp, 'com.atlassian.plugin.test:commons_app', 'expected dependency not found');
-            assert.include(depsApp, 'com.atlassian.plugin.test:commons_app~app2', 'expected dependency not found');
-            assert.include(depsApp2, 'com.atlassian.plugin.test:commons_app2', 'expected dependency not found');
-            assert.include(depsApp2, 'com.atlassian.plugin.test:commons_app~app2', 'expected dependency not found');
+            assert.include(depsApp, 'com.atlassian.plugin.test:split_app', 'expected dependency not found');
+            assert.include(depsApp, 'com.atlassian.plugin.test:split_app~app2', 'expected dependency not found');
+            assert.include(depsApp2, 'com.atlassian.plugin.test:split_app2', 'expected dependency not found');
+            assert.include(depsApp2, 'com.atlassian.plugin.test:split_app~app2', 'expected dependency not found');
         });
     });
 

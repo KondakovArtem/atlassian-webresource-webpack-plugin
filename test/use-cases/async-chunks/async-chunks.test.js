@@ -31,7 +31,7 @@ describe('async-chunks', function() {
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
             runtime = results.root.children.find(node => node.attributes.key.startsWith('entry'));
-            app = results.root.children.find(node => node.attributes.key === 'commons_app');
+            app = results.root.children.find(node => node.attributes.key === 'split_app');
             asyncChunk1 = results.root.children.find(node => node.attributes.key === '0');
             asyncChunk2 = results.root.children.find(node => node.attributes.key === '1');
             done();
