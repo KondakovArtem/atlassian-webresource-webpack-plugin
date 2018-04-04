@@ -1,3 +1,7 @@
+## 1.0.3 (April 4, 2018)
+
+* Rename everything commons-chunks to split chunks
+
 ## 1.0.2 (March 29, 2018)
 
 * Fixed issue that web-resources might have duplicate keys due to edge case in webpack 4 where split chunks are not getting their chunk name set.
