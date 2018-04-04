@@ -39,7 +39,7 @@ module.exports = class AppResources {
     }
 
     /**
-     * Create a key and the fully-qualified web-resource descriptor for every commons-chunk.
+     * Create a key and the fully-qualified web-resource descriptor for every split chunk.
      * This is needed to point to reference these chunks as dependency in the entrypoint chunks
      *
      * <web-resource>
@@ -73,10 +73,10 @@ module.exports = class AppResources {
         );
 
         /**
-         * Create descriptors for the commons-chunk web-resources that have to be created.
+         * Create descriptors for the split chunk web-resources that have to be created.
          * These include - like other chunk-descriptors their assets and external resources etc.
          */
-        const commonDescriptors = syncSplitChunks.map(c => {
+        const sharedSplitDescriptors = syncSplitChunks.map(c => {
             const additionalFileDeps = WebpackHelpers.getDependencyResourcesFromChunk(c, resourceToAssetMap);
             return {
                 key: syncSplitChunkDependencyKeyMap.get(WebpackHelpers.getChunkIdentifier(c)).key,
@@ -86,7 +86,7 @@ module.exports = class AppResources {
             };
         });
 
-        return commonDescriptors;
+        return sharedSplitDescriptors;
     }
 
     getAsyncChunksResourceDescriptors() {
@@ -126,8 +126,8 @@ module.exports = class AppResources {
             const entrypointChunks = entrypoint.chunks;
             const runtimeChunk = entrypoint.runtimeChunk;
 
-            // Retrieve all commons-chunk this entrypoint depends on. These must be added as "<dependency>"s to the web-resource of this entrypoint
-            const commonDeps = entrypointChunks
+            // Retrieve all split chunks this entrypoint depends on. These must be added as "<dependency>"s to the web-resource of this entrypoint
+            const sharedSplitDeps = entrypointChunks
                 .map(c => syncSplitChunkDependencyKeyMap.get(WebpackHelpers.getChunkIdentifier(c)))
                 .filter(Boolean)
                 .map(val => val.dependency);
@@ -140,7 +140,10 @@ module.exports = class AppResources {
                 contexts: WRMHelpers.getContextForEntry(name, this.options.contextMap),
                 externalResources: WebpackHelpers.getExternalResourcesForChunk(runtimeChunk),
                 resources: Array.from(new Set([].concat(runtimeChunk.files, ...additionalFileDeps))),
-                dependencies: baseContexts.concat(WebpackHelpers.getDependenciesForChunks([runtimeChunk]), commonDeps),
+                dependencies: baseContexts.concat(
+                    WebpackHelpers.getDependenciesForChunks([runtimeChunk]),
+                    sharedSplitDeps
+                ),
                 conditions: WRMHelpers.getConditionForEntry(name, this.options.conditionMap),
             };
         });

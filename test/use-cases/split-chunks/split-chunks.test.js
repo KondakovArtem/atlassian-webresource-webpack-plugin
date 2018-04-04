@@ -14,7 +14,7 @@ describe('split-chunks', function() {
     let error;
     let entryApp;
     let entryApp2;
-    let splitChunkCommons;
+    let splitChunkShared;
     let testEntryApp;
     let testEntryApp2;
 
@@ -39,7 +39,7 @@ describe('split-chunks', function() {
             const results = parse(xmlFile);
             entryApp = results.root.children.find(node => node.attributes.key === 'entrypoint-app');
             entryApp2 = results.root.children.find(node => node.attributes.key === 'entrypoint-app2');
-            splitChunkCommons = results.root.children.find(node => node.attributes.key === 'split_app~app2');
+            splitChunkShared = results.root.children.find(node => node.attributes.key === 'split_app~app2');
             testEntryApp = results.root.children.find(node => node.attributes.key === '__test__entrypoint-app');
             testEntryApp2 = results.root.children.find(node => node.attributes.key === '__test__entrypoint-app2');
             done();
@@ -49,30 +49,30 @@ describe('split-chunks', function() {
     it('should create a webresources with dependencies and resources as appropriate', () => {
         assert.ok(entryApp);
         assert.ok(entryApp2);
-        assert.ok(splitChunkCommons);
+        assert.ok(splitChunkShared);
 
         assert.equal(error, null);
         assert.equal(stats.hasErrors(), false);
         assert.equal(stats.hasWarnings(), false);
     });
 
-    describe('split chunk for common modules', () => {
+    describe('split chunk for shared modules', () => {
         it('should create a web-resource for the split chunk', () => {
-            assert.ok(splitChunkCommons);
+            assert.ok(splitChunkShared);
             assert.equal(
-                getChild(splitChunkCommons, 'resource').length,
+                getChild(splitChunkShared, 'resource').length,
                 1,
                 'split chunk contains unexpected amount of resources'
             );
             assert.equal(
-                getChild(splitChunkCommons, 'dependency').length,
+                getChild(splitChunkShared, 'dependency').length,
                 2,
                 'split chunk contains unexpected amount of dependencies'
             );
         });
 
         it('should contain all dependencies specified in at least 2 entry-points', () => {
-            const deps = getContent(getChild(splitChunkCommons, 'dependency'));
+            const deps = getContent(getChild(splitChunkShared, 'dependency'));
             assert.equal(
                 deps[0],
                 'com.atlassian.plugin.jslibs:underscore-1.4.4',
@@ -89,7 +89,7 @@ describe('split-chunks', function() {
             depsApp = getContent(getChild(entryApp, 'dependency'));
             depsApp2 = getContent(getChild(entryApp2, 'dependency'));
         });
-        it('should not have direct dependency to commonly used deps', () => {
+        it('should not have direct dependency to shared deps', () => {
             assert.notInclude(depsApp, 'jira.webresources:jquery', 'unexpected dependency found');
             assert.notInclude(depsApp, 'com.atlassian.plugin.jslibs:underscore-1.4.4', 'unexpected dependency found');
             assert.notInclude(depsApp2, 'jira.webresources:jquery', 'unexpected dependency found');
