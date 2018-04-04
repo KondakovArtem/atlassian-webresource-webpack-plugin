@@ -16,7 +16,7 @@ describe('split-chunks-with-runtime', function() {
     let entryApp2;
     let splitChunkApp;
     let splitChunkApp2;
-    let splitChunkCommon;
+    let splitChunkShared;
     let testEntryApp;
     let testEntryApp2;
 
@@ -41,9 +41,9 @@ describe('split-chunks-with-runtime', function() {
             const results = parse(xmlFile);
             entryApp = results.root.children.find(node => node.attributes.key === 'entrypoint-app');
             entryApp2 = results.root.children.find(node => node.attributes.key === 'entrypoint-app2');
-            splitChunkApp = results.root.children.find(node => node.attributes.key === 'commons_app');
-            splitChunkApp2 = results.root.children.find(node => node.attributes.key === 'commons_app2');
-            splitChunkCommon = results.root.children.find(node => node.attributes.key === 'commons_app~app2');
+            splitChunkApp = results.root.children.find(node => node.attributes.key === 'split_app');
+            splitChunkApp2 = results.root.children.find(node => node.attributes.key === 'split_app2');
+            splitChunkShared = results.root.children.find(node => node.attributes.key === 'split_app~app2');
             testEntryApp = results.root.children.find(node => node.attributes.key === '__test__entrypoint-app');
             testEntryApp2 = results.root.children.find(node => node.attributes.key === '__test__entrypoint-app2');
             done();
@@ -55,30 +55,30 @@ describe('split-chunks-with-runtime', function() {
         assert.ok(entryApp2);
         assert.ok(splitChunkApp);
         assert.ok(splitChunkApp2);
-        assert.ok(splitChunkCommon);
+        assert.ok(splitChunkShared);
 
         assert.equal(error, null);
         assert.equal(stats.hasErrors(), false);
         assert.equal(stats.hasWarnings(), false);
     });
 
-    describe('split chunk for common modules', () => {
+    describe('split chunk for shared modules', () => {
         it('should create a web-resource for the split chunk', () => {
-            assert.ok(splitChunkCommon);
+            assert.ok(splitChunkShared);
             assert.equal(
-                getChild(splitChunkCommon, 'resource').length,
+                getChild(splitChunkShared, 'resource').length,
                 1,
                 'split chunk contains unexpected amount of resources'
             );
             assert.equal(
-                getChild(splitChunkCommon, 'dependency').length,
+                getChild(splitChunkShared, 'dependency').length,
                 2,
                 'split chunk contains unexpected amount of dependencies'
             );
         });
 
         it('should contain all dependencies specified in at least 2 entry-points', () => {
-            const deps = getContent(getChild(splitChunkCommon, 'dependency'));
+            const deps = getContent(getChild(splitChunkShared, 'dependency'));
             assert.equal(
                 deps[0],
                 'com.atlassian.plugin.jslibs:underscore-1.4.4',
@@ -95,7 +95,7 @@ describe('split-chunks-with-runtime', function() {
             depsApp = getContent(getChild(entryApp, 'dependency'));
             depsApp2 = getContent(getChild(entryApp2, 'dependency'));
         });
-        it('should not have direct dependency to commonly used deps', () => {
+        it('should not have direct dependency to shared deps', () => {
             assert.notInclude(depsApp, 'jira.webresources:jquery', 'unexpected dependency found');
             assert.notInclude(depsApp, 'com.atlassian.plugin.jslibs:underscore-1.4.4', 'unexpected dependency found');
             assert.notInclude(depsApp2, 'jira.webresources:jquery', 'unexpected dependency found');
@@ -103,10 +103,10 @@ describe('split-chunks-with-runtime', function() {
         });
 
         it('should have dependency to split chunks', () => {
-            assert.include(depsApp, 'com.atlassian.plugin.test:commons_app', 'expected dependency not found');
-            assert.include(depsApp, 'com.atlassian.plugin.test:commons_app~app2', 'expected dependency not found');
-            assert.include(depsApp2, 'com.atlassian.plugin.test:commons_app2', 'expected dependency not found');
-            assert.include(depsApp2, 'com.atlassian.plugin.test:commons_app~app2', 'expected dependency not found');
+            assert.include(depsApp, 'com.atlassian.plugin.test:split_app', 'expected dependency not found');
+            assert.include(depsApp, 'com.atlassian.plugin.test:split_app~app2', 'expected dependency not found');
+            assert.include(depsApp2, 'com.atlassian.plugin.test:split_app2', 'expected dependency not found');
+            assert.include(depsApp2, 'com.atlassian.plugin.test:split_app~app2', 'expected dependency not found');
         });
     });
 

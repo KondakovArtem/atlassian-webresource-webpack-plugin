@@ -38,9 +38,9 @@ describe('async-chunks-of-async-chunks-with-multiple-entrypoints', function() {
             const results = parse(xmlFile);
             runtime = results.root.children.find(node => node.attributes.key === 'entrypoint-app');
             runtime2 = results.root.children.find(node => node.attributes.key === 'entrypoint-app2');
-            app = results.root.children.find(node => node.attributes.key === 'commons_app');
-            app2 = results.root.children.find(node => node.attributes.key === 'commons_app2');
-            splitAppAndApp2 = results.root.children.find(node => node.attributes.key === 'commons_app~app2');
+            app = results.root.children.find(node => node.attributes.key === 'split_app');
+            app2 = results.root.children.find(node => node.attributes.key === 'split_app2');
+            splitAppAndApp2 = results.root.children.find(node => node.attributes.key === 'split_app~app2');
             asyncBar = results.root.children.find(node => node.attributes.key === 'async-bar');
             asyncFoo = results.root.children.find(node => node.attributes.key === 'async-foo');
             asyncAsyncBar = results.root.children.find(node => node.attributes.key === 'async-async-bar');
@@ -104,11 +104,11 @@ describe('async-chunks-of-async-chunks-with-multiple-entrypoints', function() {
         });
 
         it('adds the correct split chunk dependencies to the entrypoints', () => {
-            assert.include(runtimeDeps, 'com.atlassian.plugin.test:commons_app~app2');
-            assert.include(runtimeDeps, 'com.atlassian.plugin.test:commons_app');
+            assert.include(runtimeDeps, 'com.atlassian.plugin.test:split_app~app2');
+            assert.include(runtimeDeps, 'com.atlassian.plugin.test:split_app');
 
-            assert.include(runtimeDeps2, 'com.atlassian.plugin.test:commons_app~app2');
-            assert.include(runtimeDeps2, 'com.atlassian.plugin.test:commons_app2');
+            assert.include(runtimeDeps2, 'com.atlassian.plugin.test:split_app~app2');
+            assert.include(runtimeDeps2, 'com.atlassian.plugin.test:split_app2');
         });
 
         it('adds shared provided dependencies only to the entry point', () => {
