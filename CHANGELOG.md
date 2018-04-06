@@ -1,5 +1,9 @@
 ## 1.0.3 (April 4, 2018)
 
+* Ensure "tapable" version via peerDependency.
+
+## 1.0.3 (April 4, 2018)
+
 * Rename everything commons-chunks to split chunks
 
 ## 1.0.2 (March 29, 2018)
