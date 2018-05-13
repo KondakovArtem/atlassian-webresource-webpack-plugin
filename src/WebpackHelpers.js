@@ -58,6 +58,7 @@ module.exports = class WebpackHelpers {
             .filter(m => {
                 return m instanceof ProvidedExternalDependencyModule || m instanceof WrmDependencyModule;
             })
+            .sort((a, b) => a.index - b.index)
             .map(m => m.getDependency());
     }
 
