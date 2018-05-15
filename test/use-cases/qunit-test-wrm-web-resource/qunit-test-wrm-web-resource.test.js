@@ -92,7 +92,7 @@ describe('qunit-test-wrm-web-resource', function() {
             // check
             assert.deepEqual(
                 deps1,
-                ['foo-bar:baz', 'some.weird:web-resource'],
+                ['some.weird:web-resource', 'foo-bar:baz'],
                 'unexpected dependencies for first entry'
             );
             assert.deepEqual(deps2, ['some.weird:web-resource'], 'unexpected dependencies for second entry');
@@ -137,10 +137,10 @@ describe('qunit-test-wrm-web-resource', function() {
             const actualResources2 = getName(getResources(testEntry2));
             const expectedResources1 = [
                 'qunit-require-shim-DEV_PSEUDO_HASH.js',
-                'ultimate/name/at/runtime.css',
-                'test/use-cases/qunit-test-wrm-web-resource/src/foo-dep.js',
                 'ultimate/name/at/runtime.js',
                 'test/use-cases/qunit-test-wrm-web-resource/src/bar-dep.js',
+                'ultimate/name/at/runtime.css',
+                'test/use-cases/qunit-test-wrm-web-resource/src/foo-dep.js',
                 'test/use-cases/qunit-test-wrm-web-resource/src/app.js',
                 'very_async_less.less',
                 'test/use-cases/qunit-test-wrm-web-resource/src/foo-async.js',
