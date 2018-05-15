@@ -82,7 +82,7 @@ module.exports = class AppResources {
                 key: syncSplitChunkDependencyKeyMap.get(WebpackHelpers.getChunkIdentifier(c)).key,
                 externalResources: WebpackHelpers.getExternalResourcesForChunk(c),
                 resources: Array.from(new Set(c.files.concat(additionalFileDeps))),
-                dependencies: WebpackHelpers.getDependenciesForChunks([c]),
+                dependencies: baseContexts.concat(WebpackHelpers.getDependenciesForChunks([c])),
             };
         });
 
@@ -101,7 +101,7 @@ module.exports = class AppResources {
                 key: `${c.id}`,
                 externalResources: WebpackHelpers.getExternalResourcesForChunk(c),
                 resources: Array.from(new Set(c.files.concat(additionalFileDeps))),
-                dependencies: WebpackHelpers.getDependenciesForChunks([c]),
+                dependencies: baseContexts.concat(WebpackHelpers.getDependenciesForChunks([c])),
             };
         });
 
