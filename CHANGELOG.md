@@ -1,3 +1,8 @@
+## 1.0.5 (May 15, 2018)
+
+* Add almond to base-context to ensure it is always loaded
+* Change sorting for provided dependencies to ensure correct loading order
+
 ## 1.0.3 (April 4, 2018)
 
 * Ensure "tapable" version via peerDependency.
