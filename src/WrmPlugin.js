@@ -47,6 +47,7 @@ class WrmPlugin {
      * @param {String} options.xmlDescriptors - Path to the directory where this plugin stores the descriptors about this plugin, used by the WRM to load your frontend code.
      * @param {String} options.assetContentTypes - Specific content-types to be used for certain asset types. Will be added as '<param name="content-type"...' to the resource of the asset.
      * @param {String} options.watch - Trigger watch mode - this requires webpack-dev-server and will redirect requests to the entrypoints to the dev-server that must be running under webpacks "options.output.publicPath"
+     * @param {Boolean} options.standalone - Build standalone web-resources - assumes no transformations, other chunks or base contexts are needed
      * @param {Boolean} options.verbose - Indicate if log output should be verbose - default is false.
      */
     constructor(options = {}) {
@@ -246,10 +247,12 @@ ${standardScript}`;
         // allow `wr-dependency/wr-resource` require calls.
         this.injectWRMSpecificRequestTypes(compiler);
 
-        if (!this.options.watch) {
+        if (!this.options.watch && !this.options.standalone) {
             this.overwritePublicPath(compiler);
         }
-        this.enableAsyncLoadingWithWRM(compiler);
+        if (!this.options.standalone) {
+            this.enableAsyncLoadingWithWRM(compiler);
+        }
 
         // When the compiler is about to emit files, we jump in to produce our resource descriptors for the WRM.
         compiler.hooks.emit.tapAsync('wrm plugin emit phase', (compilation, callback) => {
@@ -260,10 +263,13 @@ ${standardScript}`;
             const webResources = [];
 
             const resourceDescriptors = XMLFormatter.createResourceDescriptors(
-                appResourceGenerator.getResourceDescriptors(),
+                this.options.standalone
+                    ? appResourceGenerator.getEntryPointsResourceDescriptors()
+                    : appResourceGenerator.getResourceDescriptors(),
                 this.options.transformationMap,
                 pathPrefix,
-                this.options.assetContentTypes
+                this.options.assetContentTypes,
+                this.options.standalone
             );
             webResources.push(resourceDescriptors);
 

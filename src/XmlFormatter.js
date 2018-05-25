@@ -34,7 +34,14 @@ class XMLFormatter {
     }
 }
 
-function createWebResource(resource, transformations, pathPrefix = '', contentTypes = {}) {
+function createWebResource(resource, transformations, pathPrefix = '', contentTypes = {}, standalone) {
+    if (standalone) {
+        return `
+            <web-resource key="${resource.key}">
+                ${resource.resources ? XMLFormatter.resources(pathPrefix, contentTypes, resource.resources) : ''}
+            </web-resource>
+        `;
+    }
     return `
         <web-resource key="${resource.key}">
             ${renderTransformation(transformations)}
@@ -53,9 +60,9 @@ function createWebResource(resource, transformations, pathPrefix = '', contentTy
 
 const createQUnitResources = filename => `<resource type="qunit" name="${filename}" location="${filename}" />`;
 
-exports.createResourceDescriptors = function(jsonDescriptors, transformations, pathPrefix, contentTypes) {
+exports.createResourceDescriptors = function(jsonDescriptors, transformations, pathPrefix, contentTypes, standalone) {
     const descriptors = jsonDescriptors.map(descriptor =>
-        createWebResource(descriptor, transformations, pathPrefix, contentTypes)
+        createWebResource(descriptor, transformations, pathPrefix, contentTypes, standalone)
     );
     return descriptors.join('');
 };
