@@ -1,3 +1,6 @@
+## 1.1.0 (May 17, 2018)
+* add standalone mode which allows for special lib like lean compilations. Mainly removes clutter from the XML-file.
+
 ## 1.0.6 (May 17, 2018)
 
 * add repository/homepage link to package.json
