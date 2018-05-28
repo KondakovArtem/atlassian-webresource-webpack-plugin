@@ -43,7 +43,10 @@ describe('wrm-dependency-loading', function() {
         });
 
         it('add a dependency for each requested web-resource', () => {
-            assert.include(dependencies, 'com.atlassian.plugins.atlassian-plugins-webresource-plugin:data');
+            assert.include(
+                dependencies,
+                'com.atlassian.plugins.atlassian-plugins-webresource-rest:web-resource-manager'
+            );
             assert.include(dependencies, 'some.weird:web-resource');
             assert.include(dependencies, 'foo-bar:baz');
         });
