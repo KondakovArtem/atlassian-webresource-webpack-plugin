@@ -1,7 +1,7 @@
 const flattenReduce = require('./flattenReduce');
 const WebpackHelpers = require('./WebpackHelpers');
 const WRMHelpers = require('./WRMHelpers');
-const baseContexts = require('./settings/base-contexts');
+const { getBaseContexts } = require('./settings/base-contexts');
 
 module.exports = class AppResources {
     constructor(assetUUID, options, compiler, compilation) {
@@ -82,7 +82,7 @@ module.exports = class AppResources {
                 key: syncSplitChunkDependencyKeyMap.get(WebpackHelpers.getChunkIdentifier(c)).key,
                 externalResources: WebpackHelpers.getExternalResourcesForChunk(c),
                 resources: Array.from(new Set(c.files.concat(additionalFileDeps))),
-                dependencies: baseContexts.concat(WebpackHelpers.getDependenciesForChunks([c])),
+                dependencies: getBaseContexts().concat(WebpackHelpers.getDependenciesForChunks([c])),
             };
         });
 
@@ -101,7 +101,7 @@ module.exports = class AppResources {
                 key: `${c.id}`,
                 externalResources: WebpackHelpers.getExternalResourcesForChunk(c),
                 resources: Array.from(new Set(c.files.concat(additionalFileDeps))),
-                dependencies: baseContexts.concat(WebpackHelpers.getDependenciesForChunks([c])),
+                dependencies: getBaseContexts().concat(WebpackHelpers.getDependenciesForChunks([c])),
             };
         });
 
@@ -140,7 +140,7 @@ module.exports = class AppResources {
                 contexts: WRMHelpers.getContextForEntry(name, this.options.contextMap),
                 externalResources: WebpackHelpers.getExternalResourcesForChunk(runtimeChunk),
                 resources: Array.from(new Set([].concat(runtimeChunk.files, ...additionalFileDeps))),
-                dependencies: baseContexts.concat(
+                dependencies: getBaseContexts().concat(
                     WebpackHelpers.getDependenciesForChunks([runtimeChunk]),
                     sharedSplitDeps
                 ),
