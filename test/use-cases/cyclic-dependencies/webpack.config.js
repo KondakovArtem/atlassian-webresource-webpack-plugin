@@ -12,6 +12,7 @@ module.exports = {
     plugins: [
         new WrmPlugin({
             pluginKey: 'com.atlassian.plugin.test',
+            amdProvider: 'jira.webresources:almond',
             contextMap: { 'cyclic-entry': [''] },
             xmlDescriptors: path.join(__dirname, 'target', 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml'),
             verbose: false,
