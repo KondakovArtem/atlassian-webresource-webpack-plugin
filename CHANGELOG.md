@@ -1,3 +1,6 @@
+## 2.0.0 (June 7, 2018)
+* change api and require "amdProvider" to be provided. This is needed to enable cross-product usage.
+
 ## 1.2.0 (June 7, 2018)
 * add "noWRM" mode to allow development outside of a WRM environment. E.g. standalone frontends later integrated into a product running WRM.
 
