@@ -48,7 +48,7 @@ class WrmPlugin {
      * @param {String} options.assetContentTypes - Specific content-types to be used for certain asset types. Will be added as '<param name="content-type"...' to the resource of the asset.
      * @param {String} options.watch - Trigger watch mode - this requires webpack-dev-server and will redirect requests to the entrypoints to the dev-server that must be running under webpacks "options.output.publicPath"
      * @param {Boolean} options.standalone - Build standalone web-resources - assumes no transformations, other chunks or base contexts are needed
-     * @param {Boolean} options.independent - Do not add any WRM specifics to the webpack runtime to allow development on a greenfield
+     * @param {Boolean} options.noWRM - Do not add any WRM specifics to the webpack runtime to allow development on a greenfield
      * @param {Boolean} options.verbose - Indicate if log output should be verbose - default is false.
      */
     constructor(options = {}) {
@@ -246,7 +246,7 @@ ${standardScript}`;
         if (this.options.standalone) {
             return false;
         }
-        if (this.options.independent) {
+        if (this.options.noWRM) {
             return false;
         }
 
@@ -257,7 +257,7 @@ ${standardScript}`;
         if (this.options.standalone) {
             return false;
         }
-        if (this.options.independent) {
+        if (this.options.noWRM) {
             return false;
         }
 
