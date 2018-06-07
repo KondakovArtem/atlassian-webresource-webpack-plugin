@@ -1,5 +1,8 @@
+## 1.2.0 (June 7, 2018)
+* add "noWRM" mode to allow development outside of a WRM environment. E.g. standalone frontends later integrated into a product running WRM.
+
 ## 1.1.0 (May 17, 2018)
-* add standalone mode which allows for special lib like lean compilations. Mainly removes clutter from the XML-file.
+* add experimental "standalone" mode which allows for special lib like lean compilations. Mainly removes clutter from the XML-file.
 
 ## 1.0.6 (May 17, 2018)
 

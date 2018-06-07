@@ -448,6 +448,19 @@ This configuration option is deprecated and will be removed in a 1.0 release of 
 exists to give developers time to refactor and rewrite their QUnit tests as build-time tests; either
 as pure unit tests (e.g., via Jest or Mocha) or pure black-box integration tests (e.g., via Webdriver).
 
+### `noWRM` (Optional)
+Will not add any WRM-specifics to the webpack-runtime or try to redirect async-chunk requests while still handling requests to `wr-dependency` and `wr-resource`. 
+This can be useful to develop frontend outside of a running product that provides the WRM functionality.
+
+### `verbose` (Optional)
+Indicate verbosity of log output. Default is `false`.
+
+### `standalone` (Optional) (Experimental)
+**Do not use this** 
+Builds standalone web-resources, no transformations and base-contexts will be applied.
+No non-entry-chunks are supported.
+*Experimental - may change or be removed again at any time* 
+
 ## Minimum requirements
 
 This plugin has been built to work with the following versions of the external build tools:
