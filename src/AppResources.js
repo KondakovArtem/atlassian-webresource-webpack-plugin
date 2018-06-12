@@ -135,16 +135,22 @@ module.exports = class AppResources {
             const additionalFileDeps = entrypointChunks.map(c =>
                 WebpackHelpers.getDependencyResourcesFromChunk(c, resourceToAssetMap)
             );
+            // Construct the list of resources to add to this web-resource
+            const externalResources = WebpackHelpers.getExternalResourcesForChunk(runtimeChunk);
+            const resourceList = [].concat(runtimeChunk.files, ...additionalFileDeps);
+            const dependencyList = [].concat(
+                getBaseContexts(),
+                WebpackHelpers.getDependenciesForChunks([runtimeChunk]),
+                sharedSplitDeps
+            );
+
             return {
                 key: webresourceKey,
                 contexts: WRMHelpers.getContextForEntry(name, this.options.contextMap),
-                externalResources: WebpackHelpers.getExternalResourcesForChunk(runtimeChunk),
-                resources: Array.from(new Set([].concat(runtimeChunk.files, ...additionalFileDeps))),
-                dependencies: getBaseContexts().concat(
-                    WebpackHelpers.getDependenciesForChunks([runtimeChunk]),
-                    sharedSplitDeps
-                ),
                 conditions: WRMHelpers.getConditionForEntry(name, this.options.conditionMap),
+                externalResources,
+                resources: Array.from(new Set(resourceList)),
+                dependencies: Array.from(new Set(dependencyList)),
             };
         });
 
@@ -152,7 +158,8 @@ module.exports = class AppResources {
     }
 
     getResourceDescriptors() {
-        return this.getSyncSplitChunksResourceDescriptors()
+        return []
+            .concat(this.getSyncSplitChunksResourceDescriptors())
             .concat(this.getAsyncChunksResourceDescriptors())
             .concat(this.getEntryPointsResourceDescriptors())
             .concat(this.getAssetResourceDescriptor());
