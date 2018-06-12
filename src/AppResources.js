@@ -3,6 +3,15 @@ const WebpackHelpers = require('./WebpackHelpers');
 const WRMHelpers = require('./WRMHelpers');
 const { getBaseContexts } = require('./settings/base-contexts');
 
+function isSingleRuntime(options) {
+    const runtimeChunkCfg = options.optimization && options.optimization.runtimeChunk;
+    return runtimeChunkCfg && runtimeChunkCfg.name && typeof runtimeChunkCfg.name === 'string';
+}
+
+function getSingleRuntimeChunkName(options) {
+    return options.optimization.runtimeChunk.name;
+}
+
 module.exports = class AppResources {
     constructor(assetUUID, options, compiler, compilation) {
         this.assetUUID = assetUUID;
@@ -120,6 +129,10 @@ module.exports = class AppResources {
             syncSplitChunks
         );
 
+        // Support single runtime configuration
+        const RUNTIME_WR_KEY = 'common_runtime';
+        const SINGLE_RUNTIME = isSingleRuntime(this.compiler.options);
+
         // Used in prod
         const prodEntryPoints = [...entrypoints].map(([name, entrypoint]) => {
             const webresourceKey = WRMHelpers.getWebresourceKeyForEntry(name, this.options.webresourceKeyMap);
@@ -137,12 +150,18 @@ module.exports = class AppResources {
             );
             // Construct the list of resources to add to this web-resource
             const externalResources = WebpackHelpers.getExternalResourcesForChunk(runtimeChunk);
-            const resourceList = [].concat(runtimeChunk.files, ...additionalFileDeps);
+            const resourceList = [].concat(...additionalFileDeps);
             const dependencyList = [].concat(
                 getBaseContexts(),
                 WebpackHelpers.getDependenciesForChunks([runtimeChunk]),
                 sharedSplitDeps
             );
+
+            if (SINGLE_RUNTIME) {
+                dependencyList.unshift(`${this.options.pluginKey}:${RUNTIME_WR_KEY}`);
+            } else {
+                resourceList.unshift(...runtimeChunk.files);
+            }
 
             return {
                 key: webresourceKey,
@@ -153,6 +172,14 @@ module.exports = class AppResources {
                 dependencies: Array.from(new Set(dependencyList)),
             };
         });
+
+        if (SINGLE_RUNTIME) {
+            const runtimeName = `${getSingleRuntimeChunkName(this.compiler.options)}.js`;
+            prodEntryPoints.push({
+                key: RUNTIME_WR_KEY,
+                resources: [runtimeName],
+            });
+        }
 
         return prodEntryPoints;
     }
