@@ -177,6 +177,7 @@ module.exports = class AppResources {
             const runtimeName = `${getSingleRuntimeChunkName(this.compiler.options)}.js`;
             prodEntryPoints.push({
                 key: RUNTIME_WR_KEY,
+                dependencies: getBaseContexts(),
                 resources: [runtimeName],
             });
         }

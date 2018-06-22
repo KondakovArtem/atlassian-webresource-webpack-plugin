@@ -46,6 +46,20 @@ describe('single runtime chunk', function() {
             assert.equal(runtimeResourceLocations[0], runtimeName, 'should be the runtime');
         });
 
+        it('adds base WRM dependencies to the runtime web-resource', function() {
+            const runtimeWR = wrNodes.find(node => node.attributes.key === RUNTIME_WR_KEY);
+            const dependencies = getDependencies(runtimeWR);
+            const dependencyNames = dependencies.map(d => d.content);
+            assert.includeMembers(
+                dependencyNames,
+                [
+                    'com.atlassian.plugins.atlassian-plugins-webresource-rest:web-resource-manager',
+                    'com.atlassian.plugins.atlassian-plugins-webresource-plugin:context-path',
+                ],
+                'runtime should include deps from the WRM it needs, but did not'
+            );
+        });
+
         it('does not add the runtime to more than one web-resource', function() {
             const allResourceNodes = [].concat.apply([], wrNodes.map(getResources));
             const allResourceLocations = allResourceNodes.map(node => node.attributes.location);
