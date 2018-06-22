@@ -1,16 +1,8 @@
 const flattenReduce = require('./flattenReduce');
 const WebpackHelpers = require('./WebpackHelpers');
 const WRMHelpers = require('./WRMHelpers');
+const { RUNTIME_WR_KEY } = require('./settings/constants');
 const { getBaseContexts } = require('./settings/base-contexts');
-
-function isSingleRuntime(options) {
-    const runtimeChunkCfg = options.optimization && options.optimization.runtimeChunk;
-    return runtimeChunkCfg && runtimeChunkCfg.name && typeof runtimeChunkCfg.name === 'string';
-}
-
-function getSingleRuntimeChunkName(options) {
-    return options.optimization.runtimeChunk.name;
-}
 
 module.exports = class AppResources {
     constructor(assetUUID, options, compiler, compilation) {
@@ -18,6 +10,16 @@ module.exports = class AppResources {
         this.options = options;
         this.compiler = compiler;
         this.compilation = compilation;
+    }
+
+    isSingleRuntime() {
+        const options = this.compiler.options;
+        const runtimeChunkCfg = options.optimization && options.optimization.runtimeChunk;
+        return runtimeChunkCfg && runtimeChunkCfg.name && typeof runtimeChunkCfg.name === 'string';
+    }
+
+    getSingleRuntimeChunkName() {
+        return this.compiler.options.optimization.runtimeChunk.name;
     }
 
     getAssetResourceDescriptor() {
@@ -129,10 +131,6 @@ module.exports = class AppResources {
             syncSplitChunks
         );
 
-        // Support single runtime configuration
-        const RUNTIME_WR_KEY = 'common_runtime';
-        const SINGLE_RUNTIME = isSingleRuntime(this.compiler.options);
-
         // Used in prod
         const prodEntryPoints = [...entrypoints].map(([name, entrypoint]) => {
             const webresourceKey = WRMHelpers.getWebresourceKeyForEntry(name, this.options.webresourceKeyMap);
@@ -157,7 +155,7 @@ module.exports = class AppResources {
                 sharedSplitDeps
             );
 
-            if (SINGLE_RUNTIME) {
+            if (this.isSingleRuntime()) {
                 dependencyList.unshift(`${this.options.pluginKey}:${RUNTIME_WR_KEY}`);
             } else {
                 resourceList.unshift(...runtimeChunk.files);
@@ -173,8 +171,8 @@ module.exports = class AppResources {
             };
         });
 
-        if (SINGLE_RUNTIME) {
-            const runtimeName = `${getSingleRuntimeChunkName(this.compiler.options)}.js`;
+        if (this.isSingleRuntime()) {
+            const runtimeName = `${this.getSingleRuntimeChunkName()}.js`;
             prodEntryPoints.push({
                 key: RUNTIME_WR_KEY,
                 dependencies: getBaseContexts(),

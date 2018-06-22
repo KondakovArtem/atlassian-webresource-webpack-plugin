@@ -3,11 +3,10 @@ const parse = require('xml-parser');
 const webpack = require('webpack');
 const fs = require('fs');
 const path = require('path');
+const { RUNTIME_WR_KEY } = require('../../../src/settings/constants');
 
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-single.xml');
-
-const RUNTIME_WR_KEY = 'common_runtime';
 
 describe('single runtime chunk', function() {
     const baseConfig = require('./webpack.config.js');
