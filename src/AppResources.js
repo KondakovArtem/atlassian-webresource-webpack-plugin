@@ -3,12 +3,24 @@ const WebpackHelpers = require('./WebpackHelpers');
 const WRMHelpers = require('./WRMHelpers');
 const { getBaseContexts } = require('./settings/base-contexts');
 
+const RUNTIME_WR_KEY = 'common-runtime';
+
 module.exports = class AppResources {
     constructor(assetUUID, options, compiler, compilation) {
         this.assetUUID = assetUUID;
         this.options = options;
         this.compiler = compiler;
         this.compilation = compilation;
+    }
+
+    isSingleRuntime() {
+        const options = this.compiler.options;
+        const runtimeChunkCfg = options.optimization && options.optimization.runtimeChunk;
+        return runtimeChunkCfg && runtimeChunkCfg.name && typeof runtimeChunkCfg.name === 'string';
+    }
+
+    getSingleRuntimeChunkName() {
+        return this.compiler.options.optimization.runtimeChunk.name;
     }
 
     getAssetResourceDescriptor() {
@@ -135,24 +147,46 @@ module.exports = class AppResources {
             const additionalFileDeps = entrypointChunks.map(c =>
                 WebpackHelpers.getDependencyResourcesFromChunk(c, resourceToAssetMap)
             );
+            // Construct the list of resources to add to this web-resource
+            const externalResources = WebpackHelpers.getExternalResourcesForChunk(runtimeChunk);
+            const resourceList = [].concat(...additionalFileDeps);
+            const dependencyList = [].concat(
+                getBaseContexts(),
+                WebpackHelpers.getDependenciesForChunks([runtimeChunk]),
+                sharedSplitDeps
+            );
+
+            if (this.isSingleRuntime()) {
+                dependencyList.unshift(`${this.options.pluginKey}:${RUNTIME_WR_KEY}`);
+            } else {
+                resourceList.unshift(...runtimeChunk.files);
+            }
+
             return {
                 key: webresourceKey,
                 contexts: WRMHelpers.getContextForEntry(name, this.options.contextMap),
-                externalResources: WebpackHelpers.getExternalResourcesForChunk(runtimeChunk),
-                resources: Array.from(new Set([].concat(runtimeChunk.files, ...additionalFileDeps))),
-                dependencies: getBaseContexts().concat(
-                    WebpackHelpers.getDependenciesForChunks([runtimeChunk]),
-                    sharedSplitDeps
-                ),
                 conditions: WRMHelpers.getConditionForEntry(name, this.options.conditionMap),
+                externalResources,
+                resources: Array.from(new Set(resourceList)),
+                dependencies: Array.from(new Set(dependencyList)),
             };
         });
+
+        if (this.isSingleRuntime()) {
+            const runtimeName = `${this.getSingleRuntimeChunkName()}.js`;
+            prodEntryPoints.push({
+                key: RUNTIME_WR_KEY,
+                dependencies: getBaseContexts(),
+                resources: [runtimeName],
+            });
+        }
 
         return prodEntryPoints;
     }
 
     getResourceDescriptors() {
-        return this.getSyncSplitChunksResourceDescriptors()
+        return []
+            .concat(this.getSyncSplitChunksResourceDescriptors())
             .concat(this.getAsyncChunksResourceDescriptors())
             .concat(this.getEntryPointsResourceDescriptors())
             .concat(this.getAssetResourceDescriptor());
