@@ -1,3 +1,6 @@
+## 2.1.0 (June 25, 2018)
+* add support for single runtime chunk (fixes #47).
+
 ## 2.0.0 (June 7, 2018)
 * change api and require "amdProvider" to be provided. This is needed to enable cross-product usage.
 
