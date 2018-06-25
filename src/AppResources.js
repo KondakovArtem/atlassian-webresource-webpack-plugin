@@ -1,8 +1,9 @@
 const flattenReduce = require('./flattenReduce');
 const WebpackHelpers = require('./WebpackHelpers');
 const WRMHelpers = require('./WRMHelpers');
-const { RUNTIME_WR_KEY } = require('./settings/constants');
 const { getBaseContexts } = require('./settings/base-contexts');
+
+const RUNTIME_WR_KEY = 'common-runtime';
 
 module.exports = class AppResources {
     constructor(assetUUID, options, compiler, compilation) {
