@@ -67,16 +67,16 @@ describe('split-chunks-with-tests', function() {
             );
             assert.equal(
                 getChild(splitChunkShared, 'dependency').length,
-                5,
+                4,
                 'split chunk contains unexpected amount of dependencies'
             );
         });
 
         it('should contain all dependencies specified in at least 2 entry-points', () => {
             const deps = getContent(getChild(splitChunkShared, 'dependency'));
-            assert.equal(deps[3], 'jira.webresources:jquery', 'jquery dependency not found in split chunk');
+            assert.equal(deps[2], 'jira.webresources:jquery', 'jquery dependency not found in split chunk');
             assert.equal(
-                deps[4],
+                deps[3],
                 'com.atlassian.plugin.jslibs:underscore-1.4.4',
                 'underscore dependency not found in split chunk'
             );

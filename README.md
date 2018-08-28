@@ -254,15 +254,6 @@ The fully-qualified groupId and artifactId of your P2 plugin. Due to the way the
 value is necessary to provide in order to support loading of asynchronous chunks, as well as arbirary
 (non-JavaScript) resources.
 
-### `amdProvider` (Required)
-
-The web-resource-key that provides the product for which this plugin is build with the AMD-runtime.
-E.g:
-    - "jira.webresources:almond" for Jira
-    - "confluence.web.resources:almond" for Confluence
-    - "com.atlassian.bitbucket.server.bitbucket-web:require-lite" for Bitbucket
-    - "bamboo.web.resources:lib-almond" for Bamboo 
-
 ### `xmlDescriptors` (Required)
 
 An absolute filepath to where the generated XML should be output to. This should point to a sub-directory
