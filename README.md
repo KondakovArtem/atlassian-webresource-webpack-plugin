@@ -424,10 +424,13 @@ An object specifying content-types the server should respond with for a certain 
 This may be required by certain Atlassian products depending on the file-type to load.
 *Contains content-type for svg as "image/svg+xml" by default*
 
-### `watch` (Optional)
-Activates "watch-mode". This must be run in conjuction with webpack-dev-server.
-Instead of writing to file this will only once write out xml-descriptors redirecting requests to the webpack-dev-server.
-In order for this to run webpacks "options.output.publicPath" must point to the webpack-dev-server. (e.g. http://localhost:9000)
+### `watch` and `watchPrepare` (Optional)
+Activates "watch-mode". This must be run in conjuction with a webpack-dev-server.
+#### `watchPrepare`
+Creates "proxy"-Resources and references them in the XML-descriptor. These proxy-resources will redirect to a webpack-dev-server that has to be run too.
+In order for this to work properly, ensure that the webpack-config "options.output.publicPath" points to the webpack-dev-server - including its port. (e.g. http://localhost:9000)
+#### `watch` (Optional)
+Use when running the process with a webpack-dev-server.
 
 ### `__testGlobs__` (Optional) (Deprecated)
 

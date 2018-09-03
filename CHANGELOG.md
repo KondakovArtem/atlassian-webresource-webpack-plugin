@@ -1,3 +1,7 @@
+## 3.0.0 (September 3, 2018)
+* expose "prepare"-step for watch-mode as explicit flag, instead of assuming anything at runtime.
+* remove mandatory "amdProvider"-option again as it is cause of confusion with little to no-benefit.
+
 ## 2.1.0 (June 25, 2018)
 * add support for single runtime chunk (fixes #47).
 
