@@ -11,7 +11,6 @@ module.exports = {
     plugins: [
         new WrmPlugin({
             pluginKey: 'com.atlassian.plugin.test',
-            amdProvider: 'jira.webresources:almond',
             xmlDescriptors: path.join(OUTPUT_DIR, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml'),
             transformationMap: {
                 js: ['foo', 'bar'],

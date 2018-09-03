@@ -33,14 +33,12 @@ const logger = require('./logger');
 const QUnitTestResources = require('./QUnitTestResources');
 const AppResources = require('./AppResources');
 const flattenReduce = require('./flattenReduce');
-const { setAmdProvider } = require('./settings/base-contexts');
 
 class WrmPlugin {
     /**
      *
      * @param {Object} options - options passed to WRMPlugin
      * @param {String} options.pluginKey - The fully qualified plugin key. e.g.: com.atlassian.jira.plugins.my-jira-plugin
-     * @param {String} options.amdProvider - The resource-key of the web-resource that provides AMD for the product this code is built for.
      * @param {Object} options.contextMap - One or more "context"s to which an entrypoint will be added. e.g.: {\n\t"my-entry": ["my-plugin-context"]\n}
      * @param {Object} options.conditionMap - Map of conditions to be applied to the specified entry-point
      * @param {Object} options.transformationMap - Map of transformations to be applied to the specified file-types
@@ -63,20 +61,6 @@ class WrmPlugin {
             `Option [String] "xmlDescriptors" not specified. You must specify the path to the directory where this plugin stores the descriptors about this plugin, used by the WRM to load your frontend code. This should point somewhere in the "target/classes" directory.`
         );
         assert(path.isAbsolute(options.xmlDescriptors), `Option [String] "xmlDescriptors" must be absolute!`);
-
-        assert(
-            options.amdProvider,
-            `You need to specify an AMD-Provider resource key!
-E.g:
-        - "jira.webresources:almond" for Jira
-        - "confluence.web.resources:almond" for Confluence
-        - "com.atlassian.bitbucket.server.bitbucket-web:require-lite" for Bitbucket
-        - "bamboo.web.resources:lib-almond" for Bamboo 
-        - etc.
-`
-        );
-
-        setAmdProvider(options.amdProvider);
 
         // convert providedDependencies object to map
         if (typeof options.providedDependencies === 'object' && !(options.providedDependencies instanceof Map)) {

@@ -21,7 +21,6 @@ module.exports = (runtimeChunk, webresourceOutput) => ({
     plugins: [
         new WrmPlugin({
             pluginKey: 'com.atlassian.plugin.test',
-            amdProvider: 'jira.webresources:almond',
             xmlDescriptors: webresourceOutput,
             verbose: false,
         }),
