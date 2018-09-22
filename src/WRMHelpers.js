@@ -31,7 +31,11 @@ module.exports = class WRMHelpers {
 
     static getWebresourceKeyForEntry(entry, webresourceKeyMap) {
         const wrKey = webresourceKeyMap[entry];
-        if (!wrKey || typeof wrKey !== 'string') {
+        const wrKeyType = typeof wrKey;
+        if (wrKeyType === 'object'  && typeof wrKey.key === 'string') {
+            return {key: wrKey.key, name: wrKey.name};
+        }
+        if (!wrKey || wrKeyType !== 'string') {
             return `entrypoint-${entry}`;
         }
         return wrKey;
