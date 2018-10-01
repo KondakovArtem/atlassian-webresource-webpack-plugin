@@ -67,6 +67,7 @@ class WrmPlugin {
      * @param {Object} options.providedDependencies - Map of provided dependencies. If somewhere in the code this dependency is required, it will not be bundled but instead replaced with the specified placeholder.
      * @param {String} options.xmlDescriptors - Path to the directory where this plugin stores the descriptors about this plugin, used by the WRM to load your frontend code.
      * @param {String} options.assetContentTypes - Specific content-types to be used for certain asset types. Will be added as '<param name="content-type"...' to the resource of the asset.
+     * @param {String} options.locationPrefix - Default prefix for web-resource location value. When it is not provided plugin will try to automatically extract prefix from webpack output.path configuration option.
      * @param {String} options.watch - Trigger watch mode - this requires webpack-dev-server and will redirect requests to the entrypoints to the dev-server that must be running under webpacks "options.output.publicPath"
      * @param {String} options.watchPrepare - In conjunction with watch mode - indicates that only "redirects" to a webserver should be build in this run.
      * @param {Boolean} options.standalone - Build standalone web-resources - assumes no transformations, other chunks or base contexts are needed
@@ -321,7 +322,7 @@ ${standardScript}`;
 
         // When the compiler is about to emit files, we jump in to produce our resource descriptors for the WRM.
         compiler.hooks.emit.tapAsync('wrm plugin emit phase', (compilation, callback) => {
-            const pathPrefix = extractPathPrefixForXml(compiler.options);
+            const pathPrefix = extractPathPrefixForXml(this.options.locationPrefix, compiler.options);
             const appResourceGenerator = new AppResources(
                 this.assetUUID,
                 this.assetNames,

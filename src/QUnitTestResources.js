@@ -39,7 +39,7 @@ module.exports = class QUnitTestResources {
                 });
 
             // require mock to allow imports like "wr-dependency!context"
-            const pathPrefix = extractPathPrefixForXml(this.compiler.options);
+            const pathPrefix = extractPathPrefixForXml('', this.compiler.options);
             testFiles.unshift({
                 name: `${pathPrefix}${this.qunitRequireMockPath}`,
                 location: `${pathPrefix}${this.qunitRequireMockPath}`,

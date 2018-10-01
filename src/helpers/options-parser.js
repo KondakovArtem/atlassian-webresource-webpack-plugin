@@ -4,7 +4,7 @@ const logger = require('../logger');
 function extractPathPrefixForXml(options) {
     const outputPath = options.output.path;
     // get everything "past" the /target/classes
-    const pathPrefix = outputPath.split(path.join('target', 'classes'))[1];
+    const pathPrefix = locationPrefix || outputPath.split(path.join('target', 'classes'))[1];
     if (pathPrefix === '' || pathPrefix === '/') {
         return '';
     } else if (pathPrefix === undefined) {

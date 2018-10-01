@@ -493,6 +493,11 @@ An object specifying content-types the server should respond with for a certain 
 This may be required by certain Atlassian products depending on the file-type to load.
 *Contains content-type for svg as "image/svg+xml" by default*
 
+### `locationPrefix` (Optional)
+
+Adds given prefix value to `location` attribute of `resource` node. This is how you can
+provide resource prefix when your project does not follow meven project structure.
+
 ### `watch` and `watchPrepare` (Optional)
 Activates "watch-mode". This must be run in conjuction with a webpack-dev-server.
 #### `watchPrepare`
