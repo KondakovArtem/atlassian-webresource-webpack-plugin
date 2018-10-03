@@ -29,7 +29,7 @@ module.exports = class WRMHelpers {
         return validContexts;
     }
 
-    static getWebresourceKeyForEntry(entry, webresourceKeyMap) {
+    static getWebresourceAttributesForEntry(entry, webresourceKeyMap) {
         const wrKey = webresourceKeyMap[entry];
         const wrKeyType = typeof wrKey;
         if (wrKeyType === 'object'  && typeof wrKey.key === 'string') {

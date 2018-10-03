@@ -35,7 +35,7 @@ class XMLFormatter {
 }
 
 function createWebResource(resource, transformations, pathPrefix = '', contentTypes = {}, standalone) {
-    const resourceArgs = resource.key;
+    const resourceArgs = resource.attributes;
     const name = resourceArgs.name || '';
     if (standalone) {
         return `
