@@ -34,23 +34,18 @@ class XMLFormatter {
     }
 }
 
-function getWebResourceProps(key) {
-    if (typeof key === 'object' && key.key) {
-        return `key="${key.key}" name="${key.name || ''}"`
-    }
-    return `key="${key}"`
-}
-
 function createWebResource(resource, transformations, pathPrefix = '', contentTypes = {}, standalone) {
+    const resourceArgs = resource.key;
+    const name = resourceArgs.name || '';
     if (standalone) {
         return `
-            <web-resource ${getWebResourceProps(resource.key)}>
+            <web-resource key="${resourceArgs.key}" name="${name}">
                 ${resource.resources ? XMLFormatter.resources(pathPrefix, contentTypes, resource.resources) : ''}
             </web-resource>
         `;
     }
     return `
-        <web-resource ${getWebResourceProps(resource.key)}>
+        <web-resource key="${resourceArgs.key}" name="${name}">
             ${renderTransformation(transformations)}
             ${resource.contexts ? XMLFormatter.context(resource.contexts) : ''}
             ${resource.dependencies ? XMLFormatter.dependencies(resource.dependencies) : ''}

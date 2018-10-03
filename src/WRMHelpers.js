@@ -36,9 +36,9 @@ module.exports = class WRMHelpers {
             return {key: wrKey.key, name: wrKey.name};
         }
         if (!wrKey || wrKeyType !== 'string') {
-            return `entrypoint-${entry}`;
+            return {key: `entrypoint-${entry}`};
         }
-        return wrKey;
+        return {key: wrKey};
     }
 
     static getConditionForEntry(entry, conditionMap) {

@@ -27,7 +27,7 @@ module.exports = class AppResources {
         const assetFiles = Object.keys(this.compilation.assets).filter(p => !/\.(js|css|soy)(\.map)?$/.test(p)); // remove anything that we know is handled differently
 
         const assets = {
-            key: `assets-${this.assetUUID}`,
+            key: {key: `assets-${this.assetUUID}`, name: ''},
             resources: assetFiles,
         };
 
@@ -91,7 +91,7 @@ module.exports = class AppResources {
         const sharedSplitDescriptors = syncSplitChunks.map(c => {
             const additionalFileDeps = WebpackHelpers.getDependencyResourcesFromChunk(c, resourceToAssetMap);
             return {
-                key: syncSplitChunkDependencyKeyMap.get(WebpackHelpers.getChunkIdentifier(c)).key,
+                key: syncSplitChunkDependencyKeyMap.get(WebpackHelpers.getChunkIdentifier(c)),
                 externalResources: WebpackHelpers.getExternalResourcesForChunk(c),
                 resources: Array.from(new Set(c.files.concat(additionalFileDeps))),
                 dependencies: getBaseContexts().concat(WebpackHelpers.getDependenciesForChunks([c])),
@@ -110,7 +110,7 @@ module.exports = class AppResources {
         const asyncChunkDescriptors = WebpackHelpers.getAllAsyncChunks(entryPoints).map(c => {
             const additionalFileDeps = WebpackHelpers.getDependencyResourcesFromChunk(c, resourceToAssetMap);
             return {
-                key: `${c.id}`,
+                key: {key: `${c.id}`},
                 externalResources: WebpackHelpers.getExternalResourcesForChunk(c),
                 resources: Array.from(new Set(c.files.concat(additionalFileDeps))),
                 dependencies: getBaseContexts().concat(WebpackHelpers.getDependenciesForChunks([c])),
@@ -175,7 +175,7 @@ module.exports = class AppResources {
         if (this.isSingleRuntime()) {
             const runtimeName = `${this.getSingleRuntimeChunkName()}.js`;
             prodEntryPoints.push({
-                key: RUNTIME_WR_KEY,
+                key: {key: RUNTIME_WR_KEY},
                 dependencies: getBaseContexts(),
                 resources: [runtimeName],
             });

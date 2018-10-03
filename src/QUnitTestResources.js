@@ -38,7 +38,7 @@ module.exports = class QUnitTestResources {
             ].concat(extractedTestResources);
             const testDependencies = Array.from(WebpackHelpers.getDependenciesForChunks(allEntryPointChunks));
             return {
-                key: `__test__${webResourceKey}`,
+                key: {key: `__test__${webResourceKey.key}`, name: webResourceKey.name},
                 externalResources: testFiles,
                 dependencies: testDependencies,
             };
