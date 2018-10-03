@@ -1,35 +1,20 @@
-function stringifyAttributes(attributes) {
-    if (!attributes) {
-        return '';
-    }
-
-    return (
-        ' ' +
-        Object.keys(attributes)
-            .map(key => `${key}="${attributes[key]}"`)
-            .join(' ')
-    );
-}
-
-function renderElement(name, attributes, children) {
-    if (!children) {
-        return `<${name}${attributes}/>`;
-    }
-    return `<${name}${attributes}>${children}</${name}>`;
-}
+const WRMHelpers = require('./WRMHelpers');
 
 function renderTransformer(transformers) {
     return transformers
-        .map(transformer => renderElement('transformer', stringifyAttributes({ key: transformer })))
+        .map(transformer => WRMHelpers.renderElement(
+                'transformer',
+                WRMHelpers.stringifyAttributes({ key: transformer })
+            ))
         .join('');
 }
 
 module.exports = function renderTransformation(transformations) {
     return Object.keys(transformations)
         .map(fileExtension =>
-            renderElement(
+            WRMHelpers.renderElement(
                 'transformation',
-                stringifyAttributes({ extension: fileExtension }),
+                WRMHelpers.stringifyAttributes({ extension: fileExtension }),
                 renderTransformer(transformations[fileExtension])
             )
         )
