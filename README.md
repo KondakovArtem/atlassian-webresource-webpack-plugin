@@ -157,7 +157,7 @@ plugin or product -- assuming the appropriate call on the server-side is made to
 Sometimes, in order to ensure your code loads when it's expected to, you will need to override
 the values generated for you. To do this, when defining the `WrmPlugin`'s config, you can provide either:
 
-* A `webresourceKeyMap` to change the web-resource's key to whatever you need it to be, or
+* A `webresourceKeyMap` to change the web-resource's key or name to whatever you need it to be, or
 * A `contextMap` to include the web-resource in any number of web-resource contexts you expect it to load in to.
 
 It's most likely that you'll want to specify additional contexts for a web-resource to load in to. When
@@ -387,6 +387,30 @@ Allows you to change the name of the web-resource that is generated for a given 
 
 This is useful when you expect other plugins will need to depend on your auto-generated web-resources directly, such
 as when you refactor an existing feature (and its web-resource) to be generated via Webpack.
+
+This parameter can take either `string` or `object` with properties `key` and `name` which corresponds to `key` and
+`name` attributes of `web-resource` XML element.
+
+Mapping as follows:
+```json
+webresourceKeyMap: {
+  firstWebResource: 'first-web-resource',
+  secondWebResource: {
+    key: 'second-web-resource',
+    name: 'Second WebResource'
+  }
+}
+```
+
+will result in the following web-resources:
+```xml
+<web-resource key="first-web-resource">
+  <!-- your resources definitions -->
+</web-resource>
+<web-resource key="second-web-resource" name="Second WebResource">
+  <!-- your resources definitions -->
+</web-resource>
+```
 
 ### `providedDependencies` (Optional)
 

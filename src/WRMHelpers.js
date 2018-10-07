@@ -29,12 +29,16 @@ module.exports = class WRMHelpers {
         return validContexts;
     }
 
-    static getWebresourceKeyForEntry(entry, webresourceKeyMap) {
+    static getWebresourceAttributesForEntry(entry, webresourceKeyMap) {
         const wrKey = webresourceKeyMap[entry];
-        if (!wrKey || typeof wrKey !== 'string') {
-            return `entrypoint-${entry}`;
+        const wrKeyType = typeof wrKey;
+        if (wrKeyType === 'object'  && typeof wrKey.key === 'string') {
+            return {key: wrKey.key, name: wrKey.name};
         }
-        return wrKey;
+        if (!wrKey || wrKeyType !== 'string') {
+            return {key: `entrypoint-${entry}`};
+        }
+        return {key: wrKey};
     }
 
     static getConditionForEntry(entry, conditionMap) {

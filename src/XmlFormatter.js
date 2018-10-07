@@ -35,15 +35,17 @@ class XMLFormatter {
 }
 
 function createWebResource(resource, transformations, pathPrefix = '', contentTypes = {}, standalone) {
+    const resourceArgs = resource.attributes;
+    const name = resourceArgs.name || '';
     if (standalone) {
         return `
-            <web-resource key="${resource.key}">
+            <web-resource key="${resourceArgs.key}" name="${name}">
                 ${resource.resources ? XMLFormatter.resources(pathPrefix, contentTypes, resource.resources) : ''}
             </web-resource>
         `;
     }
     return `
-        <web-resource key="${resource.key}">
+        <web-resource key="${resourceArgs.key}" name="${name}">
             ${renderTransformation(transformations)}
             ${resource.contexts ? XMLFormatter.context(resource.contexts) : ''}
             ${resource.dependencies ? XMLFormatter.dependencies(resource.dependencies) : ''}

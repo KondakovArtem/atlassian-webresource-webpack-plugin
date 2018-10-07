@@ -36,10 +36,10 @@ describe('standalone', function() {
             assert.equal(
                 xmlFile,
                 `<bundles>
-  <web-resource key="entrypoint-standalone-1">
+  <web-resource key="entrypoint-standalone-1" name="">
     <resource name="standalone-1.js" type="download" location="standalone-1.js" />
   </web-resource>
-  <web-resource key="entrypoint-standalone-2">
+  <web-resource key="entrypoint-standalone-2" name="">
     <resource name="standalone-2.js" type="download" location="standalone-2.js" />
   </web-resource>
 </bundles>`

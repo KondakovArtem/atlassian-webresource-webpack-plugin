@@ -27,7 +27,7 @@ module.exports = class AppResources {
         const assetFiles = Object.keys(this.compilation.assets).filter(p => !/\.(js|css|soy)(\.map)?$/.test(p)); // remove anything that we know is handled differently
 
         const assets = {
-            key: `assets-${this.assetUUID}`,
+            attributes: {key: `assets-${this.assetUUID}`},
             resources: assetFiles,
         };
 
@@ -91,7 +91,7 @@ module.exports = class AppResources {
         const sharedSplitDescriptors = syncSplitChunks.map(c => {
             const additionalFileDeps = WebpackHelpers.getDependencyResourcesFromChunk(c, resourceToAssetMap);
             return {
-                key: syncSplitChunkDependencyKeyMap.get(WebpackHelpers.getChunkIdentifier(c)).key,
+                attributes: syncSplitChunkDependencyKeyMap.get(WebpackHelpers.getChunkIdentifier(c)),
                 externalResources: WebpackHelpers.getExternalResourcesForChunk(c),
                 resources: Array.from(new Set(c.files.concat(additionalFileDeps))),
                 dependencies: getBaseContexts().concat(WebpackHelpers.getDependenciesForChunks([c])),
@@ -110,7 +110,7 @@ module.exports = class AppResources {
         const asyncChunkDescriptors = WebpackHelpers.getAllAsyncChunks(entryPoints).map(c => {
             const additionalFileDeps = WebpackHelpers.getDependencyResourcesFromChunk(c, resourceToAssetMap);
             return {
-                key: `${c.id}`,
+                attributes: {key: `${c.id}`},
                 externalResources: WebpackHelpers.getExternalResourcesForChunk(c),
                 resources: Array.from(new Set(c.files.concat(additionalFileDeps))),
                 dependencies: getBaseContexts().concat(WebpackHelpers.getDependenciesForChunks([c])),
@@ -134,7 +134,7 @@ module.exports = class AppResources {
 
         // Used in prod
         const prodEntryPoints = [...entrypoints].map(([name, entrypoint]) => {
-            const webresourceKey = WRMHelpers.getWebresourceKeyForEntry(name, this.options.webresourceKeyMap);
+            const webResourceAttrs = WRMHelpers.getWebresourceAttributesForEntry(name, this.options.webresourceKeyMap);
             const entrypointChunks = entrypoint.chunks;
             const runtimeChunk = entrypoint.runtimeChunk;
 
@@ -163,7 +163,7 @@ module.exports = class AppResources {
             }
 
             return {
-                key: webresourceKey,
+                attributes: webResourceAttrs,
                 contexts: WRMHelpers.getContextForEntry(name, this.options.contextMap),
                 conditions: WRMHelpers.getConditionForEntry(name, this.options.conditionMap),
                 externalResources,
@@ -175,7 +175,7 @@ module.exports = class AppResources {
         if (this.isSingleRuntime()) {
             const runtimeName = `${this.getSingleRuntimeChunkName()}.js`;
             prodEntryPoints.push({
-                key: RUNTIME_WR_KEY,
+                attributes: {key: RUNTIME_WR_KEY},
                 dependencies: getBaseContexts(),
                 resources: [runtimeName],
             });
