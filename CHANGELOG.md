@@ -1,3 +1,7 @@
+## master (unreleased)
+* **[BREAKING]**: Passing the custom `transformationMap` will no longer extend the default transformations. You can use the `WrmPlugin.extendTransformations(customTransformationMap)` function to extend the default transformers with a custom mapping.
+* **[New]**: Allow to completely disable all the transformations by passing a `false` value to the `transformationMap` config.
+
 ## 3.0.0 (September 3, 2018)
 * expose "prepare"-step for watch-mode as explicit flag, instead of assuming anything at runtime.
 * remove mandatory "amdProvider"-option again as it is cause of confusion with little to no-benefit.

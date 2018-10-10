@@ -8,7 +8,7 @@ const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
 describe('specify-transformation', function() {
-    const config = require('./webpack.config.js');
+    const config = require('./webpack.disable-tranformations.config');
 
     let stats;
     let error;
@@ -38,45 +38,20 @@ describe('specify-transformation', function() {
         });
     });
 
-    it('should run without error', () => {
-        assert.ok(wrNodes);
-        assert.equal(stats.hasErrors(), false);
-        assert.equal(stats.hasWarnings(), false);
-    });
-
-    describe('add transformation for file extensions', () => {
-        it('should remove default transformations from web-resources', () => {
+    describe('disabling transformations', () => {
+        it('should disable all transformations', () => {
             const wrWithGoodConfig = getWebresourceLike('app-one');
             const transformations = getTransformation(wrWithGoodConfig);
 
             assert.ok(transformations);
 
             const jsTrans = getTransformationByExtension(transformations, 'js');
-            const soyTrans = getTransformationByExtension(transformations, 'soy');
             const lessTrans = getTransformationByExtension(transformations, 'less');
+            const soyTrans = getTransformationByExtension(transformations, 'soy');
 
-            assert.equal(soyTrans, null);
+            assert.equal(jsTrans, null);
             assert.equal(lessTrans, null);
-            assert.notInclude(jsTrans.children.map(c => c.attributes.key), 'jsI18n');
-        });
-
-        it('should add custom transformations to web-resources', () => {
-            const wrWithGoodConfig = getWebresourceLike('app-one');
-            const transformations = getTransformation(wrWithGoodConfig);
-
-            assert.ok(transformations);
-
-            const jsTrans = getTransformationByExtension(transformations, 'js');
-            const fooTrans = getTransformationByExtension(transformations, 'foo');
-            const randomTrans = getTransformationByExtension(transformations, 'random');
-
-            assert.include(jsTrans.children.map(c => c.attributes.key), 'foo');
-            assert.include(jsTrans.children.map(c => c.attributes.key), 'bar');
-
-            assert.include(fooTrans.children.map(c => c.attributes.key), 'bar');
-
-            assert.include(randomTrans.children.map(c => c.attributes.key), 'stuff');
-            assert.include(randomTrans.children.map(c => c.attributes.key), 'n stuff');
+            assert.equal(soyTrans, null);
         });
     });
 });
