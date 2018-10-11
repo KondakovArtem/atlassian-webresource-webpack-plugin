@@ -110,7 +110,7 @@ class WrmPlugin {
 
         // make sure transformation map is an object
         const { transformationMap } = this.options;
-        this.options.transformationMap = typeof transformationMap === 'object' ? transformationMap : {};
+        this.options.transformationMap = transformationMap === false ? {} : transformationMap;
 
         // generate an asset uuid per build - this is used to ensure we have a new "cache" for our assets per build.
         // As JIRA-Server does not "rebuild" too often, this can be considered reasonable.
