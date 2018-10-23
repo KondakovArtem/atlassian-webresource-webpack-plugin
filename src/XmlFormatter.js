@@ -89,6 +89,7 @@ function createWebResource(webresource, transformations, pathPrefix = '', conten
     const { resources = [], externalResources = [], contexts, dependencies, conditions } = webresource;
     const resourceArgs = webresource.attributes;
     const name = resourceArgs.name || '';
+    const state = resourceArgs.state || 'enabled';
 
     let allResources = []
         .concat(
@@ -100,7 +101,7 @@ function createWebResource(webresource, transformations, pathPrefix = '', conten
 
     if (standalone) {
         return `
-            <web-resource key="${resourceArgs.key}" name="${name}">
+            <web-resource key="${resourceArgs.key}" name="${name}" state="${state}">
                 ${allResources.length ? XMLFormatter.resources(contentTypes, allResources) : ''}
             </web-resource>
         `;
@@ -115,7 +116,7 @@ function createWebResource(webresource, transformations, pathPrefix = '', conten
         .filter(r => !!r);
 
     return `
-        <web-resource key="${resourceArgs.key}" name="${name}">
+        <web-resource key="${resourceArgs.key}" name="${name}" state="${state}">
             ${renderTransformation(transformations, allResources)}
             ${contexts ? XMLFormatter.context(contexts) : ''}
             ${dependencies ? XMLFormatter.dependencies(dependencies) : ''}

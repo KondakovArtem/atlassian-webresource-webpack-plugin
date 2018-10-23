@@ -432,8 +432,8 @@ Allows you to change the name of the web-resource that is generated for a given 
 This is useful when you expect other plugins will need to depend on your auto-generated web-resources directly, such
 as when you refactor an existing feature (and its web-resource) to be generated via Webpack.
 
-This parameter can take either `string` or `object` with properties `key` and `name` which corresponds to `key` and
-`name` attributes of `web-resource` XML element.
+This parameter can take either `string` or `object` with properties `key`, `name` and `state` which corresponds to
+`key`, `name` and `state` attributes of `web-resource` XML element. `name` and `state` properties are optional.
 
 Mapping as follows:
 ```json
@@ -441,17 +441,18 @@ webresourceKeyMap: {
   firstWebResource: 'first-web-resource',
   secondWebResource: {
     key: 'second-web-resource',
-    name: 'Second WebResource'
+    name: 'Second WebResource',
+    state: 'disabled'
   }
 }
 ```
 
 will result in the following web-resources:
 ```xml
-<web-resource key="first-web-resource">
+<web-resource key="first-web-resource" name="" state="enabled">
   <!-- your resources definitions -->
 </web-resource>
-<web-resource key="second-web-resource" name="Second WebResource">
+<web-resource key="second-web-resource" name="Second WebResource" state="disabled">
   <!-- your resources definitions -->
 </web-resource>
 ```
