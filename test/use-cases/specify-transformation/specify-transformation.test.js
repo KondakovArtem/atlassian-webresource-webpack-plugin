@@ -8,7 +8,7 @@ const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
 describe('specify-transformation', function() {
-    const config = require('./webpack.config.js');
+    const config = require('./webpack.specify-transformations.config');
 
     let stats;
     let error;
@@ -67,16 +67,28 @@ describe('specify-transformation', function() {
             assert.ok(transformations);
 
             const jsTrans = getTransformationByExtension(transformations, 'js');
-            const fooTrans = getTransformationByExtension(transformations, 'foo');
+            const xmlTrans = getTransformationByExtension(transformations, 'xml');
             const randomTrans = getTransformationByExtension(transformations, 'random');
 
             assert.include(jsTrans.children.map(c => c.attributes.key), 'foo');
             assert.include(jsTrans.children.map(c => c.attributes.key), 'bar');
 
-            assert.include(fooTrans.children.map(c => c.attributes.key), 'bar');
+            assert.include(xmlTrans.children.map(c => c.attributes.key), 'bar');
 
             assert.include(randomTrans.children.map(c => c.attributes.key), 'stuff');
             assert.include(randomTrans.children.map(c => c.attributes.key), 'n stuff');
+        });
+
+        it('should not produce duplicated transformations', () => {
+            const wrWithGoodConfig = getWebresourceLike('app-one');
+            const transformations = getTransformation(wrWithGoodConfig);
+
+            assert.ok(transformations);
+
+            const xmlTrans = getTransformationByExtension(transformations, 'xml');
+            const transformationNames = xmlTrans.children.map(c => c.attributes.key);
+
+            assert.equal(transformationNames.length, 1);
         });
     });
 });

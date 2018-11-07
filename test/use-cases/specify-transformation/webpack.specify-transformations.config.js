@@ -14,7 +14,7 @@ module.exports = {
             xmlDescriptors: path.join(OUTPUT_DIR, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml'),
             transformationMap: {
                 js: ['foo', 'bar'],
-                foo: ['bar'],
+                xml: ['bar', 'bar'],
                 random: ['stuff', 'n stuff'],
             },
             verbose: false,

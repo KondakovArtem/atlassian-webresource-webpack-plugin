@@ -1,20 +1,17 @@
-const WRMHelpers = require('./WRMHelpers');
+const { renderElement, stringifyAttributes } = require('./WRMHelpers');
 
 function renderTransformer(transformers) {
     return transformers
-        .map(transformer => WRMHelpers.renderElement(
-                'transformer',
-                WRMHelpers.stringifyAttributes({ key: transformer })
-            ))
+        .map(transformer => renderElement('transformer', stringifyAttributes({ key: transformer })))
         .join('');
 }
 
 module.exports = function renderTransformation(transformations) {
     return Object.keys(transformations)
         .map(fileExtension =>
-            WRMHelpers.renderElement(
+            renderElement(
                 'transformation',
-                WRMHelpers.stringifyAttributes({ extension: fileExtension }),
+                stringifyAttributes({ extension: fileExtension }),
                 renderTransformer(transformations[fileExtension])
             )
         )

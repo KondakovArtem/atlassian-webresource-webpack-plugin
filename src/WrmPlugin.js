@@ -43,10 +43,9 @@ const defaultTransformations = {
 class WrmPlugin {
     static extendTransformations(transformations) {
         for (const key of Object.keys(defaultTransformations)) {
-            const combinedTransformers = [].concat(defaultTransformations[key], transformations[key]).filter(Boolean);
+            const customTransformations = Array.isArray(transformations[key]) ? transformations[key] : [];
 
-            // ensure they stay unique
-            transformations[key] = Array.from(new Set(combinedTransformers));
+            transformations[key] = [...defaultTransformations[key], ...customTransformations];
         }
 
         return transformations;
@@ -108,13 +107,23 @@ class WrmPlugin {
 
         logger.setVerbose(this.options.verbose);
 
-        // make sure transformation map is an object
+        // make sure transformation map is an object of unique items
         const { transformationMap } = this.options;
-        this.options.transformationMap = transformationMap === false ? {} : transformationMap;
+        this.options.transformationMap = this.ensureTransformationsAreUnique(
+            transformationMap === false ? {} : transformationMap
+        );
 
         // generate an asset uuid per build - this is used to ensure we have a new "cache" for our assets per build.
         // As JIRA-Server does not "rebuild" too often, this can be considered reasonable.
         this.assetUUID = process.env.NODE_ENV === 'production' ? uuidv4Gen() : 'DEV_PSEUDO_HASH';
+    }
+
+    ensureTransformationsAreUnique(transformations) {
+        return Object.keys(transformations).reduce((result, key) => {
+            result[key] = Array.from(new Set(transformations[key]));
+
+            return result;
+        }, {});
     }
 
     checkConfig(compiler) {
