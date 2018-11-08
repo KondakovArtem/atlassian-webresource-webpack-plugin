@@ -6,8 +6,9 @@ const { getBaseContexts } = require('./settings/base-contexts');
 const RUNTIME_WR_KEY = 'common-runtime';
 
 module.exports = class AppResources {
-    constructor(assetUUID, options, compiler, compilation) {
+    constructor(assetUUID, assetNames, options, compiler, compilation) {
         this.assetUUID = assetUUID;
+        this.assetNames = assetNames;
         this.options = options;
         this.compiler = compiler;
         this.compilation = compilation;
@@ -74,9 +75,7 @@ module.exports = class AppResources {
     }
 
     getSyncSplitChunksResourceDescriptors() {
-        const resourceToAssetMap = WebpackHelpers.extractResourceToAssetMapForCompilation(
-            WebpackHelpers.extractAllModulesFromCompilatationAndChildCompilations(this.compilation)
-        );
+        const resourceToAssetMap = this.assetNames;
 
         const syncSplitChunks = this.getSyncSplitChunks();
         const syncSplitChunkDependencyKeyMap = this.getSyncSplitChunkDependenciesKeyMap(
@@ -103,9 +102,7 @@ module.exports = class AppResources {
 
     getAsyncChunksResourceDescriptors() {
         const entryPoints = [...this.compilation.entrypoints.values()];
-        const resourceToAssetMap = WebpackHelpers.extractResourceToAssetMapForCompilation(
-            WebpackHelpers.extractAllModulesFromCompilatationAndChildCompilations(this.compilation)
-        );
+        const resourceToAssetMap = this.assetNames;
 
         const asyncChunkDescriptors = WebpackHelpers.getAllAsyncChunks(entryPoints).map(c => {
             const additionalFileDeps = WebpackHelpers.getDependencyResourcesFromChunk(c, resourceToAssetMap);
@@ -122,9 +119,7 @@ module.exports = class AppResources {
 
     getEntryPointsResourceDescriptors() {
         const entrypoints = this.compilation.entrypoints;
-        const resourceToAssetMap = WebpackHelpers.extractResourceToAssetMapForCompilation(
-            WebpackHelpers.extractAllModulesFromCompilatationAndChildCompilations(this.compilation)
-        );
+        const resourceToAssetMap = this.assetNames;
 
         const syncSplitChunks = this.getSyncSplitChunks();
         const syncSplitChunkDependencyKeyMap = this.getSyncSplitChunkDependenciesKeyMap(
