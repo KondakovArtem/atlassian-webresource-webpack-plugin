@@ -34,7 +34,23 @@ const QUnitTestResources = require('./QUnitTestResources');
 const AppResources = require('./AppResources');
 const flattenReduce = require('./flattenReduce');
 
+const defaultTransformations = {
+    js: ['jsI18n'],
+    soy: ['soyTransformer', 'jsI18n'],
+    less: ['lessTransformer'],
+};
+
 class WrmPlugin {
+    static extendTransformations(transformations) {
+        for (const key of Object.keys(defaultTransformations)) {
+            const customTransformations = Array.isArray(transformations[key]) ? transformations[key] : [];
+
+            transformations[key] = [...defaultTransformations[key], ...customTransformations];
+        }
+
+        return transformations;
+    }
+
     /**
      *
      * @param {Object} options - options passed to WRMPlugin
@@ -84,33 +100,30 @@ class WrmPlugin {
                 assetContentTypes: {
                     svg: 'image/svg+xml',
                 },
-                transformationMap: {},
+                transformationMap: defaultTransformations,
             },
             options
         );
 
-        // make sure default transformations are set
-        this.ensureTransformation(this.options.transformationMap, {
-            js: ['jsI18n'],
-            soy: ['soyTransformer', 'jsI18n'],
-            less: ['lessTransformer'],
-        });
-
         logger.setVerbose(this.options.verbose);
+
+        // make sure transformation map is an object of unique items
+        const { transformationMap } = this.options;
+        this.options.transformationMap = this.ensureTransformationsAreUnique(
+            transformationMap === false ? {} : transformationMap
+        );
 
         // generate an asset uuid per build - this is used to ensure we have a new "cache" for our assets per build.
         // As JIRA-Server does not "rebuild" too often, this can be considered reasonable.
         this.assetUUID = process.env.NODE_ENV === 'production' ? uuidv4Gen() : 'DEV_PSEUDO_HASH';
     }
 
-    ensureTransformation(transformationLookup, defaultTransformations) {
-        for (const key of Object.keys(defaultTransformations)) {
-            const combinedTransformers = []
-                .concat(defaultTransformations[key], transformationLookup[key])
-                .filter(Boolean);
-            // ensure they stay unique
-            transformationLookup[key] = Array.from(new Set(combinedTransformers));
-        }
+    ensureTransformationsAreUnique(transformations) {
+        return Object.keys(transformations).reduce((result, key) => {
+            result[key] = Array.from(new Set(transformations[key]));
+
+            return result;
+        }, {});
     }
 
     checkConfig(compiler) {

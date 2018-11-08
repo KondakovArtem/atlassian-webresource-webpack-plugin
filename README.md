@@ -58,6 +58,8 @@ to the browser at product runtime.
 Given this webpack config:
 
 ```js
+const WrmPlugin = require('atlassian-webresource-webpack-plugin');
+
 module.exports = {
     entry: {
         'my-feature': path.join(FRONTEND_SRC_DIR, 'simple.js')
@@ -355,13 +357,14 @@ will yield:
 ### `transformationMap` (Optional)
 
 An object specifying transformations to be applied to file types.
-The default transformations that will always get applied are:
+The default transformations are:
 
-- js-files => jsI18n
-- soy-files => soyTransformer, jsI18n
-- less-files => lessTransformer
+- `*.js` files => `jsI18n`
+- `*.soy` files => `soyTransformer`, `jsI18n`
+- `*.less` files => `lessTransformer`
 
-Example configuration for additional transformations:
+Example configuration for custom transformations:
+
 ```json
 {
     "transformationMap": {
@@ -371,7 +374,8 @@ Example configuration for additional transformations:
 }
 ```
 
-This would add the following transformations to every generated web-resource:
+This would set the following transformations to every generated web-resource:
+
 ```xml
 <transformation extension="js">
   <transformer key="myOwnJsTransformer"/>
@@ -379,6 +383,29 @@ This would add the following transformations to every generated web-resource:
 <transformation extension="sass">
   <transformer key="myOwnSassTransformer"/>
 </transformation>
+```
+
+If you wish to extend the default transformations you can use the build-in `extendTransformations` function provided by the plugin.
+It will merge the default transformations with your custom config:
+
+```js
+const WrmPlugin = require('atlassian-webresource-webpack-plugin');
+
+new WrmPlugin({
+    pluginKey: 'my.full.plugin.artifact-id',
+    transformationMap: WrmPlugin.extendTransformations({
+        js: ['myOwnJsTransformer'],
+        sass: ['myOwnSassTransformer'],
+    }),
+});
+```
+
+You can also completely disable the transformations by passing `false` value to the plugin configuration:
+
+```json
+{
+  "transformationMap": false
+}
 ```
 
 ### `webresourceKeyMap` (Optional)

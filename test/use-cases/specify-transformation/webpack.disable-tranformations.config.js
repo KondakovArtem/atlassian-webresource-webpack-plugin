@@ -12,11 +12,7 @@ module.exports = {
         new WrmPlugin({
             pluginKey: 'com.atlassian.plugin.test',
             xmlDescriptors: path.join(OUTPUT_DIR, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml'),
-            transformationMap: {
-                js: ['foo', 'bar'],
-                foo: ['bar'],
-                random: ['stuff', 'n stuff'],
-            },
+            transformationMap: false,
             verbose: false,
         }),
     ],
