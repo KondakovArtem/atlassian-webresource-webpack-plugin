@@ -21,37 +21,48 @@ class XMLFormatter {
         return `<resource name="${name}" type="download" location="${location}"><param name="content-type" value="${contentTypeForAsset}"/></resource>`;
     }
 
-    static externalResources(resourcesPairs, contentTypes) {
-        return resourcesPairs
-            .map(resourcePair => XMLFormatter.generateResourceElement(resourcePair[0], resourcePair[1], contentTypes))
-            .join('\n');
-    }
-
-    static resources(pathPrefix, contentTypes, resources) {
+    static resources(contentTypes, resources) {
         return resources
-            .map(resource => XMLFormatter.generateResourceElement(resource, pathPrefix + resource, contentTypes))
+            .map(({ name, location }) => XMLFormatter.generateResourceElement(name, location, contentTypes))
             .join('\n');
     }
 }
 
 function createWebResource(webresource, transformations, pathPrefix = '', contentTypes = {}, standalone) {
-    const { resources, externalResources, contexts, dependencies, conditions } = webresource;
+    const { resources = [], externalResources = [], contexts, dependencies, conditions } = webresource;
     const resourceArgs = webresource.attributes;
     const name = resourceArgs.name || '';
+
+    let allResources = []
+        .concat(
+            resources.map(r => {
+                return { name: r, location: pathPrefix + r };
+            })
+        )
+        .filter(r => !!r);
+
     if (standalone) {
         return `
             <web-resource key="${resourceArgs.key}" name="${name}">
-                ${resources ? XMLFormatter.resources(pathPrefix, contentTypes, resources) : ''}
+                ${allResources.length ? XMLFormatter.resources(contentTypes, allResources) : ''}
             </web-resource>
         `;
     }
+
+    allResources = allResources
+        .concat(
+            externalResources.map(rp => {
+                return { name: rp[0], location: rp[1] };
+            })
+        )
+        .filter(r => !!r);
+
     return `
         <web-resource key="${resourceArgs.key}" name="${name}">
-            ${renderTransformation(transformations, resources)}
+            ${renderTransformation(transformations, allResources.map(r => r.location))}
             ${contexts ? XMLFormatter.context(contexts) : ''}
             ${dependencies ? XMLFormatter.dependencies(dependencies) : ''}
-            ${externalResources ? XMLFormatter.externalResources(externalResources, contentTypes) : ''}
-            ${resources ? XMLFormatter.resources(pathPrefix, contentTypes, resources) : ''}
+            ${allResources.length ? XMLFormatter.resources(contentTypes, allResources) : ''}
             ${conditions ? renderCondition(conditions) : ''}
         </web-resource>
     `;
