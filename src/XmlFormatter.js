@@ -46,7 +46,7 @@ function createWebResource(resource, transformations, pathPrefix = '', contentTy
     }
     return `
         <web-resource key="${resourceArgs.key}" name="${name}">
-            ${renderTransformation(transformations)}
+            ${renderTransformation(transformations, resource.resources)}
             ${resource.contexts ? XMLFormatter.context(resource.contexts) : ''}
             ${resource.dependencies ? XMLFormatter.dependencies(resource.dependencies) : ''}
             ${

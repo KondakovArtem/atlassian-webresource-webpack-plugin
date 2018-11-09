@@ -1,3 +1,4 @@
+const path = require('path');
 const { renderElement, stringifyAttributes } = require('./WRMHelpers');
 
 function renderTransformer(transformers) {
@@ -6,8 +7,17 @@ function renderTransformer(transformers) {
         .join('');
 }
 
-module.exports = function renderTransformation(transformations) {
+function transformFilterFactory(resources) {
+    if (resources) {
+        const resourceFiletypes = resources.map(resource => path.extname(resource).substr(1));
+        return ext => resourceFiletypes.includes(ext);
+    }
+    return () => true;
+}
+
+module.exports = function renderTransformation(transformations, resources = false) {
     return Object.keys(transformations)
+        .filter(transformFilterFactory(resources))
         .map(fileExtension =>
             renderElement(
                 'transformation',

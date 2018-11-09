@@ -5,9 +5,10 @@ const renderTransformation = require('../../src/renderTransformation');
 
 describe('renderTransformer', () => {
     it('simple transformation', () => {
-        const conditionString = PrettyData.xml(renderTransformation({ js: ['jsI18n'] }));
+        const transformations = { js: ['jsI18n'] };
+        const conditionString = renderTransformation(transformations);
         assert.equal(
-            conditionString,
+            PrettyData.xml(conditionString),
             `
 <transformation extension="js">
   <transformer key="jsI18n"/>
@@ -17,15 +18,14 @@ describe('renderTransformer', () => {
     });
 
     it('multiple transformers', () => {
-        const conditionString = PrettyData.xml(
-            renderTransformation({
-                js: ['jsI18n'],
-                soy: ['soyTransformer', 'jsI18n'],
-                less: ['lessTransformer'],
-            })
-        );
+        const transformations = {
+            js: ['jsI18n'],
+            soy: ['soyTransformer', 'jsI18n'],
+            less: ['lessTransformer'],
+        };
+        const conditionString = renderTransformation(transformations);
         assert.equal(
-            conditionString,
+            PrettyData.xml(conditionString),
             `
 <transformation extension="js">
   <transformer key="jsI18n"/>
@@ -38,6 +38,32 @@ describe('renderTransformer', () => {
   <transformer key="lessTransformer"/>
 </transformation>
         `.trim()
+        );
+    });
+
+    it('contextual transformers', () => {
+        const transformations = {
+            js: ['js-one', 'js-two', 'js-three'],
+            soy: ['soy-one', 'soy-two'],
+            less: ['less-one', 'less-two'],
+            png: ['png-one'],
+        };
+        const resources = ['a.js', 'b.soy.js', 'c.less'];
+        const conditionString = renderTransformation(transformations, resources);
+
+        assert.equal(
+            PrettyData.xml(conditionString),
+            `
+<transformation extension="js">
+  <transformer key="js-one"/>
+  <transformer key="js-two"/>
+  <transformer key="js-three"/>
+</transformation>
+<transformation extension="less">
+  <transformer key="less-one"/>
+  <transformer key="less-two"/>
+</transformation>
+            `.trim()
         );
     });
 });
