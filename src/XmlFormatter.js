@@ -34,28 +34,25 @@ class XMLFormatter {
     }
 }
 
-function createWebResource(resource, transformations, pathPrefix = '', contentTypes = {}, standalone) {
-    const resourceArgs = resource.attributes;
+function createWebResource(webresource, transformations, pathPrefix = '', contentTypes = {}, standalone) {
+    const { resources, externalResources, contexts, dependencies, conditions } = webresource;
+    const resourceArgs = webresource.attributes;
     const name = resourceArgs.name || '';
     if (standalone) {
         return `
             <web-resource key="${resourceArgs.key}" name="${name}">
-                ${resource.resources ? XMLFormatter.resources(pathPrefix, contentTypes, resource.resources) : ''}
+                ${resources ? XMLFormatter.resources(pathPrefix, contentTypes, resources) : ''}
             </web-resource>
         `;
     }
     return `
         <web-resource key="${resourceArgs.key}" name="${name}">
-            ${renderTransformation(transformations, resource.resources)}
-            ${resource.contexts ? XMLFormatter.context(resource.contexts) : ''}
-            ${resource.dependencies ? XMLFormatter.dependencies(resource.dependencies) : ''}
-            ${
-                resource.externalResources
-                    ? XMLFormatter.externalResources(resource.externalResources, contentTypes)
-                    : ''
-            }
-            ${resource.resources ? XMLFormatter.resources(pathPrefix, contentTypes, resource.resources) : ''}
-            ${resource.conditions ? renderCondition(resource.conditions) : ''}
+            ${renderTransformation(transformations, resources)}
+            ${contexts ? XMLFormatter.context(contexts) : ''}
+            ${dependencies ? XMLFormatter.dependencies(dependencies) : ''}
+            ${externalResources ? XMLFormatter.externalResources(externalResources, contentTypes) : ''}
+            ${resources ? XMLFormatter.resources(pathPrefix, contentTypes, resources) : ''}
+            ${conditions ? renderCondition(conditions) : ''}
         </web-resource>
     `;
 }
