@@ -1,4 +1,4 @@
-## master (unreleased)
+## 3.1.0 (November 12, 2018)
 * **[BREAKING]**: Passing the custom `transformationMap` will no longer extend the default transformations. You can use the `WrmPlugin.extendTransformations(customTransformationMap)` function to extend the default transformers with a custom mapping.
 * **[New]**: Allow to completely disable all the transformations by passing a `false` value to the `transformationMap` config.
 
