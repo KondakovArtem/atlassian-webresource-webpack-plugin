@@ -33,24 +33,35 @@ describe('specify-transformation', function() {
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            wrNodes = results.root.children.filter(node => node.attributes.key.startsWith('entry'));
+            wrNodes = results.root.children;
             done();
         });
     });
 
     describe('extending transformations', () => {
-        it('should extends default transformations', () => {
-            const wrWithGoodConfig = getWebresourceLike('app-one');
-            const transformations = getTransformation(wrWithGoodConfig);
+        let entryJsTrans, lessTrans, svgTrans;
 
-            assert.ok(transformations);
+        beforeEach(function() {
+            const entrypointTransformations = getTransformation(getWebresourceLike('app-one'));
+            const assetTransformations = getTransformation(getWebresourceLike('assets'));
 
-            const jsTrans = getTransformationByExtension(transformations, 'js');
-            const svgTrans = getTransformationByExtension(transformations, 'svg');
+            assert.ok(entrypointTransformations);
+            assert.ok(assetTransformations);
 
-            assert.include(jsTrans.children.map(c => c.attributes.key), 'custom-transformer');
-            assert.include(jsTrans.children.map(c => c.attributes.key), 'foo-transformer');
-            assert.include(jsTrans.children.map(c => c.attributes.key), 'jsI18n');
+            entryJsTrans = getTransformationByExtension(entrypointTransformations, 'js');
+
+            lessTrans = getTransformationByExtension(assetTransformations, 'less');
+            svgTrans = getTransformationByExtension(assetTransformations, 'svg');
+        });
+
+        it('should include default transformations', () => {
+            assert.include(entryJsTrans.children.map(c => c.attributes.key), 'jsI18n');
+            assert.include(lessTrans.children.map(c => c.attributes.key), 'lessTransformer');
+        });
+
+        it('should contain additional transformers', () => {
+            assert.include(entryJsTrans.children.map(c => c.attributes.key), 'custom-transformer');
+            assert.include(entryJsTrans.children.map(c => c.attributes.key), 'foo-transformer');
 
             assert.include(svgTrans.children.map(c => c.attributes.key), 'bar');
         });
