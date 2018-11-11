@@ -8,14 +8,14 @@ function renderTransformer(transformers) {
 }
 
 function transformFilterFactory(resources) {
-    if (resources) {
-        const resourceFiletypes = resources.map(resource => path.extname(resource).substr(1));
+    if (resources && resources.length) {
+        const resourceFiletypes = resources.map(resource => path.extname(resource.location).substr(1));
         return ext => resourceFiletypes.includes(ext);
     }
     return () => true;
 }
 
-module.exports = function renderTransformation(transformations, resources = false) {
+module.exports = function renderTransformation(transformations, resources = []) {
     return Object.keys(transformations)
         .filter(transformFilterFactory(resources))
         .map(fileExtension =>

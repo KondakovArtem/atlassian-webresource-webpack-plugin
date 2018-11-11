@@ -48,7 +48,7 @@ describe('renderTransformer', () => {
             less: ['less-one', 'less-two'],
             png: ['png-one'],
         };
-        const resources = ['a.js', 'b.soy.js', 'c.less'];
+        const resources = [{ location: 'a.js' }, { location: 'b.not.really.soy.actually.js' }, { location: 'c.less' }];
         const conditionString = renderTransformation(transformations, resources);
 
         assert.equal(

@@ -11,9 +11,10 @@ class XMLFormatter {
         return dependencies.map(dependency => `<dependency>${dependency}</dependency>`).join('\n');
     }
 
-    static generateResourceElement(name, location, contentType) {
+    static generateResourceElement(resource, contentTypes) {
+        const { name, location } = resource;
         const assetContentTyp = path.extname(location).substr(1);
-        const contentTypeForAsset = contentType[assetContentTyp];
+        const contentTypeForAsset = contentTypes[assetContentTyp];
         if (!contentTypeForAsset) {
             return `<resource name="${name}" type="download" location="${location}" />`;
         }
@@ -22,9 +23,7 @@ class XMLFormatter {
     }
 
     static resources(contentTypes, resources) {
-        return resources
-            .map(({ name, location }) => XMLFormatter.generateResourceElement(name, location, contentTypes))
-            .join('\n');
+        return resources.map(resource => XMLFormatter.generateResourceElement(resource, contentTypes)).join('\n');
     }
 }
 
@@ -59,7 +58,7 @@ function createWebResource(webresource, transformations, pathPrefix = '', conten
 
     return `
         <web-resource key="${resourceArgs.key}" name="${name}">
-            ${renderTransformation(transformations, allResources.map(r => r.location))}
+            ${renderTransformation(transformations, allResources)}
             ${contexts ? XMLFormatter.context(contexts) : ''}
             ${dependencies ? XMLFormatter.dependencies(dependencies) : ''}
             ${allResources.length ? XMLFormatter.resources(contentTypes, allResources) : ''}
