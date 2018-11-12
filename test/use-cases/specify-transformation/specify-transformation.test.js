@@ -33,60 +33,66 @@ describe('specify-transformation', function() {
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            wrNodes = results.root.children.filter(node => node.attributes.key.startsWith('entry'));
+            wrNodes = results.root.children;
             done();
         });
     });
 
     it('should run without error', () => {
         assert.ok(wrNodes);
-        assert.equal(stats.hasErrors(), false);
+        assert.equal(stats.hasErrors(), false, error);
         assert.equal(stats.hasWarnings(), false);
     });
 
     describe('add transformation for file extensions', () => {
+        let entryJsTrans, entrySoyTrans, entryLessTrans;
+        let jsTrans, htmlTrans, lessTrans, soyTrans, svgTrans, txtTrans;
+
+        beforeEach(function() {
+            const entrypointTransformations = getTransformation(getWebresourceLike('app-one'));
+            const assetTransformations = getTransformation(getWebresourceLike('assets'));
+
+            assert.ok(entrypointTransformations);
+            assert.ok(assetTransformations);
+
+            entryJsTrans = getTransformationByExtension(entrypointTransformations, 'js');
+            entrySoyTrans = getTransformationByExtension(entrypointTransformations, 'soy');
+            entryLessTrans = getTransformationByExtension(entrypointTransformations, 'less');
+
+            jsTrans = getTransformationByExtension(assetTransformations, 'js');
+            htmlTrans = getTransformationByExtension(assetTransformations, 'html');
+            lessTrans = getTransformationByExtension(assetTransformations, 'less');
+            soyTrans = getTransformationByExtension(assetTransformations, 'soy');
+            svgTrans = getTransformationByExtension(assetTransformations, 'svg');
+            txtTrans = getTransformationByExtension(assetTransformations, 'txt');
+        });
+
         it('should remove default transformations from web-resources', () => {
-            const wrWithGoodConfig = getWebresourceLike('app-one');
-            const transformations = getTransformation(wrWithGoodConfig);
+            assert.equal(entrySoyTrans, null);
+            assert.equal(entryLessTrans, null);
+            assert.notInclude(entryJsTrans.children.map(c => c.attributes.key), 'jsI18n');
 
-            assert.ok(transformations);
-
-            const jsTrans = getTransformationByExtension(transformations, 'js');
-            const soyTrans = getTransformationByExtension(transformations, 'soy');
-            const lessTrans = getTransformationByExtension(transformations, 'less');
-
-            assert.equal(soyTrans, null);
+            // the defaults should not end up on the assets web-resource either,
+            // since there aren't any assets of those types in the graph.
+            assert.equal(jsTrans, null);
             assert.equal(lessTrans, null);
-            assert.notInclude(jsTrans.children.map(c => c.attributes.key), 'jsI18n');
+            assert.equal(soyTrans, null);
         });
 
         it('should add custom transformations to web-resources', () => {
-            const wrWithGoodConfig = getWebresourceLike('app-one');
-            const transformations = getTransformation(wrWithGoodConfig);
+            assert.include(entryJsTrans.children.map(c => c.attributes.key), 'foo');
+            assert.include(entryJsTrans.children.map(c => c.attributes.key), 'bar');
 
-            assert.ok(transformations);
+            assert.include(txtTrans.children.map(c => c.attributes.key), 'bar');
 
-            const jsTrans = getTransformationByExtension(transformations, 'js');
-            const xmlTrans = getTransformationByExtension(transformations, 'xml');
-            const randomTrans = getTransformationByExtension(transformations, 'random');
+            assert.include(htmlTrans.children.map(c => c.attributes.key), 'stuff');
+            assert.include(htmlTrans.children.map(c => c.attributes.key), 'n stuff');
 
-            assert.include(jsTrans.children.map(c => c.attributes.key), 'foo');
-            assert.include(jsTrans.children.map(c => c.attributes.key), 'bar');
-
-            assert.include(xmlTrans.children.map(c => c.attributes.key), 'bar');
-
-            assert.include(randomTrans.children.map(c => c.attributes.key), 'stuff');
-            assert.include(randomTrans.children.map(c => c.attributes.key), 'n stuff');
+            assert.equal(svgTrans, null);
         });
 
         it('should not produce duplicated transformations', () => {
-            const wrWithGoodConfig = getWebresourceLike('app-one');
-            const transformations = getTransformation(wrWithGoodConfig);
-
-            assert.ok(transformations);
-
-            const xmlTrans = getTransformationByExtension(transformations, 'xml');
-            const transformationNames = xmlTrans.children.map(c => c.attributes.key);
+            const transformationNames = txtTrans.children.map(c => c.attributes.key);
 
             assert.equal(transformationNames.length, 1);
         });

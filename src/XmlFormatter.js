@@ -2,6 +2,46 @@ const path = require('path');
 const renderCondition = require('./renderCondition');
 const renderTransformation = require('./renderTransformation');
 
+/**
+ * @typedef {String} filepath - a relative filepath in unix format.
+ */
+
+/**
+ * @typedef {String} filename
+ */
+
+/**
+ * @typedef {String} wrKey
+ */
+
+/**
+ * @typedef {String} wrDep - a composite string in the format "maven.groupId.artifactId:webresource-key"
+ */
+
+/**
+ * @typedef {Object} Resource
+ * @property {filepath} location - the relative path for the resource,
+ *   starting from the root of the plugin's classpath (the JAR file).
+ * @property {filename} name - the asset's filename as it appears in the browser at runtime.
+ */
+
+/**
+ * @typedef {Object} WrmEntrypoint
+ * @property {wrKey} key - the unique identifier for this set of resources.
+ * @property {true|false} state - whether this web-resource should output its resources at runtime or not.
+ * @property {filepath[]} resources - the locations of all resources directly referenced by this entrypoint's graph.
+ * @property {{0:filename,1:filepath}[]} externalResources - a filename and filepath pair for resources
+ *   discovered by the WRM plugin's loaders.
+ * @property {wrDep[]} [dependencies] - a list of other web-resources this one should depend upon.
+ * @property {string[]} [contexts] - a list of contexts the web-resource should be loaded in to.
+ * @property {object[]} [conditions] - a list of conditions to apply to the web-resource to determine whether
+ *   it should output its resources at runtime or not.
+ */
+
+/**
+ * Utilities for outputting the various XML fragments needed
+ * in an Atlassian plugin.
+ */
 class XMLFormatter {
     static context(contexts) {
         return contexts.map(context => `<context>${context}</context>`).join('');
@@ -11,9 +51,15 @@ class XMLFormatter {
         return dependencies.map(dependency => `<dependency>${dependency}</dependency>`).join('\n');
     }
 
-    static generateResourceElement(name, location, contentType) {
+    /**
+     * @param {Resource} resource
+     * @param {[]} contentTypes
+     * @returns {string} an XML representation of a {@link Resource}.
+     */
+    static generateResourceElement(resource, contentTypes) {
+        const { name, location } = resource;
         const assetContentTyp = path.extname(location).substr(1);
-        const contentTypeForAsset = contentType[assetContentTyp];
+        const contentTypeForAsset = contentTypes[assetContentTyp];
         if (!contentTypeForAsset) {
             return `<resource name="${name}" type="download" location="${location}" />`;
         }
@@ -21,41 +67,60 @@ class XMLFormatter {
         return `<resource name="${name}" type="download" location="${location}"><param name="content-type" value="${contentTypeForAsset}"/></resource>`;
     }
 
-    static externalResources(resourcesPairs, contentTypes) {
-        return resourcesPairs
-            .map(resourcePair => XMLFormatter.generateResourceElement(resourcePair[0], resourcePair[1], contentTypes))
-            .join('\n');
-    }
-
-    static resources(pathPrefix, contentTypes, resources) {
-        return resources
-            .map(resource => XMLFormatter.generateResourceElement(resource, pathPrefix + resource, contentTypes))
-            .join('\n');
+    /**
+     * @param {[]} contentTypes
+     * @param {Resource[]} resources
+     * @returns {string} an XML string of all {@link Resource} elements
+     */
+    static resources(contentTypes, resources) {
+        return resources.map(resource => XMLFormatter.generateResourceElement(resource, contentTypes)).join('\n');
     }
 }
 
-function createWebResource(resource, transformations, pathPrefix = '', contentTypes = {}, standalone) {
-    const resourceArgs = resource.attributes;
+/**
+ * @param {WrmEntrypoint} webresource
+ * @param transformations
+ * @param pathPrefix
+ * @param contentTypes
+ * @param standalone
+ * @returns {string} an XML representation of the {@link WrmEntrypoint}.
+ */
+function createWebResource(webresource, transformations, pathPrefix = '', contentTypes = {}, standalone) {
+    const { resources = [], externalResources = [], contexts, dependencies, conditions } = webresource;
+    const resourceArgs = webresource.attributes;
     const name = resourceArgs.name || '';
+
+    let allResources = []
+        .concat(
+            resources.map(r => {
+                return { name: r, location: pathPrefix + r };
+            })
+        )
+        .filter(r => !!r);
+
     if (standalone) {
         return `
             <web-resource key="${resourceArgs.key}" name="${name}">
-                ${resource.resources ? XMLFormatter.resources(pathPrefix, contentTypes, resource.resources) : ''}
+                ${allResources.length ? XMLFormatter.resources(contentTypes, allResources) : ''}
             </web-resource>
         `;
     }
+
+    allResources = allResources
+        .concat(
+            externalResources.map(rp => {
+                return { name: rp[0], location: rp[1] };
+            })
+        )
+        .filter(r => !!r);
+
     return `
         <web-resource key="${resourceArgs.key}" name="${name}">
-            ${renderTransformation(transformations)}
-            ${resource.contexts ? XMLFormatter.context(resource.contexts) : ''}
-            ${resource.dependencies ? XMLFormatter.dependencies(resource.dependencies) : ''}
-            ${
-                resource.externalResources
-                    ? XMLFormatter.externalResources(resource.externalResources, contentTypes)
-                    : ''
-            }
-            ${resource.resources ? XMLFormatter.resources(pathPrefix, contentTypes, resource.resources) : ''}
-            ${resource.conditions ? renderCondition(resource.conditions) : ''}
+            ${renderTransformation(transformations, allResources)}
+            ${contexts ? XMLFormatter.context(contexts) : ''}
+            ${dependencies ? XMLFormatter.dependencies(dependencies) : ''}
+            ${allResources.length ? XMLFormatter.resources(contentTypes, allResources) : ''}
+            ${conditions ? renderCondition(conditions) : ''}
         </web-resource>
     `;
 }

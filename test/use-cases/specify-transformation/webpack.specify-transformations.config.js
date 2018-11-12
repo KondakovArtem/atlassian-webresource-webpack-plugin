@@ -8,14 +8,22 @@ module.exports = {
     entry: {
         'app-one': path.join(FRONTEND_SRC_DIR, 'app.js'),
     },
+    module: {
+        rules: [
+            {
+                test: /\.(?!js)/,
+                use: 'file-loader',
+            },
+        ],
+    },
     plugins: [
         new WrmPlugin({
             pluginKey: 'com.atlassian.plugin.test',
             xmlDescriptors: path.join(OUTPUT_DIR, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml'),
             transformationMap: {
                 js: ['foo', 'bar'],
-                xml: ['bar', 'bar'],
-                random: ['stuff', 'n stuff'],
+                html: ['stuff', 'n stuff'],
+                txt: ['bar', 'bar'],
             },
             verbose: false,
         }),

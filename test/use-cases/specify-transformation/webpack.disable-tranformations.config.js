@@ -8,6 +8,14 @@ module.exports = {
     entry: {
         'app-one': path.join(FRONTEND_SRC_DIR, 'app.js'),
     },
+    module: {
+        rules: [
+            {
+                test: /\.(?!js)/,
+                use: 'file-loader',
+            },
+        ],
+    },
     plugins: [
         new WrmPlugin({
             pluginKey: 'com.atlassian.plugin.test',
