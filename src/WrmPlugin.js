@@ -297,10 +297,31 @@ ${standardScript}`;
             this.enableAsyncLoadingWithWRM(compiler);
         }
 
+        this.assetNames = new Map();
+
+        // Generate a 1:1 mapping from original filenames to compiled filenames
+        compiler.hooks.compilation.tap('wrm plugin setup phase', compilation => {
+            compilation.hooks.normalModuleLoader.tap('wrm plugin - normal module', (loaderContext, module) => {
+                const { emitFile } = loaderContext;
+                loaderContext.emitFile = (name, content, sourceMap) => {
+                    const originalName = module.userRequest;
+                    this.assetNames.set(originalName, name);
+
+                    return emitFile.call(module, name, content, sourceMap);
+                };
+            });
+        });
+
         // When the compiler is about to emit files, we jump in to produce our resource descriptors for the WRM.
         compiler.hooks.emit.tapAsync('wrm plugin emit phase', (compilation, callback) => {
             const pathPrefix = WRMHelpers.extractPathPrefixForXml(compiler.options);
-            const appResourceGenerator = new AppResources(this.assetUUID, this.options, compiler, compilation);
+            const appResourceGenerator = new AppResources(
+                this.assetUUID,
+                this.assetNames,
+                this.options,
+                compiler,
+                compilation
+            );
             const testResourcesGenerator = new QUnitTestResources(this.assetUUID, this.options, compiler, compilation);
 
             const webResources = [];

@@ -86,28 +86,6 @@ module.exports = class WebpackHelpers {
         );
     }
 
-    static extractAllModulesFromCompilatationAndChildCompilations(compilation) {
-        function extractAllModules(compilations) {
-            if (compilations.length === 0) {
-                return [];
-            }
-
-            return compilations.map(c => [...c.modules, ...extractAllModules(c.children)]).reduce(flattenReduce, []);
-        }
-
-        return Array.from(new Set(extractAllModules([compilation])));
-    }
-
-    static extractResourceToAssetMapForCompilation(compilationModules) {
-        return compilationModules
-            .filter(m => m.resource && m.buildInfo.assets) // is an actual asset thingy
-            .map(m => [m.resource, Object.keys(m.buildInfo.assets)[0]])
-            .reduce((set, [resource, asset]) => {
-                set.set(resource, asset);
-                return set;
-            }, new Map());
-    }
-
     static getDependencyResourcesFromChunk(chunk, resourceToAssetMap) {
         const deps = WebpackHelpers.extractAdditionalAssetsFromChunk(chunk);
         return deps.filter(dep => resourceToAssetMap.has(dep)).map(dep => resourceToAssetMap.get(dep));

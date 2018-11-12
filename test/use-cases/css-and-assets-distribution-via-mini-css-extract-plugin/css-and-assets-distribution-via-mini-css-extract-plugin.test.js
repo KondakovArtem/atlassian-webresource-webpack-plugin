@@ -41,29 +41,32 @@ describe('css-and-assets-distribution-via-mini-css-extract-plugin', function() {
 
     it('should add the stylesheet and the contained assets of the stylesheet as resources to the entry', () => {
         const entryResources = getResources(entryPoint);
-        assert.equal(entryResources.length, 3);
+        assert.equal(entryResources.length, 4);
         assert.equal(entryResources[0].attributes.type, 'download');
         assert.equal(entryResources[0].attributes.name, 'app.css');
         assert.equal(entryResources[1].attributes.type, 'download');
         assert.equal(entryResources[1].attributes.name, 'app.js');
         assert.equal(path.extname(entryResources[2].attributes.name), '.png');
+        assert.equal(path.extname(entryResources[3].attributes.name), '.jpg');
     });
 
     it('should add the stylesheet and the contained assets of the stylesheet of the async chunk to the async chunk', () => {
         const asyncResources = getResources(asyncChunk);
-        assert.equal(asyncResources.length, 3);
+        assert.equal(asyncResources.length, 4);
         assert.equal(asyncResources[0].attributes.name, '0.css');
         assert.equal(asyncResources[0].attributes.type, 'download');
         assert.equal(asyncResources[1].attributes.name, '0.js');
         assert.equal(asyncResources[1].attributes.type, 'download');
         assert.equal(path.extname(asyncResources[2].attributes.name), '.svg');
+        assert.equal(path.extname(asyncResources[3].attributes.name), '.svg');
     });
 
     it('should create an asset resource containing all "other" assets', () => {
         const assetWebResourceResources = getResources(assetWebResource);
-        assert.equal(assetWebResourceResources.length, 2);
+        assert.equal(assetWebResourceResources.length, 4);
         const names = assetWebResourceResources.map(awrr => path.extname(awrr.attributes.name));
-        assert.include(names, '.svg', 'fails to include the svg file');
-        assert.include(names, '.png', 'fails to include the png file');
+        assert.include(names, '.jpg', 'fails to include any jpg files');
+        assert.include(names, '.svg', 'fails to include any svg files');
+        assert.include(names, '.png', 'fails to include any png files');
     });
 });
