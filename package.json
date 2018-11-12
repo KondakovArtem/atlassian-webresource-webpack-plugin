@@ -70,6 +70,8 @@
     "webpack"
   ],
   "scripts": {
+    "lint": "eslint .",
+    "lint/fix": "eslint . --fix",
     "test": "mocha 'test/**/*.test.js'"
   }
 }
