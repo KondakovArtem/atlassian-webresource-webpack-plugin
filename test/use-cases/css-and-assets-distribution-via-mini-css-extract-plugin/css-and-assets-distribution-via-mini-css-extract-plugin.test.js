@@ -25,9 +25,9 @@ describe('css-and-assets-distribution-via-mini-css-extract-plugin', function() {
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            entryPoint = results.root.children.find(node => node.attributes.key === 'entrypoint-app');
-            asyncChunk = results.root.children.find(node => node.attributes.key === '0');
-            assetWebResource = results.root.children.find(node => node.attributes.key === 'assets-DEV_PSEUDO_HASH');
+            entryPoint = results.root.children.find(n => n.attributes.key === 'entrypoint-app');
+            asyncChunk = results.root.children.find(n => n.attributes.key === '0');
+            assetWebResource = results.root.children.find(n => n.attributes.key === 'assets-DEV_PSEUDO_HASH');
             done();
         });
     });

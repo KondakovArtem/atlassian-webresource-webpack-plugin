@@ -15,7 +15,7 @@ describe('specify-conditions', function() {
     let wrNodes;
 
     function getWebresourceLike(needle) {
-        return wrNodes.find(node => node.attributes.key.indexOf(needle) > -1);
+        return wrNodes.find(n => n.attributes.key.indexOf(needle) > -1);
     }
 
     function getCondition(node) {
@@ -27,7 +27,7 @@ describe('specify-conditions', function() {
     }
 
     function getContent(nodes) {
-        return nodes.map(node => node.content);
+        return nodes.map(n => n.content);
     }
 
     beforeEach(done => {
@@ -37,7 +37,7 @@ describe('specify-conditions', function() {
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            wrNodes = results.root.children.filter(node => node.attributes.key.startsWith('entry'));
+            wrNodes = results.root.children.filter(n => n.attributes.key.startsWith('entry'));
             done();
         });
     });

@@ -20,15 +20,15 @@ describe('split-chunks-with-tests', function() {
     let testEntryApp2;
 
     function getChild(node, name) {
-        return node.children.filter(node => node.name === name);
+        return node.children.filter(n => n.name === name);
     }
 
     function getContent(nodes) {
-        return nodes.map(node => node.content);
+        return nodes.map(n => n.content);
     }
 
     function getAttribute(nodes, attribute) {
-        return nodes.map(node => node.attributes[attribute]);
+        return nodes.map(n => n.attributes[attribute]);
     }
 
     before(done => {
@@ -38,11 +38,11 @@ describe('split-chunks-with-tests', function() {
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            entryApp = results.root.children.find(node => node.attributes.key === 'entrypoint-app');
-            entryApp2 = results.root.children.find(node => node.attributes.key === 'entrypoint-app2');
-            splitChunkShared = results.root.children.find(node => node.attributes.key === 'split_app~app2');
-            testEntryApp = results.root.children.find(node => node.attributes.key === '__test__entrypoint-app');
-            testEntryApp2 = results.root.children.find(node => node.attributes.key === '__test__entrypoint-app2');
+            entryApp = results.root.children.find(n => n.attributes.key === 'entrypoint-app');
+            entryApp2 = results.root.children.find(n => n.attributes.key === 'entrypoint-app2');
+            splitChunkShared = results.root.children.find(n => n.attributes.key === 'split_app~app2');
+            testEntryApp = results.root.children.find(n => n.attributes.key === '__test__entrypoint-app');
+            testEntryApp2 = results.root.children.find(n => n.attributes.key === '__test__entrypoint-app2');
             done();
         });
     });

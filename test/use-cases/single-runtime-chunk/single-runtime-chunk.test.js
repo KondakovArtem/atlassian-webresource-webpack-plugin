@@ -27,26 +27,26 @@ describe('single runtime chunk', function() {
             webpack(config, (err, st) => {
                 const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
                 const results = parse(xmlFile);
-                wrNodes = results.root.children.filter(node => node.name === 'web-resource');
+                wrNodes = results.root.children.filter(n => n.name === 'web-resource');
                 done();
             });
         });
 
         it('creates a web-resource for the runtime', function() {
-            const wrKeys = wrNodes.map(node => node.attributes.key);
+            const wrKeys = wrNodes.map(n => n.attributes.key);
             assert.include(wrKeys, RUNTIME_WR_KEY, 'dedicated web-resource for the runtime not found');
         });
 
         it('adds the runtime to the dedicated web-resource for it', function() {
-            const runtimeWR = wrNodes.find(node => node.attributes.key === RUNTIME_WR_KEY);
+            const runtimeWR = wrNodes.find(n => n.attributes.key === RUNTIME_WR_KEY);
             const runtimeResources = getResources(runtimeWR);
-            const runtimeResourceLocations = runtimeResources.map(node => node.attributes.location);
+            const runtimeResourceLocations = runtimeResources.map(n => n.attributes.location);
             assert.equal(runtimeResources.length, 1, 'should only have a single resource');
             assert.equal(runtimeResourceLocations[0], runtimeName, 'should be the runtime');
         });
 
         it('adds base WRM dependencies to the runtime web-resource', function() {
-            const runtimeWR = wrNodes.find(node => node.attributes.key === RUNTIME_WR_KEY);
+            const runtimeWR = wrNodes.find(n => n.attributes.key === RUNTIME_WR_KEY);
             const dependencies = getDependencies(runtimeWR);
             const dependencyNames = dependencies.map(d => d.content);
             assert.includeMembers(
@@ -61,13 +61,13 @@ describe('single runtime chunk', function() {
 
         it('does not add the runtime to more than one web-resource', function() {
             const allResourceNodes = [].concat.apply([], wrNodes.map(getResources));
-            const allResourceLocations = allResourceNodes.map(node => node.attributes.location);
+            const allResourceLocations = allResourceNodes.map(n => n.attributes.location);
             const runtimeCount = allResourceLocations.filter(loc => loc === runtimeName).length;
             assert.equal(runtimeCount, 1, `${runtimeName} was added to multiple web-resources`);
         });
 
         it('adds a dependency on the runtime to each entrypoint web-resource', function() {
-            const entrypoints = wrNodes.filter(node => node.attributes.key.startsWith('entry'));
+            const entrypoints = wrNodes.filter(n => n.attributes.key.startsWith('entry'));
             entrypoints.forEach(entry => {
                 const wrName = entry.attributes.key;
                 const dependencies = getDependencies(entry);
@@ -102,13 +102,13 @@ describe('single runtime chunk', function() {
             webpack(config, (err, st) => {
                 const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
                 const results = parse(xmlFile);
-                wrNodes = results.root.children.filter(node => node.name === 'web-resource');
+                wrNodes = results.root.children.filter(n => n.name === 'web-resource');
                 done();
             });
         });
 
         it('does not create a web-resource for the runtime', function() {
-            const wrKeys = wrNodes.map(node => node.attributes.key);
+            const wrKeys = wrNodes.map(n => n.attributes.key);
             assert.notInclude(
                 wrKeys,
                 RUNTIME_WR_KEY,

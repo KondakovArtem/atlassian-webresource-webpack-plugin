@@ -24,7 +24,7 @@ describe('async-chunks-of-async-chunks', function() {
     }
 
     function getContent(nodes) {
-        return nodes.map(node => node.content);
+        return nodes.map(n => n.content);
     }
 
     beforeEach(done => {
@@ -33,13 +33,13 @@ describe('async-chunks-of-async-chunks', function() {
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            runtime = results.root.children.find(node => node.attributes.key.startsWith('entry'));
-            app = results.root.children.find(node => node.attributes.key === 'split_app');
-            asyncBar = results.root.children.find(node => node.attributes.key === 'async-bar');
-            asyncFoo = results.root.children.find(node => node.attributes.key === 'async-foo');
-            asyncAsyncBar = results.root.children.find(node => node.attributes.key === 'async-async-bar');
-            asyncAsyncBarTwo = results.root.children.find(node => node.attributes.key === 'async-async-bar-two');
-            asyncAsyncAsyncBar = results.root.children.find(node => node.attributes.key === 'async-async-async-bar');
+            runtime = results.root.children.find(n => n.attributes.key.startsWith('entry'));
+            app = results.root.children.find(n => n.attributes.key === 'split_app');
+            asyncBar = results.root.children.find(n => n.attributes.key === 'async-bar');
+            asyncFoo = results.root.children.find(n => n.attributes.key === 'async-foo');
+            asyncAsyncBar = results.root.children.find(n => n.attributes.key === 'async-async-bar');
+            asyncAsyncBarTwo = results.root.children.find(n => n.attributes.key === 'async-async-bar-two');
+            asyncAsyncAsyncBar = results.root.children.find(n => n.attributes.key === 'async-async-async-bar');
             done();
         });
     });
