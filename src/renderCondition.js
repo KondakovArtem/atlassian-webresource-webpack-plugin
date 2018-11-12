@@ -5,11 +5,7 @@ function renderParams(params) {
         return '';
     }
     return params
-        .map(param => WRMHelpers.renderElement(
-                'param',
-                WRMHelpers.stringifyAttributes(param.attributes),
-                param.value
-            ))
+        .map(param => WRMHelpers.renderElement('param', WRMHelpers.stringifyAttributes(param.attributes), param.value))
         .join('');
 }
 

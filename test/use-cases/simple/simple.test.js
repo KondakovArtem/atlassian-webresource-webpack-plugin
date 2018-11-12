@@ -12,7 +12,9 @@ describe('simple', function() {
 
     it('compiles an xml file', done => {
         webpack(config, (err, stats) => {
-            if (err) throw err;
+            if (err) {
+                throw err;
+            }
             assert.equal(stats.hasErrors(), false);
             assert.equal(stats.hasWarnings(), false);
             assert.equal(fs.existsSync(webresourceOutput), true);

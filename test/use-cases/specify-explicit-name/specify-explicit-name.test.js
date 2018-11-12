@@ -40,10 +40,10 @@ describe('specify-explicit-webresource-name', function() {
     });
 
     it('should create a webresource with an explicit key and name when it is mapped in config', () => {
-       let node = wrNodes.filter(node => node.attributes.key === 'app-key');
-       assert.equal(node.length, 1);
-       assert.equal(node[0].attributes.key, 'app-key');
-       assert.equal(node[0].attributes.name, '');
+        let node = wrNodes.filter(node => node.attributes.key === 'app-key');
+        assert.equal(node.length, 1);
+        assert.equal(node[0].attributes.key, 'app-key');
+        assert.equal(node[0].attributes.name, '');
     });
 
     it('should create a webresource with an explicit key and name when it is mapped in config', () => {
@@ -51,7 +51,7 @@ describe('specify-explicit-webresource-name', function() {
         assert.equal(nodeWithNameAttr.length, 1);
         assert.equal(nodeWithNameAttr[0].attributes.key, 'app-key-with-name');
         assert.equal(nodeWithNameAttr[0].attributes.name, 'Legacy Name for App');
-     });
+    });
 
     it('should auto-generate the name if there is no config provided', () => {
         let goodNodes = wrNodes.filter(node => node.attributes.key.startsWith('entrypoint-app-good'));

@@ -28,7 +28,7 @@ module.exports = class AppResources {
         const assetFiles = Object.keys(this.compilation.assets).filter(p => !/\.(js|css|soy)(\.map)?$/.test(p)); // remove anything that we know is handled differently
 
         const assets = {
-            attributes: {key: `assets-${this.assetUUID}`},
+            attributes: { key: `assets-${this.assetUUID}` },
             resources: assetFiles,
         };
 
@@ -107,7 +107,7 @@ module.exports = class AppResources {
         const asyncChunkDescriptors = WebpackHelpers.getAllAsyncChunks(entryPoints).map(c => {
             const additionalFileDeps = WebpackHelpers.getDependencyResourcesFromChunk(c, resourceToAssetMap);
             return {
-                attributes: {key: `${c.id}`},
+                attributes: { key: `${c.id}` },
                 externalResources: WebpackHelpers.getExternalResourcesForChunk(c),
                 resources: Array.from(new Set(c.files.concat(additionalFileDeps))),
                 dependencies: getBaseContexts().concat(WebpackHelpers.getDependenciesForChunks([c])),
@@ -170,7 +170,7 @@ module.exports = class AppResources {
         if (this.isSingleRuntime()) {
             const runtimeName = `${this.getSingleRuntimeChunkName()}.js`;
             prodEntryPoints.push({
-                attributes: {key: RUNTIME_WR_KEY},
+                attributes: { key: RUNTIME_WR_KEY },
                 dependencies: getBaseContexts(),
                 resources: [runtimeName],
             });

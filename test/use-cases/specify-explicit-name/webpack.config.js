@@ -20,11 +20,11 @@ module.exports = {
             webresourceKeyMap: {
                 'app-good-mapped-with-string': 'legacy-name-for-app',
                 'app-good-mapped-with-object': {
-                    key: 'app-key'
+                    key: 'app-key',
                 },
                 'app-good-mapped-with-object-with-name': {
                     key: 'app-key-with-name',
-                    name: 'Legacy Name for App'
+                    name: 'Legacy Name for App',
                 },
                 'app-bad-objectlike': {},
                 'app-bad-falsy': '',

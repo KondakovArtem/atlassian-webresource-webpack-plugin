@@ -32,13 +32,13 @@ module.exports = class WRMHelpers {
     static getWebresourceAttributesForEntry(entry, webresourceKeyMap) {
         const wrKey = webresourceKeyMap[entry];
         const wrKeyType = typeof wrKey;
-        if (wrKeyType === 'object'  && typeof wrKey.key === 'string') {
-            return {key: wrKey.key, name: wrKey.name};
+        if (wrKeyType === 'object' && typeof wrKey.key === 'string') {
+            return { key: wrKey.key, name: wrKey.name };
         }
         if (!wrKey || wrKeyType !== 'string') {
-            return {key: `entrypoint-${entry}`};
+            return { key: `entrypoint-${entry}` };
         }
-        return {key: wrKey};
+        return { key: wrKey };
     }
 
     static getConditionForEntry(entry, conditionMap) {

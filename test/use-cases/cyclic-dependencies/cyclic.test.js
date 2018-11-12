@@ -10,14 +10,15 @@ const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 
 describe('cyclic', function() {
     let config = require('./webpack.config.js');
 
-    it('compiles an xml file', (done) => {
+    it('compiles an xml file', done => {
         webpack(config, (err, stats) => {
-            if (err) throw err;
+            if (err) {
+                throw err;
+            }
             assert.equal(stats.hasErrors(), false);
             assert.equal(stats.hasWarnings(), false);
             assert.equal(fs.existsSync(webresourceOutput), true);
             done();
         });
     });
-
 });
