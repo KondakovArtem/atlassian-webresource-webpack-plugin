@@ -4,5 +4,5 @@ import foo from './foo-dep';
 
 $(() => {
     $('body').html('hello world' + bar() + foo());
-    import("./foo-async");
+    import('./foo-async');
 });
