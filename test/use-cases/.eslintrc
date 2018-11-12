@@ -1,0 +1,14 @@
+{
+  "env": {
+    "amd": true,
+    "browser": true,
+    "es6": true
+  },
+  "parser": "babel-eslint",
+  "plugins": [
+    "babel"
+  ],
+  "rules": {
+    "no-unused-vars": "off"
+  }
+}

@@ -14,4 +14,7 @@ typings/
 *.DS_Store
 .AppleDouble
 .LSOverride
-**/target/
+
+test/**/target/**
+test/**/src/**
+test/**/src-*/**
