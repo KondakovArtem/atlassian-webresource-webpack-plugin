@@ -1,3 +1,7 @@
+## 3.2.0 (November 12, 2018)
+* Transformations are only added to web-resources that have files with matching extensions (fixes #54).
+* Assets will be added to the correct web-resources when using the `mini-css-extract-plugin` v0.4.3 and higher (fixes #52).
+
 ## 3.1.0 (November 12, 2018)
 * **[BREAKING]**: Passing the custom `transformationMap` will no longer extend the default transformations. You can use the `WrmPlugin.extendTransformations(customTransformationMap)` function to extend the default transformers with a custom mapping.
 * **[New]**: Allow to completely disable all the transformations by passing a `false` value to the `transformationMap` config.
