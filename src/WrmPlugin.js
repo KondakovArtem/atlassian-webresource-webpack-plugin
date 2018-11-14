@@ -205,7 +205,7 @@ if (typeof AJS !== "undefined") {
             if (request.startsWith('wr-dependency!')) {
                 const res = request.substr('wr-dependency!'.length);
                 logger.log('adding %s as a web-resource dependency through WRM', res);
-                callback(null, new WrmDependencyModule(res, target));
+                callback(null, new WrmDependencyModule(res, target, this.options.pluginKey));
                 return;
             }
 

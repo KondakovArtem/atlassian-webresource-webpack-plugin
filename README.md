@@ -202,6 +202,17 @@ import 'wr-dependency!my.plugin.key:my-webresource';
 console.log('my-webresource will have been loaded synchronously with the page');
 ```
 
+_NOTE_: When requiring web-resources exported by the same plugin `my.plugin.key` prefix _can_ be dropped.
+This allow to share the same codebase and web-resources in plugins that are targeted for more than one
+Atlassian product (e.g.: Jira and Confluence).
+
+```js
+require('wr-dependency!:my-webresource');
+
+// in ES6
+import 'wr-dependency!:my-webresource');
+```
+
 ### Legacy runtime `resource` inclusion
 
 95% of the time, your application's non-JavaScript resources -- CSS, images, templates, etcetera --
