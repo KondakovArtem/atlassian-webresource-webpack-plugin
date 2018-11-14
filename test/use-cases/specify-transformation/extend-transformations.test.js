@@ -15,7 +15,7 @@ describe('specify-transformation', function() {
     let wrNodes;
 
     function getWebresourceLike(needle) {
-        return wrNodes.find(node => node.attributes.key.indexOf(needle) > -1);
+        return wrNodes.find(n => n.attributes.key.indexOf(needle) > -1);
     }
 
     function getTransformation(node) {

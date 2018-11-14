@@ -14,8 +14,7 @@ describe('css-and-assets-via-extract-text-plugin', function() {
     let error;
     let entrypoints;
 
-    const getResourceNodes = webresource =>
-        webresource && webresource.children.filter(node => node.name === 'resource');
+    const getResourceNodes = webresource => webresource && webresource.children.filter(n => n.name === 'resource');
 
     before(done => {
         webpack(config, (err, st) => {
@@ -24,7 +23,7 @@ describe('css-and-assets-via-extract-text-plugin', function() {
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            entrypoints = results.root.children.filter(node => node.attributes.key.startsWith('entry'));
+            entrypoints = results.root.children.filter(n => n.attributes.key.startsWith('entry'));
             done();
         });
     });
@@ -39,7 +38,7 @@ describe('css-and-assets-via-extract-text-plugin', function() {
         let resources;
 
         before(() => {
-            let webresource = entrypoints.find(node => node.attributes.key.endsWith('feature-one'));
+            let webresource = entrypoints.find(n => n.attributes.key.endsWith('feature-one'));
             resources = getResourceNodes(webresource);
         });
 
@@ -67,7 +66,7 @@ describe('css-and-assets-via-extract-text-plugin', function() {
         let resources;
 
         before(() => {
-            let webresource = entrypoints.find(node => node.attributes.key.endsWith('feature-two'));
+            let webresource = entrypoints.find(n => n.attributes.key.endsWith('feature-two'));
             resources = getResourceNodes(webresource);
         });
 

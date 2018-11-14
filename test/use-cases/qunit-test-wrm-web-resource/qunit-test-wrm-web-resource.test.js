@@ -27,11 +27,11 @@ describe('qunit-test-wrm-web-resource', function() {
     }
 
     function getContent(nodes) {
-        return nodes.map(node => node.content);
+        return nodes.map(n => n.content);
     }
 
     function getName(nodes) {
-        return nodes.map(node => node.attributes.name);
+        return nodes.map(n => n.attributes.name);
     }
 
     before(done => {
@@ -41,12 +41,12 @@ describe('qunit-test-wrm-web-resource', function() {
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
             [entry1, entry2] = results.root.children.filter(
-                node => node.attributes.key && node.attributes.key.startsWith('entrypoint')
+                n => n.attributes.key && n.attributes.key.startsWith('entrypoint')
             );
             [testEntry1, testEntry2] = results.root.children.filter(
-                node => node.attributes.key && node.attributes.key.startsWith('__test__entrypoint')
+                n => n.attributes.key && n.attributes.key.startsWith('__test__entrypoint')
             );
-            qunitResources = results.root.children.filter(node => node.attributes.type === 'qunit');
+            qunitResources = results.root.children.filter(n => n.attributes.type === 'qunit');
             done();
         });
     });

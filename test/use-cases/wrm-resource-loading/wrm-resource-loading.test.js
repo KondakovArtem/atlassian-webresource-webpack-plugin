@@ -13,7 +13,7 @@ describe('wrm-resource-loading', function() {
     let entry;
 
     function getContent(nodes) {
-        return nodes.map(node => node.content);
+        return nodes.map(n => n.content);
     }
 
     function runWebpack(config, done) {
@@ -22,7 +22,7 @@ describe('wrm-resource-loading', function() {
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            entry = results.root.children.find(node => node.attributes.key.startsWith('entry'));
+            entry = results.root.children.find(n => n.attributes.key.startsWith('entry'));
             done();
         });
     }
@@ -37,24 +37,24 @@ describe('wrm-resource-loading', function() {
         });
 
         it('has a Soy transformation', () => {
-            let transformNodes = entry.children.filter(node => node.name === 'transformation');
-            let soyTransformNode = transformNodes.find(node => node.attributes.extension === 'soy');
+            let transformNodes = entry.children.filter(n => n.name === 'transformation');
+            let soyTransformNode = transformNodes.find(n => n.attributes.extension === 'soy');
             assert.notEqual(soyTransformNode, null, 'should have a soy transform');
             assert.deepPropertyVal(soyTransformNode, 'children[0].name', 'transformer');
             assert.deepPropertyVal(soyTransformNode, 'children[0].attributes.key', 'soyTransformer');
         });
 
         it('has a LESS transformation', () => {
-            let transformNodes = entry.children.filter(node => node.name === 'transformation');
-            let lessTransformNode = transformNodes.find(node => node.attributes.extension === 'less');
+            let transformNodes = entry.children.filter(n => n.name === 'transformation');
+            let lessTransformNode = transformNodes.find(n => n.attributes.extension === 'less');
             assert.notEqual(lessTransformNode, null, 'should have a soy transform');
             assert.deepPropertyVal(lessTransformNode, 'children[0].name', 'transformer');
             assert.deepPropertyVal(lessTransformNode, 'children[0].attributes.key', 'lessTransformer');
         });
 
         it('has the appropriate external resources', () => {
-            let resourceNodes = entry.children.filter(node => node.name === 'resource');
-            let resources = resourceNodes.map(node => node.attributes);
+            let resourceNodes = entry.children.filter(n => n.name === 'resource');
+            let resources = resourceNodes.map(n => n.attributes);
             assert.includeDeepMembers(resources, [
                 { name: 'ultimate/name/at/runtime.js', location: `${context}/template.soy`, type: 'download' },
                 { name: 'ultimate/name/at/runtime.css', location: `${context}/styles.less`, type: 'download' },
@@ -62,7 +62,7 @@ describe('wrm-resource-loading', function() {
         });
 
         it('has no additional web-resource dependencies', () => {
-            let dependencyNodes = entry.children.filter(node => node.name === 'dependency');
+            let dependencyNodes = entry.children.filter(n => n.name === 'dependency');
             let dependencies = getContent(dependencyNodes);
             assert.sameMembers(
                 dependencies,

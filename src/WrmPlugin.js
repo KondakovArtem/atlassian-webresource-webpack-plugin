@@ -237,10 +237,12 @@ if (typeof AJS !== "undefined") {
                     const entryPointsChildChunks = WebpackHelpers.getAllAsyncChunks([
                         ...compilation.entrypoints.values(),
                     ]);
-                    const childChunkIds = entryPointsChildChunks.map(c => c.id).reduce((map, id) => {
-                        map[id] = true;
-                        return map;
-                    }, {});
+                    const childChunkIds = entryPointsChildChunks
+                        .map(c => c.id)
+                        .reduce((map, id) => {
+                            map[id] = true;
+                            return map;
+                        }, {});
                     return `
 var WRMChildChunkIds = ${JSON.stringify(childChunkIds)};
 if (WRMChildChunkIds[chunkId]) {

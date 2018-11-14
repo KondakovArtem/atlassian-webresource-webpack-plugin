@@ -22,8 +22,8 @@ describe('css-and-assets-via-style-loader', function() {
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            assets = results.root.children.find(node => node.attributes.key.startsWith('assets'));
-            resources = assets.children.filter(node => node.name === 'resource');
+            assets = results.root.children.find(n => n.attributes.key.startsWith('assets'));
+            resources = assets.children.filter(n => n.name === 'resource');
             done();
         });
     });

@@ -27,7 +27,7 @@ describe('async-chunks-of-async-chunks-with-multiple-entrypoints', function() {
     }
 
     function getContent(nodes) {
-        return nodes.map(node => node.content);
+        return nodes.map(n => n.content);
     }
 
     beforeEach(done => {
@@ -36,16 +36,16 @@ describe('async-chunks-of-async-chunks-with-multiple-entrypoints', function() {
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            runtime = results.root.children.find(node => node.attributes.key === 'entrypoint-app');
-            runtime2 = results.root.children.find(node => node.attributes.key === 'entrypoint-app2');
-            app = results.root.children.find(node => node.attributes.key === 'split_app');
-            app2 = results.root.children.find(node => node.attributes.key === 'split_app2');
-            splitAppAndApp2 = results.root.children.find(node => node.attributes.key === 'split_app~app2');
-            asyncBar = results.root.children.find(node => node.attributes.key === 'async-bar');
-            asyncFoo = results.root.children.find(node => node.attributes.key === 'async-foo');
-            asyncAsyncBar = results.root.children.find(node => node.attributes.key === 'async-async-bar');
-            asyncAsyncBarTwo = results.root.children.find(node => node.attributes.key === 'async-async-bar-two');
-            asyncAsyncAsyncBar = results.root.children.find(node => node.attributes.key === 'async-async-async-bar');
+            runtime = results.root.children.find(n => n.attributes.key === 'entrypoint-app');
+            runtime2 = results.root.children.find(n => n.attributes.key === 'entrypoint-app2');
+            app = results.root.children.find(n => n.attributes.key === 'split_app');
+            app2 = results.root.children.find(n => n.attributes.key === 'split_app2');
+            splitAppAndApp2 = results.root.children.find(n => n.attributes.key === 'split_app~app2');
+            asyncBar = results.root.children.find(n => n.attributes.key === 'async-bar');
+            asyncFoo = results.root.children.find(n => n.attributes.key === 'async-foo');
+            asyncAsyncBar = results.root.children.find(n => n.attributes.key === 'async-async-bar');
+            asyncAsyncBarTwo = results.root.children.find(n => n.attributes.key === 'async-async-bar-two');
+            asyncAsyncAsyncBar = results.root.children.find(n => n.attributes.key === 'async-async-async-bar');
             done();
         });
     });

@@ -1,3 +1,3 @@
 define(['./a'], function(a) {
-  return "B";
+    return 'B';
 });

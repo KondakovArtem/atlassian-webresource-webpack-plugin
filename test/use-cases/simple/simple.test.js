@@ -12,7 +12,9 @@ describe('simple', function() {
 
     it('compiles an xml file', done => {
         webpack(config, (err, stats) => {
-            if (err) throw err;
+            if (err) {
+                throw err;
+            }
             assert.equal(stats.hasErrors(), false);
             assert.equal(stats.hasWarnings(), false);
             assert.equal(fs.existsSync(webresourceOutput), true);
@@ -27,9 +29,7 @@ describe('simple', function() {
             webpack(config, (err, stats) => {
                 let xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
                 results = parse(xmlFile);
-                contextEntryNode = results.root.children.find(
-                    node => node.attributes.key === 'entrypoint-simple-entry'
-                );
+                contextEntryNode = results.root.children.find(n => n.attributes.key === 'entrypoint-simple-entry');
                 done();
             });
         });
@@ -48,14 +48,14 @@ describe('simple', function() {
 
         it('has a context named after the entry point', () => {
             let node = contextEntryNode.children
-                .filter(node => node.name === 'context')
-                .find(node => node.content === 'simple-entry');
+                .filter(n => n.name === 'context')
+                .find(n => n.content === 'simple-entry');
             assert.deepPropertyVal(node, 'name', 'context');
             assert.deepPropertyVal(node, 'content', 'simple-entry');
         });
 
         it('has a resource that references the generated bundle file', () => {
-            let node = contextEntryNode.children.find(node => node.name === 'resource');
+            let node = contextEntryNode.children.find(n => n.name === 'resource');
             assert.deepPropertyVal(node, 'name', 'resource');
             assert.deepPropertyVal(node, 'attributes.type', 'download');
             assert.deepPropertyVal(node, 'attributes.name', 'simple-entry.js');
@@ -70,7 +70,7 @@ describe('simple', function() {
             webpack(config, (err, stats) => {
                 let xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
                 results = parse(xmlFile);
-                contextDepsNode = results.root.children.find(node => node.attributes.key === 'entrypoint-simple-entry');
+                contextDepsNode = results.root.children.find(n => n.attributes.key === 'entrypoint-simple-entry');
                 done();
             });
         });

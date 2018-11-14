@@ -19,11 +19,11 @@ describe('provided-modules-replacement', function() {
     let dependencies;
 
     function getDependencies(node) {
-        return node.children.filter(node => node.name === 'dependency');
+        return node.children.filter(n => n.name === 'dependency');
     }
 
     function getContent(nodes) {
-        return nodes.map(node => node.content);
+        return nodes.map(n => n.content);
     }
 
     beforeEach(done => {
@@ -33,7 +33,7 @@ describe('provided-modules-replacement', function() {
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            entry = results.root.children.find(node => node.attributes.key.startsWith('entry'));
+            entry = results.root.children.find(n => n.attributes.key.startsWith('entry'));
             dependencies = getContent(getDependencies(entry));
             done();
         });

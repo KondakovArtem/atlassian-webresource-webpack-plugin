@@ -17,7 +17,7 @@ describe('wrm-dependency-loading', function() {
     }
 
     function getContent(nodes) {
-        return nodes.map(node => node.content);
+        return nodes.map(n => n.content);
     }
 
     function runWebpack(config, done) {
@@ -26,7 +26,7 @@ describe('wrm-dependency-loading', function() {
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            entry = results.root.children.find(node => node.attributes.key.startsWith('entry'));
+            entry = results.root.children.find(n => n.attributes.key.startsWith('entry'));
             dependencies = getContent(getDependencies(entry));
             done();
         });
