@@ -134,21 +134,7 @@ class WrmPlugin {
 
     checkConfig(compiler) {
         compiler.hooks.afterEnvironment.tap('Check Config', () => {
-            // check if output path points to somewhere in target/classes
             const outputOptions = compiler.options.output;
-            const outputPath = outputOptions.path;
-            if (!outputPath.includes(path.join('target', 'classes'))) {
-                logger.warn(`
-*********************************************************************************
-The output.path specified in your webpack config does not point to target/classes:
-
-${outputPath}
-
-This is very likely to cause issues - please double check your settings!
-*********************************************************************************
-
-`);
-            }
 
             // check for the jsonp function option
             const { jsonpFunction } = outputOptions;
@@ -322,7 +308,7 @@ ${standardScript}`;
 
         // When the compiler is about to emit files, we jump in to produce our resource descriptors for the WRM.
         compiler.hooks.emit.tapAsync('wrm plugin emit phase', (compilation, callback) => {
-            const pathPrefix = extractPathPrefixForXml(this.options.locationPrefix, compiler.options);
+            const pathPrefix = extractPathPrefixForXml(this.options.locationPrefix);
             const appResourceGenerator = new AppResources(
                 this.assetUUID,
                 this.assetNames,
