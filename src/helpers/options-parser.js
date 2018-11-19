@@ -2,49 +2,7 @@ const path = require('path');
 
 const logger = require('./logger');
 
-module.exports = class WRMHelpers {
-    static stringifyAttributes(attributes) {
-        if (!attributes) {
-            return '';
-        }
-
-        return (
-            ' ' +
-            Object.keys(attributes)
-                .map(key => `${key}="${attributes[key]}"`)
-                .join(' ')
-        );
-    }
-
-    static renderElement(name, attributes, children) {
-        if (!children) {
-            return `<${name}${attributes}/>`;
-        }
-        return `<${name}${attributes}>${children}</${name}>`;
-    }
-
-    static getContextForEntry(entry, contextMap) {
-        const contexts = [].concat(entry).concat(contextMap[entry]);
-        const validContexts = contexts.filter(context => context && typeof context === 'string');
-        return validContexts;
-    }
-
-    static getWebresourceAttributesForEntry(entry, webresourceKeyMap) {
-        const wrKey = webresourceKeyMap[entry];
-        const wrKeyType = typeof wrKey;
-        if (wrKeyType === 'object' && typeof wrKey.key === 'string') {
-            return { key: wrKey.key, name: wrKey.name, state: wrKey.state };
-        }
-        if (!wrKey || wrKeyType !== 'string') {
-            return { key: `entrypoint-${entry}` };
-        }
-        return { key: wrKey };
-    }
-
-    static getConditionForEntry(entry, conditionMap) {
-        return conditionMap[entry];
-    }
-
+class Helpers {
     static extractPathPrefixForXml(options) {
         const outputPath = options.output.path;
         // get everything "past" the /target/classes
@@ -72,4 +30,8 @@ Not adding any path prefix - WRM will probably not be able to find your files!
         // readd trailing slash - this time OS independent always a "/"
         return withoutLeadingTrailingSeparators + '/';
     }
+}
+
+module.exports = {
+    extractPathPrefixForXml: Helpers.extractPathPrefixForXml,
 };
