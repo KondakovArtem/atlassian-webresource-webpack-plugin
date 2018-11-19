@@ -187,19 +187,36 @@ In the remaining 10% of cases, you may need to lean on the WRM at runtime to ens
 the right order. 9% of the time, the module-mapping feature should be enough for you. In the remaining
 1%, you may just need to add a `web-resource` dependency to force the ordering.
 
-You can add import statements to your code that will add a `<dependency>` to your generated web-resource:
+You can add import statements to your code that will add a `<dependency>` to your generated web-resource.
+
+To include `web-resource`s from exported by _this_ plugin you can use short notation like:
 
 ```js
 // in AMD syntax
 define(function(require) {
-  require('wr-dependency!my.plugin.key:my-webresource');
+  require('wr-dependency!my-webresource');
   console.log('my-webresource will have been loaded synchronously with the page');
 });
 
-// in ES6 syntax
-import 'wr-dependency!my.plugin.key:my-webresource';
+// in ES6
+import 'wr-dependency!my-webresource');
 
 console.log('my-webresource will have been loaded synchronously with the page');
+```
+
+To include resources exported by _other_ plugins, provide full plugin key:
+
+```js
+// in AMD syntax
+define(function(require) {
+  require('wr-dependency!com.atlassian.auiplugin:dialog2');
+  console.log('webresource will have been loaded synchronously with the page');
+});
+
+// in ES6 syntax
+import 'wr-dependency!com.atlassian.auiplugin:dialog2';
+
+console.log('webresource will have been loaded synchronously with the page');
 ```
 
 ### Legacy runtime `resource` inclusion
