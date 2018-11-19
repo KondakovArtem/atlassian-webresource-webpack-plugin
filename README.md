@@ -495,8 +495,8 @@ This may be required by certain Atlassian products depending on the file-type to
 
 ### `locationPrefix` (Optional)
 
-Adds given prefix value to `location` attribute of `resource` node. This is how you can
-provide resource prefix when your project does not follow meven project structure.
+Adds given prefix value to `location` attribute of `resource` node.
+Use this option when your webpack output is placed in a subdirectory of the plugin's ultimate root folder.
 
 ### `watch` and `watchPrepare` (Optional)
 Activates "watch-mode". This must be run in conjuction with a webpack-dev-server.

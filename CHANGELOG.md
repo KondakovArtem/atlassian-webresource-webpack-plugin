@@ -1,3 +1,10 @@
+## Unreleased
+* **[New]**: Added a new `locationPrefix` configuration option, intended to use when webpack's output will be in a sub-directory of the ultimate plugin's root directory.
+* **[BREAKING]**: The way that compiled output works has changed.
+    * No special handling occurs for Maven-based project output directories (i.e., `target/classes`).
+    * It is now assumed that your webpack output is placed in the root of your plugin.
+    * If your compiled code is in a sub-directory of your plugin's ultimate root directory, set `locationPrefix` to point to that sub-directory.
+
 ## 3.3.0 (November 19, 2018)
 * feature: allow to specify `state` attribute on web-resources.
     * [@dluksza](https://bitbucket.org/dluksza) in [PR #56](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/56).
