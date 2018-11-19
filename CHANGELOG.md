@@ -2,7 +2,7 @@
 * feature: allow to specify `state` attribute on web-resources.
     * [@dluksza](https://bitbucket.org/dluksza) in [PR #56](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/56).
 * feature: allow to declare `wr-dependency!` on same-plugin web-resources without explicit plugin key.
-     * [@dluksza](https://bitbucket.org/dluksza) in [PR #64](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/64).
+    * [@dluksza](https://bitbucket.org/dluksza) in [PR #64](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/64).
 
 ## 3.2.0 (November 12, 2018)
 * Transformations are only added to web-resources that have files with matching extensions (fixes #54).

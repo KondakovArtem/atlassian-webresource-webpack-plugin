@@ -20,5 +20,5 @@ describe('WrmDependencyModule', () => {
         const secondDependency = 'my.web.resource';
         const secondModule = new WrmDependencyModule(secondDependency, type, resourceKey);
         assert.equal(secondModule.getDependency(), `${resourceKey}:${secondDependency}`);
-    })
+    });
 });

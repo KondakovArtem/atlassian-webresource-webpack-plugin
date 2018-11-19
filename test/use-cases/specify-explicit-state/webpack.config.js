@@ -16,11 +16,11 @@ module.exports = {
             xmlDescriptors: path.join(OUTPUT_DIR, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml'),
             webresourceKeyMap: {
                 'app-good-mapped-without-state': {
-                    key: 'app-key'
+                    key: 'app-key',
                 },
                 'app-good-mapped-with-state': {
                     key: 'app-key-with-state',
-                    state: 'disabled'
+                    state: 'disabled',
                 },
             },
             verbose: false,

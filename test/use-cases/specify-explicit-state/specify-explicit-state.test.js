@@ -31,10 +31,10 @@ describe('specify-explicit-webresource-state', function() {
     });
 
     it('should create a webresource with an explicit key and state when state was not provided in config', () => {
-       let node = wrNodes.filter(node => node.attributes.key === 'app-key');
-       assert.equal(node.length, 1);
-       assert.equal(node[0].attributes.key, 'app-key');
-       assert.equal(node[0].attributes.state, 'enabled');
+        const node = wrNodes.filter(n => n.attributes.key === 'app-key');
+        assert.equal(node.length, 1);
+        assert.equal(node[0].attributes.key, 'app-key');
+        assert.equal(node[0].attributes.state, 'enabled');
     });
 
     it('should create a webresource with an explicit key and state when it is mapped in config', () => {
@@ -42,5 +42,5 @@ describe('specify-explicit-webresource-state', function() {
         assert.equal(nodeWithNameAttr.length, 1);
         assert.equal(nodeWithNameAttr[0].attributes.key, 'app-key-with-state');
         assert.equal(nodeWithNameAttr[0].attributes.state, 'disabled');
-     });
+    });
 });
