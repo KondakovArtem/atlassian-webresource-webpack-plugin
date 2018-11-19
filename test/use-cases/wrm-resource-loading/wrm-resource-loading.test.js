@@ -40,16 +40,16 @@ describe('wrm-resource-loading', function() {
             let transformNodes = entry.children.filter(n => n.name === 'transformation');
             let soyTransformNode = transformNodes.find(n => n.attributes.extension === 'soy');
             assert.notEqual(soyTransformNode, null, 'should have a soy transform');
-            assert.deepPropertyVal(soyTransformNode, 'children[0].name', 'transformer');
-            assert.deepPropertyVal(soyTransformNode, 'children[0].attributes.key', 'soyTransformer');
+            assert.nestedPropertyVal(soyTransformNode, 'children[0].name', 'transformer');
+            assert.nestedPropertyVal(soyTransformNode, 'children[0].attributes.key', 'soyTransformer');
         });
 
         it('has a LESS transformation', () => {
             let transformNodes = entry.children.filter(n => n.name === 'transformation');
             let lessTransformNode = transformNodes.find(n => n.attributes.extension === 'less');
             assert.notEqual(lessTransformNode, null, 'should have a soy transform');
-            assert.deepPropertyVal(lessTransformNode, 'children[0].name', 'transformer');
-            assert.deepPropertyVal(lessTransformNode, 'children[0].attributes.key', 'lessTransformer');
+            assert.nestedPropertyVal(lessTransformNode, 'children[0].name', 'transformer');
+            assert.nestedPropertyVal(lessTransformNode, 'children[0].attributes.key', 'lessTransformer');
         });
 
         it('has the appropriate external resources', () => {

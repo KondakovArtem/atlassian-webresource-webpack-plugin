@@ -40,26 +40,26 @@ describe('simple', function() {
 
         it('has an i18n transformation', () => {
             let node = contextEntryNode.children[0];
-            assert.deepPropertyVal(node, 'name', 'transformation');
-            assert.deepPropertyVal(node, 'attributes.extension', 'js');
-            assert.deepPropertyVal(node, 'children[0].name', 'transformer');
-            assert.deepPropertyVal(node, 'children[0].attributes.key', 'jsI18n');
+            assert.nestedPropertyVal(node, 'name', 'transformation');
+            assert.nestedPropertyVal(node, 'attributes.extension', 'js');
+            assert.nestedPropertyVal(node, 'children[0].name', 'transformer');
+            assert.nestedPropertyVal(node, 'children[0].attributes.key', 'jsI18n');
         });
 
         it('has a context named after the entry point', () => {
             let node = contextEntryNode.children
                 .filter(n => n.name === 'context')
                 .find(n => n.content === 'simple-entry');
-            assert.deepPropertyVal(node, 'name', 'context');
-            assert.deepPropertyVal(node, 'content', 'simple-entry');
+            assert.nestedPropertyVal(node, 'name', 'context');
+            assert.nestedPropertyVal(node, 'content', 'simple-entry');
         });
 
         it('has a resource that references the generated bundle file', () => {
             let node = contextEntryNode.children.find(n => n.name === 'resource');
-            assert.deepPropertyVal(node, 'name', 'resource');
-            assert.deepPropertyVal(node, 'attributes.type', 'download');
-            assert.deepPropertyVal(node, 'attributes.name', 'simple-entry.js');
-            assert.deepPropertyVal(node, 'attributes.location', 'simple-entry.js');
+            assert.nestedPropertyVal(node, 'name', 'resource');
+            assert.nestedPropertyVal(node, 'attributes.type', 'download');
+            assert.nestedPropertyVal(node, 'attributes.name', 'simple-entry.js');
+            assert.nestedPropertyVal(node, 'attributes.location', 'simple-entry.js');
         });
     });
 
