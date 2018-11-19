@@ -1,6 +1,6 @@
 const path = require('path');
 
-const logger = require('./logger');
+const logger = require('../logger');
 
 class Helpers {
     static extractPathPrefixForXml(options) {

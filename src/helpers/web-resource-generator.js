@@ -1,6 +1,6 @@
 const path = require('path');
-const renderCondition = require('./renderCondition');
-const renderTransformation = require('./renderTransformation');
+const renderCondition = require('../renderCondition');
+const renderTransformation = require('../renderTransformation');
 
 /**
  * Utilities for outputting the various XML fragments needed

@@ -1,5 +1,5 @@
 const path = require('path');
-const { renderElement, stringifyAttributes } = require('./WRMHelpers');
+const { renderElement, stringifyAttributes } = require('./helpers/xml');
 
 function renderTransformer(transformers) {
     return transformers

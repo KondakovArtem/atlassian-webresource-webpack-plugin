@@ -1,6 +1,10 @@
+const {
+    getConditionForEntry,
+    getContextForEntry,
+    getWebresourceAttributesForEntry,
+} = require('./helpers/web-resource-entrypoints');
 const flattenReduce = require('./flattenReduce');
 const WebpackHelpers = require('./WebpackHelpers');
-const WRMHelpers = require('./WRMHelpers');
 const { getBaseContexts } = require('./settings/base-contexts');
 
 const RUNTIME_WR_KEY = 'common-runtime';
@@ -129,7 +133,7 @@ module.exports = class AppResources {
 
         // Used in prod
         const prodEntryPoints = [...entrypoints].map(([name, entrypoint]) => {
-            const webResourceAttrs = WRMHelpers.getWebresourceAttributesForEntry(name, this.options.webresourceKeyMap);
+            const webResourceAttrs = getWebresourceAttributesForEntry(name, this.options.webresourceKeyMap);
             const entrypointChunks = entrypoint.chunks;
             const runtimeChunk = entrypoint.runtimeChunk;
 
@@ -159,8 +163,8 @@ module.exports = class AppResources {
 
             return {
                 attributes: webResourceAttrs,
-                contexts: WRMHelpers.getContextForEntry(name, this.options.contextMap),
-                conditions: WRMHelpers.getConditionForEntry(name, this.options.conditionMap),
+                contexts: getContextForEntry(name, this.options.contextMap),
+                conditions: getConditionForEntry(name, this.options.conditionMap),
                 externalResources,
                 resources: Array.from(new Set(resourceList)),
                 dependencies: Array.from(new Set(dependencyList)),
