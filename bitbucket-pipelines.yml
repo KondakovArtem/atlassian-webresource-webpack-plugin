@@ -2,7 +2,14 @@ image: node:8.10.0
 
 pipelines:
   default:
-    - step:
-        script:
-          - npm install
-          - npm test
+    - parallel:
+      - step:
+          name: Behaviour
+          script:
+            - npm install
+            - npm test
+      - step:
+          name: Linting
+          script:
+            - npm install
+            - npm run lint
