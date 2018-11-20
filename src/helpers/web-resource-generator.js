@@ -2,43 +2,37 @@ const path = require('path');
 const renderCondition = require('../renderCondition');
 const renderTransformation = require('../renderTransformation');
 
+function generateContext(contexts) {
+    return contexts.map(context => `<context>${context}</context>`).join('');
+}
+
+function generateDependencies(dependencies) {
+    return dependencies.map(dependency => `<dependency>${dependency}</dependency>`).join('\n');
+}
+
 /**
- * Utilities for outputting the various XML fragments needed
- * in an Atlassian plugin.
+ * @param {Resource} resource
+ * @param {[]} contentTypes
+ * @returns {string} an XML representation of a {@link Resource}.
  */
-class XMLFormatter {
-    static context(contexts) {
-        return contexts.map(context => `<context>${context}</context>`).join('');
+function generateResourceElement(resource, contentTypes) {
+    const { name, location } = resource;
+    const assetContentTyp = path.extname(location).substr(1);
+    const contentTypeForAsset = contentTypes[assetContentTyp];
+    if (!contentTypeForAsset) {
+        return `<resource name="${name}" type="download" location="${location}" />`;
     }
 
-    static dependencies(dependencies) {
-        return dependencies.map(dependency => `<dependency>${dependency}</dependency>`).join('\n');
-    }
+    return `<resource name="${name}" type="download" location="${location}"><param name="content-type" value="${contentTypeForAsset}"/></resource>`;
+}
 
-    /**
-     * @param {Resource} resource
-     * @param {[]} contentTypes
-     * @returns {string} an XML representation of a {@link Resource}.
-     */
-    static generateResourceElement(resource, contentTypes) {
-        const { name, location } = resource;
-        const assetContentTyp = path.extname(location).substr(1);
-        const contentTypeForAsset = contentTypes[assetContentTyp];
-        if (!contentTypeForAsset) {
-            return `<resource name="${name}" type="download" location="${location}" />`;
-        }
-
-        return `<resource name="${name}" type="download" location="${location}"><param name="content-type" value="${contentTypeForAsset}"/></resource>`;
-    }
-
-    /**
-     * @param {[]} contentTypes
-     * @param {Resource[]} resources
-     * @returns {string} an XML string of all {@link Resource} elements
-     */
-    static resources(contentTypes, resources) {
-        return resources.map(resource => XMLFormatter.generateResourceElement(resource, contentTypes)).join('\n');
-    }
+/**
+ * @param {[]} contentTypes
+ * @param {Resource[]} resources
+ * @returns {string} an XML string of all {@link Resource} elements
+ */
+function generateResources(contentTypes, resources) {
+    return resources.map(resource => generateResourceElement(resource, contentTypes)).join('\n');
 }
 
 /**
@@ -66,7 +60,7 @@ function createWebResource(webresource, transformations, pathPrefix = '', conten
     if (standalone) {
         return `
             <web-resource key="${resourceArgs.key}" name="${name}" state="${state}">
-                ${allResources.length ? XMLFormatter.resources(contentTypes, allResources) : ''}
+                ${allResources.length ? generateResources(contentTypes, allResources) : ''}
             </web-resource>
         `;
     }
@@ -82,9 +76,9 @@ function createWebResource(webresource, transformations, pathPrefix = '', conten
     return `
         <web-resource key="${resourceArgs.key}" name="${name}" state="${state}">
             ${renderTransformation(transformations, allResources)}
-            ${contexts ? XMLFormatter.context(contexts) : ''}
-            ${dependencies ? XMLFormatter.dependencies(dependencies) : ''}
-            ${allResources.length ? XMLFormatter.resources(contentTypes, allResources) : ''}
+            ${contexts ? generateContext(contexts) : ''}
+            ${dependencies ? generateDependencies(dependencies) : ''}
+            ${allResources.length ? generateResources(contentTypes, allResources) : ''}
             ${conditions ? renderCondition(conditions) : ''}
         </web-resource>
     `;
