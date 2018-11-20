@@ -1,10 +1,10 @@
-const { renderElement, stringifyAttributes } = require('./helpers/xml');
+const { renderElement } = require('./helpers/xml');
 
 function renderParams(params) {
     if (!params) {
         return '';
     }
-    return params.map(param => renderElement('param', stringifyAttributes(param.attributes), param.value)).join('');
+    return params.map(param => renderElement('param', param.attributes, param.value)).join('');
 }
 
 module.exports = function renderCondition(condition) {
@@ -14,7 +14,7 @@ module.exports = function renderCondition(condition) {
     }
     // we have a "conditions"-joiner for multiple sub conditions
     if (condition.type) {
-        return renderElement('conditions', ` type="${condition.type}"`, renderCondition(condition.conditions));
+        return renderElement('conditions', { type: condition.type }, renderCondition(condition.conditions));
     }
 
     return renderElement(

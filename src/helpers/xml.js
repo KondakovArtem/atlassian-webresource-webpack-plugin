@@ -12,6 +12,12 @@ function stringifyAttributes(attributes) {
 }
 
 function renderElement(name, attributes, children) {
+    if (typeof attributes === 'object') {
+        attributes = stringifyAttributes(attributes);
+    }
+    if (!attributes) {
+        attributes = '';
+    }
     if (!children) {
         return `<${name}${attributes}/>`;
     }

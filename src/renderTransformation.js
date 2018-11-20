@@ -1,10 +1,8 @@
 const path = require('path');
-const { renderElement, stringifyAttributes } = require('./helpers/xml');
+const { renderElement } = require('./helpers/xml');
 
 function renderTransformer(transformers) {
-    return transformers
-        .map(transformer => renderElement('transformer', stringifyAttributes({ key: transformer })))
-        .join('');
+    return transformers.map(transformer => renderElement('transformer', { key: transformer })).join('');
 }
 
 /**
@@ -33,7 +31,7 @@ module.exports = function renderTransformation(transformations, resources = []) 
         .map(fileExtension =>
             renderElement(
                 'transformation',
-                stringifyAttributes({ extension: fileExtension }),
+                { extension: fileExtension },
                 renderTransformer(transformations[fileExtension])
             )
         )
