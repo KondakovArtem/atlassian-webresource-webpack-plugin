@@ -2,7 +2,10 @@ const path = require('path');
 const { renderElement } = require('./helpers/xml');
 
 function renderTransformer(transformers) {
-    return transformers.map(transformer => renderElement('transformer', { key: transformer })).join('');
+    if (transformers && transformers.length) {
+        return transformers.map(transformer => renderElement('transformer', { key: transformer })).join('');
+    }
+    return '';
 }
 
 /**

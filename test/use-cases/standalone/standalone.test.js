@@ -37,10 +37,10 @@ describe('standalone', function() {
                 xmlFile,
                 `<bundles>
   <web-resource key="entrypoint-standalone-1" name="" state="enabled">
-    <resource name="standalone-1.js" type="download" location="standalone-1.js" />
+    <resource name="standalone-1.js" type="download" location="standalone-1.js"/>
   </web-resource>
   <web-resource key="entrypoint-standalone-2" name="" state="enabled">
-    <resource name="standalone-2.js" type="download" location="standalone-2.js" />
+    <resource name="standalone-2.js" type="download" location="standalone-2.js"/>
   </web-resource>
 </bundles>`
             );

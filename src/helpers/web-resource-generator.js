@@ -1,13 +1,14 @@
 const path = require('path');
+const { renderElement } = require('./xml');
 const renderCondition = require('../renderCondition');
 const renderTransformation = require('../renderTransformation');
 
 function generateContext(contexts) {
-    return contexts.map(context => `<context>${context}</context>`).join('');
+    return contexts ? contexts.map(context => `<context>${context}</context>`).join('') : '';
 }
 
 function generateDependencies(dependencies) {
-    return dependencies.map(dependency => `<dependency>${dependency}</dependency>`).join('\n');
+    return dependencies ? dependencies.map(dependency => `<dependency>${dependency}</dependency>`).join('\n') : '';
 }
 
 /**
@@ -19,11 +20,29 @@ function generateResourceElement(resource, contentTypes) {
     const { name, location } = resource;
     const assetContentTyp = path.extname(location).substr(1);
     const contentTypeForAsset = contentTypes[assetContentTyp];
-    if (!contentTypeForAsset) {
-        return `<resource name="${name}" type="download" location="${location}" />`;
+    const children = [];
+    if (contentTypeForAsset) {
+        children.push(renderElement('param', { name: 'content-type', value: contentTypeForAsset }));
     }
 
-    return `<resource name="${name}" type="download" location="${location}"><param name="content-type" value="${contentTypeForAsset}"/></resource>`;
+    return renderElement(
+        'resource',
+        {
+            name,
+            type: 'download',
+            location,
+        },
+        children
+    );
+}
+
+/**
+ * Generates a <resource> descriptor that will glue the source code for a file to the qunit test runner.
+ * @param {filepath} filepath
+ * @returns {string} an XML representation of a {@link Resource}.
+ */
+function generateQunitResourceElement(filepath) {
+    return renderElement('resource', { type: 'qunit', name: filepath, location: filepath });
 }
 
 /**
@@ -32,7 +51,10 @@ function generateResourceElement(resource, contentTypes) {
  * @returns {string} an XML string of all {@link Resource} elements
  */
 function generateResources(contentTypes, resources) {
-    return resources.map(resource => generateResourceElement(resource, contentTypes)).join('\n');
+    return resources
+        .filter(r => !!r)
+        .map(resource => generateResourceElement(resource, contentTypes))
+        .join('\n');
 }
 
 /**
@@ -45,40 +67,36 @@ function generateResources(contentTypes, resources) {
  */
 function createWebResource(webresource, transformations, pathPrefix = '', contentTypes = {}, standalone) {
     const { resources = [], externalResources = [], contexts, dependencies, conditions } = webresource;
-    const resourceArgs = webresource.attributes;
-    const name = resourceArgs.name || '';
-    const state = resourceArgs.state || 'enabled';
+    const attributes = webresource.attributes;
+    attributes.name = attributes.name || '';
+    attributes.state = attributes.state || 'enabled';
+    const allResources = [];
+    const children = [];
 
-    let allResources = []
-        .concat(
-            resources.map(r => {
-                return { name: r, location: pathPrefix + r };
-            })
-        )
-        .filter(r => !!r);
+    // add resources for direct dependencies (e.g., JS and CSS files)
+    allResources.push(
+        ...resources.map(r => {
+            /** convert filepaths in to {@link Resource}s. */
+            return { name: r, location: pathPrefix + r };
+        })
+    );
 
     if (standalone) {
-        return `
-            <web-resource key="${resourceArgs.key}" name="${name}" state="${state}">
-                ${allResources.length ? generateResources(contentTypes, allResources) : ''}
-            </web-resource>
-        `;
+        children.push(generateResources(contentTypes, allResources));
+    } else {
+        // add resources for indirect dependencies (e.g., images extracted from CSS)
+        allResources.push(...externalResources);
+        children.push(
+            renderTransformation(transformations, allResources),
+            generateContext(contexts),
+            generateDependencies(dependencies),
+            generateResources(contentTypes, allResources),
+            renderCondition(conditions)
+        );
     }
 
-    allResources = allResources.concat(...externalResources).filter(r => !!r);
-
-    return `
-        <web-resource key="${resourceArgs.key}" name="${name}" state="${state}">
-            ${renderTransformation(transformations, allResources)}
-            ${contexts ? generateContext(contexts) : ''}
-            ${dependencies ? generateDependencies(dependencies) : ''}
-            ${allResources.length ? generateResources(contentTypes, allResources) : ''}
-            ${conditions ? renderCondition(conditions) : ''}
-        </web-resource>
-    `;
+    return renderElement('web-resource', attributes, children);
 }
-
-const createQUnitResources = filename => `<resource type="qunit" name="${filename}" location="${filename}" />`;
 
 exports.createResourceDescriptors = function(jsonDescriptors, transformations, pathPrefix, contentTypes, standalone) {
     const descriptors = jsonDescriptors.map(descriptor =>
@@ -93,5 +111,5 @@ exports.createTestResourceDescriptors = function(jsonTestDescriptors, transforma
 };
 
 exports.createQUnitResourceDescriptors = function(qUnitTestFiles) {
-    return qUnitTestFiles.map(createQUnitResources).join('');
+    return qUnitTestFiles.map(generateQunitResourceElement).join('');
 };

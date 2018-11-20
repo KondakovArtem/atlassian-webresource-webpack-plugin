@@ -8,6 +8,10 @@ function renderParams(params) {
 }
 
 module.exports = function renderCondition(condition) {
+    if (!condition) {
+        return '';
+    }
+
     // we have actual conditions
     if (Array.isArray(condition)) {
         return condition.map(renderCondition).join('');
