@@ -147,7 +147,6 @@ module.exports = class AppResources {
                 WebpackHelpers.getDependencyResourcesFromChunk(c, resourceToAssetMap)
             );
             // Construct the list of resources to add to this web-resource
-            const externalResources = WebpackHelpers.getExternalResourcesForChunk(runtimeChunk);
             const resourceList = [].concat(...additionalFileDeps);
             const dependencyList = [].concat(
                 getBaseContexts(),
@@ -165,7 +164,7 @@ module.exports = class AppResources {
                 attributes: webResourceAttrs,
                 contexts: getContextForEntry(name, this.options.contextMap),
                 conditions: getConditionForEntry(name, this.options.conditionMap),
-                externalResources,
+                externalResources: WebpackHelpers.getExternalResourcesForChunk(runtimeChunk),
                 resources: Array.from(new Set(resourceList)),
                 dependencies: Array.from(new Set(dependencyList)),
             };

@@ -26,7 +26,7 @@
  * @property {wrKey} key - the unique identifier for this set of resources.
  * @property {true|false} state - whether this web-resource should output its resources at runtime or not.
  * @property {filepath[]} resources - the locations of all resources directly referenced by this entrypoint's graph.
- * @property {{0:filename,1:filepath}[]} externalResources - a filename and filepath pair for resources
+ * @property {Resource[]} externalResources - a filename and filepath pair for resources
  *   discovered by the WRM plugin's loaders.
  * @property {wrDep[]} [dependencies] - a list of other web-resources this one should depend upon.
  * @property {string[]} [contexts] - a list of contexts the web-resource should be loaded in to.

@@ -21,22 +21,30 @@ module.exports = class QUnitTestResources {
             const webResourceAttrs = getWebresourceAttributesForEntry(name, this.options.webresourceKeyMap);
             const allEntryPointChunks = [...entryPoint.chunks, ...WebpackHelpers.getAllAsyncChunks([entryPoint])];
 
-            const extractedTestResources = Array.from(
+            const testFiles = Array.from(
                 WebpackHelpers.extractAllFilesFromChunks(
                     allEntryPointChunks,
                     this.compiler.options.context,
                     RESOURCE_JOINER
                 )
-            ).map(resource => {
-                if (resource.includes(RESOURCE_JOINER)) {
-                    return resource.split(RESOURCE_JOINER);
-                }
-                return [resource, resource];
-            });
+            )
+                .map(resource => {
+                    if (resource.includes(RESOURCE_JOINER)) {
+                        return resource.split(RESOURCE_JOINER);
+                    }
+                    return [resource, resource];
+                })
+                .map(resourcePair => {
+                    return { name: resourcePair[0], location: resourcePair[1] };
+                });
+
+            // require mock to allow imports like "wr-dependency!context"
             const pathPrefix = extractPathPrefixForXml(this.compiler.options);
-            const testFiles = [
-                [`${pathPrefix}${this.qunitRequireMockPath}`, `${pathPrefix}${this.qunitRequireMockPath}`], // require mock to allow imports like "wr-dependency!context"
-            ].concat(extractedTestResources);
+            testFiles.unshift({
+                name: `${pathPrefix}${this.qunitRequireMockPath}`,
+                location: `${pathPrefix}${this.qunitRequireMockPath}`,
+            });
+
             const testDependencies = Array.from(WebpackHelpers.getDependenciesForChunks(allEntryPointChunks));
             return {
                 attributes: { key: `__test__${webResourceAttrs.key}`, name: webResourceAttrs.name },

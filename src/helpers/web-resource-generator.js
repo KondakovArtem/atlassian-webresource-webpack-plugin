@@ -65,13 +65,7 @@ function createWebResource(webresource, transformations, pathPrefix = '', conten
         `;
     }
 
-    allResources = allResources
-        .concat(
-            externalResources.map(rp => {
-                return { name: rp[0], location: rp[1] };
-            })
-        )
-        .filter(r => !!r);
+    allResources = allResources.concat(...externalResources).filter(r => !!r);
 
     return `
         <web-resource key="${resourceArgs.key}" name="${name}" state="${state}">

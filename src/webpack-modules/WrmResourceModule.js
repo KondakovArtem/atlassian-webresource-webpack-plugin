@@ -16,7 +16,18 @@ module.exports = class extends EmptyExportsModule {
         this._resource = [resourcePair[0], resPath];
     }
 
+    /**
+     * @returns {{0:filename,1:filepath}} an array containing the resource's name and location
+     */
     getResourcePair() {
         return this._resource;
+    }
+
+    /**
+     * @returns {Resource} the resource
+     */
+    getResource() {
+        const [name, location] = this._resource;
+        return { name, location };
     }
 };
