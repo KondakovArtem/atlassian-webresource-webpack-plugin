@@ -40,7 +40,7 @@ module.exports = class WebpackHelpers {
         return chunk
             .getModules()
             .filter(m => m instanceof WrmResourceModule)
-            .map(m => m.getResourcePair());
+            .map(m => m.getResource());
     }
 
     static getExternalResourcesForChunk(chunk) {

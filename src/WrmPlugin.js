@@ -22,11 +22,16 @@ const fs = require('fs');
 const mkdirp = require('mkdirp');
 const urlJoin = require('url-join');
 
-const XMLFormatter = require('./XmlFormatter');
+const {
+    createQUnitResourceDescriptors,
+    createResourceDescriptors,
+    createTestResourceDescriptors,
+} = require('./helpers/web-resource-generator');
+const { extractPathPrefixForXml } = require('./helpers/options-parser');
+
 const ProvidedExternalDependencyModule = require('./webpack-modules/ProvidedExternalDependencyModule');
 const WrmDependencyModule = require('./webpack-modules/WrmDependencyModule');
 const WrmResourceModule = require('./webpack-modules/WrmResourceModule');
-const WRMHelpers = require('./WRMHelpers');
 const WebpackHelpers = require('./WebpackHelpers');
 const WebpackRuntimeHelpers = require('./WebpackRuntimeHelpers');
 const logger = require('./logger');
@@ -316,7 +321,7 @@ ${standardScript}`;
 
         // When the compiler is about to emit files, we jump in to produce our resource descriptors for the WRM.
         compiler.hooks.emit.tapAsync('wrm plugin emit phase', (compilation, callback) => {
-            const pathPrefix = WRMHelpers.extractPathPrefixForXml(compiler.options);
+            const pathPrefix = extractPathPrefixForXml(compiler.options);
             const appResourceGenerator = new AppResources(
                 this.assetUUID,
                 this.assetNames,
@@ -328,7 +333,7 @@ ${standardScript}`;
 
             const webResources = [];
 
-            const resourceDescriptors = XMLFormatter.createResourceDescriptors(
+            const resourceDescriptors = createResourceDescriptors(
                 this.options.standalone
                     ? appResourceGenerator.getEntryPointsResourceDescriptors()
                     : appResourceGenerator.getResourceDescriptors(),
@@ -341,11 +346,11 @@ ${standardScript}`;
 
             if (this.options.__testGlobs__ && !this.options.watch) {
                 testResourcesGenerator.injectQUnitShim();
-                const testResourceDescriptors = XMLFormatter.createTestResourceDescriptors(
+                const testResourceDescriptors = createTestResourceDescriptors(
                     testResourcesGenerator.createAllFileTestWebResources(),
                     this.options.transformationMap
                 );
-                const qUnitTestResourceDescriptors = XMLFormatter.createQUnitResourceDescriptors(
+                const qUnitTestResourceDescriptors = createQUnitResourceDescriptors(
                     testResourcesGenerator.getTestFiles()
                 );
 

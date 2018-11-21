@@ -1,10 +1,11 @@
 const path = require('path');
-const { renderElement, stringifyAttributes } = require('./WRMHelpers');
+const { renderElement } = require('./helpers/xml');
 
 function renderTransformer(transformers) {
-    return transformers
-        .map(transformer => renderElement('transformer', stringifyAttributes({ key: transformer })))
-        .join('');
+    if (transformers && transformers.length) {
+        return transformers.map(transformer => renderElement('transformer', { key: transformer })).join('');
+    }
+    return '';
 }
 
 /**
@@ -33,7 +34,7 @@ module.exports = function renderTransformation(transformations, resources = []) 
         .map(fileExtension =>
             renderElement(
                 'transformation',
-                stringifyAttributes({ extension: fileExtension }),
+                { extension: fileExtension },
                 renderTransformer(transformations[fileExtension])
             )
         )

@@ -1,10 +1,11 @@
 const glob = require('glob');
 const path = require('path');
 
+const { extractPathPrefixForXml } = require('./helpers/options-parser');
+const { getWebresourceAttributesForEntry } = require('./helpers/web-resource-entrypoints');
 const logger = require('./logger');
 const qUnitRequireMock = require('./shims/qunit-require-shim');
 const WebpackHelpers = require('./WebpackHelpers');
-const WRMHelpers = require('./WRMHelpers');
 
 const RESOURCE_JOINER = '__RESOURCE__JOINER__';
 module.exports = class QUnitTestResources {
@@ -17,25 +18,33 @@ module.exports = class QUnitTestResources {
 
     createAllFileTestWebResources() {
         return [...this.compilation.entrypoints.entries()].map(([name, entryPoint]) => {
-            const webResourceAttrs = WRMHelpers.getWebresourceAttributesForEntry(name, this.options.webresourceKeyMap);
+            const webResourceAttrs = getWebresourceAttributesForEntry(name, this.options.webresourceKeyMap);
             const allEntryPointChunks = [...entryPoint.chunks, ...WebpackHelpers.getAllAsyncChunks([entryPoint])];
 
-            const extractedTestResources = Array.from(
+            const testFiles = Array.from(
                 WebpackHelpers.extractAllFilesFromChunks(
                     allEntryPointChunks,
                     this.compiler.options.context,
                     RESOURCE_JOINER
                 )
-            ).map(resource => {
-                if (resource.includes(RESOURCE_JOINER)) {
-                    return resource.split(RESOURCE_JOINER);
-                }
-                return [resource, resource];
+            )
+                .map(resource => {
+                    if (resource.includes(RESOURCE_JOINER)) {
+                        return resource.split(RESOURCE_JOINER);
+                    }
+                    return [resource, resource];
+                })
+                .map(resourcePair => {
+                    return { name: resourcePair[0], location: resourcePair[1] };
+                });
+
+            // require mock to allow imports like "wr-dependency!context"
+            const pathPrefix = extractPathPrefixForXml(this.compiler.options);
+            testFiles.unshift({
+                name: `${pathPrefix}${this.qunitRequireMockPath}`,
+                location: `${pathPrefix}${this.qunitRequireMockPath}`,
             });
-            const pathPrefix = WRMHelpers.extractPathPrefixForXml(this.compiler.options);
-            const testFiles = [
-                [`${pathPrefix}${this.qunitRequireMockPath}`, `${pathPrefix}${this.qunitRequireMockPath}`], // require mock to allow imports like "wr-dependency!context"
-            ].concat(extractedTestResources);
+
             const testDependencies = Array.from(WebpackHelpers.getDependenciesForChunks(allEntryPointChunks));
             return {
                 attributes: { key: `__test__${webResourceAttrs.key}`, name: webResourceAttrs.name },
