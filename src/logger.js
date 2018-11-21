@@ -1,22 +1,28 @@
 /* eslint-disable no-console */
 let verbose = false;
+const setVerbose = arg => (verbose = arg);
 
-exports.log = (...args) => {
+function log(...args) {
     if (verbose) {
         console.log(...args);
     }
-};
+}
 
-exports.warn = (...args) => {
+function warn(...args) {
     if (verbose) {
         console.warn(...args);
     }
-};
+}
 
-exports.error = (...args) => {
+function error(...args) {
     if (verbose) {
         console.error(...args);
     }
-};
+}
 
-exports.setVerbose = arg => (verbose = arg);
+module.exports = {
+    log,
+    warn,
+    error,
+    setVerbose,
+};

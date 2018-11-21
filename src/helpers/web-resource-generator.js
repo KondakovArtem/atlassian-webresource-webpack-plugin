@@ -98,18 +98,24 @@ function createWebResource(webresource, transformations, pathPrefix = '', conten
     return renderElement('web-resource', attributes, children);
 }
 
-exports.createResourceDescriptors = function(jsonDescriptors, transformations, pathPrefix, contentTypes, standalone) {
+function createResourceDescriptors(jsonDescriptors, transformations, pathPrefix, contentTypes, standalone) {
     const descriptors = jsonDescriptors.map(descriptor =>
         createWebResource(descriptor, transformations, pathPrefix, contentTypes, standalone)
     );
     return descriptors.join('');
-};
+}
 
-exports.createTestResourceDescriptors = function(jsonTestDescriptors, transformations) {
+function createTestResourceDescriptors(jsonTestDescriptors, transformations) {
     const testDescriptors = jsonTestDescriptors.map(descriptor => createWebResource(descriptor, transformations));
     return testDescriptors.join('');
-};
+}
 
-exports.createQUnitResourceDescriptors = function(qUnitTestFiles) {
+function createQUnitResourceDescriptors(qUnitTestFiles) {
     return qUnitTestFiles.map(generateQunitResourceElement).join('');
+}
+
+module.exports = {
+    createResourceDescriptors,
+    createTestResourceDescriptors,
+    createQUnitResourceDescriptors,
 };
