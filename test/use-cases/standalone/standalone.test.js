@@ -1,5 +1,5 @@
 const assert = require('chai').assert;
-const parse = require('xml-parser');
+const PrettyData = require('pretty-data').pd;
 const webpack = require('webpack');
 const fs = require('fs');
 const path = require('path');
@@ -32,17 +32,21 @@ describe('standalone', function() {
             });
         });
 
-        it('is lean', () => {
+        it('is lean', function() {
             assert.equal(
                 xmlFile,
-                `<bundles>
-  <web-resource key="entrypoint-standalone-1" name="" state="enabled">
-    <resource name="standalone-1.js" type="download" location="standalone-1.js"/>
+                PrettyData.xml(
+                    `
+<bundles>
+  <web-resource key="entrypoint-standalone-1">
+    <resource type="download" name="standalone-1.js" location="standalone-1.js"/>
   </web-resource>
-  <web-resource key="entrypoint-standalone-2" name="" state="enabled">
-    <resource name="standalone-2.js" type="download" location="standalone-2.js"/>
+  <web-resource key="entrypoint-standalone-2">
+    <resource type="download" name="standalone-2.js" location="standalone-2.js"/>
   </web-resource>
-</bundles>`
+</bundles>
+`
+                ).trim()
             );
         });
     });

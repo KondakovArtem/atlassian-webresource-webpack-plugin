@@ -13,6 +13,10 @@ describe('specify-explicit-webresource-name', function() {
     let stats;
     let wrNodes;
 
+    function findWrEndingWith(key) {
+        return wrNodes.find(n => n.attributes.key.endsWith(key));
+    }
+
     beforeEach(done => {
         webpack(config, (err, st) => {
             stats = st;
@@ -31,33 +35,57 @@ describe('specify-explicit-webresource-name', function() {
     });
 
     it('should create a webresource with an explicit name when it is mapped in config', () => {
-        let expected = wrNodes.find(n => n.attributes.key === 'legacy-name-for-app');
-        assert.notEqual(
-            expected,
-            null,
-            'a web-resource should exist with the name "legacy-name-for-app" based on our webpack config.'
+        let node = findWrEndingWith('mapped-with-string');
+        assert.exists(node);
+        assert.propertyVal(node.attributes, 'key', 'customkey-mapped-with-string');
+    });
+
+    it('should create a webresource with an explicit key when it is mapped in config', () => {
+        let node = findWrEndingWith('mapped-with-object');
+        assert.exists(node);
+        assert.propertyVal(node.attributes, 'key', 'customkey-mapped-with-object');
+    });
+
+    it('should create a webresource with an explicit name when it is mapped in config', () => {
+        let node = findWrEndingWith('mapped-with-object-with-only-name');
+        assert.exists(node);
+        assert.property(
+            node.attributes,
+            'key',
+            'entrypoint-app-good-mapped-with-object-with-only-name',
+            'no "key" was provided so should be auto-generated'
+        );
+        assert.propertyVal(
+            node.attributes,
+            'name',
+            'Legacy Name for App 2',
+            'should use the configured value for "name"'
         );
     });
 
     it('should create a webresource with an explicit key and name when it is mapped in config', () => {
-        let node = wrNodes.filter(n => n.attributes.key === 'app-key');
-        assert.equal(node.length, 1);
-        assert.equal(node[0].attributes.key, 'app-key');
-        assert.equal(node[0].attributes.name, '');
-    });
-
-    it('should create a webresource with an explicit key and name when it is mapped in config', () => {
-        let nodeWithNameAttr = wrNodes.filter(n => n.attributes.key === 'app-key-with-name');
-        assert.equal(nodeWithNameAttr.length, 1);
-        assert.equal(nodeWithNameAttr[0].attributes.key, 'app-key-with-name');
-        assert.equal(nodeWithNameAttr[0].attributes.name, 'Legacy Name for App');
+        let node = findWrEndingWith('mapped-with-object-with-name');
+        assert.exists(node);
+        assert.propertyVal(
+            node.attributes,
+            'key',
+            'customkey-mapped-with-object-with-name',
+            'should use the configured value for "key"'
+        );
+        assert.propertyVal(
+            node.attributes,
+            'name',
+            'Legacy Name for App 1',
+            'should use the configured value for "name"'
+        );
     });
 
     it('should auto-generate the name if there is no config provided', () => {
-        let goodNodes = wrNodes.filter(n => n.attributes.key.startsWith('entrypoint-app-good'));
-        assert.equal(goodNodes.length, 1);
-        assert.equal(
-            goodNodes[0].attributes.key,
+        let node = findWrEndingWith('app-good-autonamed');
+        assert.exists(node);
+        assert.propertyVal(
+            node.attributes,
+            'key',
             'entrypoint-app-good-autonamed',
             'there was no mapping for this web-resource, so the key is auto-generated'
         );
@@ -66,13 +94,15 @@ describe('specify-explicit-webresource-name', function() {
     it('should auto-generate the name when the supplied value is not a string', () => {
         let badNodes = wrNodes.filter(n => n.attributes.key.startsWith('entrypoint-app-bad'));
         assert.equal(badNodes.length, 2);
-        assert.equal(
-            badNodes[0].attributes.key,
+        assert.propertyVal(
+            badNodes[0].attributes,
+            'key',
             'entrypoint-app-bad-objectlike',
             'an object is not a string, so the key is auto-generated'
         );
-        assert.equal(
-            badNodes[1].attributes.key,
+        assert.propertyVal(
+            badNodes[1].attributes,
+            'key',
             'entrypoint-app-bad-falsy',
             'falsy values are not strings, so the key is auto-generated'
         );

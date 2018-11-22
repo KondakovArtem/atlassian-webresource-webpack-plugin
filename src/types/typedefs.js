@@ -22,9 +22,17 @@
  */
 
 /**
+ * @typedef {Object} WebResourceAttributes
+ * @property {wrKey} key - the unique identifier for this web-resource.
+ * @property {string} [name] - the human-readable name of the web-resource.
+ * @property {true|false} [state] - whether this web-resource should output its resources at runtime or not.
+ *   If absent, a web-resource is assumed to be enabled.
+ */
+
+/**
  * @typedef {Object} WrmEntrypoint
- * @property {wrKey} key - the unique identifier for this set of resources.
- * @property {true|false} state - whether this web-resource should output its resources at runtime or not.
+ * @description wraps a set of related resources with metadata the WRM can understand and reason about as a discrete unit.
+ * @property {WebResourceAttributes} attributes - the metadata for this web-resource.
  * @property {filepath[]} resources - the locations of all resources directly referenced by this entrypoint's graph.
  * @property {Resource[]} externalResources - a filename and filepath pair for resources
  *   discovered by the WRM plugin's loaders.

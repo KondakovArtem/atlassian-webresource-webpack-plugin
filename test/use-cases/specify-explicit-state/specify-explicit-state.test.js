@@ -13,6 +13,10 @@ describe('specify-explicit-webresource-state', function() {
     let stats;
     let wrNodes;
 
+    function findWrEndingWith(key) {
+        return wrNodes.find(n => n.attributes.key.endsWith(key));
+    }
+
     beforeEach(done => {
         webpack(config, (err, st) => {
             stats = st;
@@ -30,17 +34,63 @@ describe('specify-explicit-webresource-state', function() {
         assert.equal(stats.hasWarnings(), false);
     });
 
-    it('should create a webresource with an explicit key and state when state was not provided in config', () => {
-        const node = wrNodes.filter(n => n.attributes.key === 'app-key');
-        assert.equal(node.length, 1);
-        assert.equal(node[0].attributes.key, 'app-key');
-        assert.equal(node[0].attributes.state, 'enabled');
+    describe('providing a plain string', () => {
+        it('should create a webresource with an implicit state', () => {
+            const node = findWrEndingWith('plain-string');
+            assert.exists(node);
+            assert.notProperty(
+                node.attributes,
+                'state',
+                'WRM assumes missing state means enabled, so attribute is unneeded'
+            );
+        });
     });
 
-    it('should create a webresource with an explicit key and state when it is mapped in config', () => {
-        let nodeWithNameAttr = wrNodes.filter(node => node.attributes.key === 'app-key-with-state');
-        assert.equal(nodeWithNameAttr.length, 1);
-        assert.equal(nodeWithNameAttr[0].attributes.key, 'app-key-with-state');
-        assert.equal(nodeWithNameAttr[0].attributes.state, 'disabled');
+    describe('providing only a key', () => {
+        it('should create a webresource with an implicit state', () => {
+            const node = findWrEndingWith('only-key');
+            assert.exists(node);
+            assert.notProperty(
+                node.attributes,
+                'state',
+                'WRM assumes missing state means enabled, so attribute is unneeded'
+            );
+        });
+    });
+
+    describe('providing only a state', () => {
+        it('should create a webresource with an explicit state', () => {
+            const node = findWrEndingWith('only-state');
+            assert.exists(node);
+            assert.propertyVal(node.attributes, 'state', 'disabled');
+        });
+
+        it('should interpret a boolean of "true" as enabled', () => {
+            const node = findWrEndingWith('only-state-boolean-enabled');
+            assert.exists(node);
+            assert.propertyVal(node.attributes, 'state', 'enabled');
+        });
+
+        it('should interpret a boolean of "false" as disabled', () => {
+            const node = findWrEndingWith('only-state-boolean-disabled');
+            assert.exists(node);
+            assert.propertyVal(node.attributes, 'state', 'disabled');
+        });
+    });
+
+    describe('providing an explicit key and state', () => {
+        it('should create a webresource with explicit values when the state is "enabled"', () => {
+            const node = findWrEndingWith('key-state-enabled');
+            assert.exists(node);
+            assert.propertyVal(node.attributes, 'key', 'customkey-key-state-enabled');
+            assert.propertyVal(node.attributes, 'state', 'enabled');
+        });
+
+        it('should create a webresource with explicit values when the state is "disabled"', () => {
+            const node = findWrEndingWith('key-state-disabled');
+            assert.exists(node);
+            assert.propertyVal(node.attributes, 'key', 'customkey-key-state-disabled');
+            assert.propertyVal(node.attributes, 'state', 'disabled');
+        });
     });
 });

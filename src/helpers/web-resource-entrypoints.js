@@ -1,19 +1,33 @@
+const { parseWebResourceAttributes } = require('./web-resource-parser');
+
 function getContextForEntry(entry, contextMap) {
     const contexts = [].concat(entry).concat(contextMap[entry]);
     const validContexts = contexts.filter(context => context && typeof context === 'string');
     return validContexts;
 }
 
+/**
+ * @param {String} entry
+ * @param {Object} webresourceKeyMap
+ * @returns {WebResourceAttributes}
+ */
 function getWebresourceAttributesForEntry(entry, webresourceKeyMap) {
     const wrKey = webresourceKeyMap[entry];
-    const wrKeyType = typeof wrKey;
-    if (wrKeyType === 'object' && typeof wrKey.key === 'string') {
-        return { key: wrKey.key, name: wrKey.name, state: wrKey.state };
+
+    // Create the default attribute values
+    let attrs = { key: `entrypoint-${entry}` };
+
+    // Extend the attributes with parsed, valid values
+    if (typeof wrKey === 'object') {
+        attrs = Object.assign(attrs, parseWebResourceAttributes(wrKey));
     }
-    if (!wrKey || wrKeyType !== 'string') {
-        return { key: `entrypoint-${entry}` };
+
+    // Override the key if a non-empty string is provided
+    if (typeof wrKey === 'string') {
+        attrs = Object.assign(attrs, parseWebResourceAttributes({ key: wrKey }));
     }
-    return { key: wrKey };
+
+    return attrs;
 }
 
 function getConditionForEntry(entry, conditionMap) {

@@ -9,6 +9,7 @@ module.exports = {
         'app-good-mapped-with-string': path.join(FRONTEND_SRC_DIR, 'app.js'),
         'app-good-mapped-with-object': path.join(FRONTEND_SRC_DIR, 'app.js'),
         'app-good-mapped-with-object-with-name': path.join(FRONTEND_SRC_DIR, 'app.js'),
+        'app-good-mapped-with-object-with-only-name': path.join(FRONTEND_SRC_DIR, 'app.js'),
         'app-good-autonamed': path.join(FRONTEND_SRC_DIR, 'app.js'),
         'app-bad-objectlike': path.join(FRONTEND_SRC_DIR, 'app.js'),
         'app-bad-falsy': path.join(FRONTEND_SRC_DIR, 'app.js'),
@@ -18,13 +19,16 @@ module.exports = {
             pluginKey: 'com.atlassian.plugin.test',
             xmlDescriptors: path.join(OUTPUT_DIR, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml'),
             webresourceKeyMap: {
-                'app-good-mapped-with-string': 'legacy-name-for-app',
+                'app-good-mapped-with-string': 'customkey-mapped-with-string',
                 'app-good-mapped-with-object': {
-                    key: 'app-key',
+                    key: 'customkey-mapped-with-object',
                 },
                 'app-good-mapped-with-object-with-name': {
-                    key: 'app-key-with-name',
-                    name: 'Legacy Name for App',
+                    key: 'customkey-mapped-with-object-with-name',
+                    name: 'Legacy Name for App 1',
+                },
+                'app-good-mapped-with-object-with-only-name': {
+                    name: 'Legacy Name for App 2',
                 },
                 'app-bad-objectlike': {},
                 'app-bad-falsy': '',

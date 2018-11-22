@@ -1,5 +1,6 @@
 const path = require('path');
 const { renderElement } = require('./xml');
+const { parseWebResourceAttributes } = require('./web-resource-parser');
 const renderCondition = require('../renderCondition');
 const renderTransformation = require('../renderTransformation');
 
@@ -28,8 +29,8 @@ function generateResourceElement(resource, contentTypes) {
     return renderElement(
         'resource',
         {
-            name,
             type: 'download',
+            name,
             location,
         },
         children
@@ -67,9 +68,7 @@ function generateResources(contentTypes, resources) {
  */
 function createWebResource(webresource, transformations, pathPrefix = '', contentTypes = {}, standalone) {
     const { resources = [], externalResources = [], contexts, dependencies, conditions } = webresource;
-    const attributes = webresource.attributes;
-    attributes.name = attributes.name || '';
-    attributes.state = attributes.state || 'enabled';
+    const attributes = parseWebResourceAttributes(webresource.attributes);
     const allResources = [];
     const children = [];
 
