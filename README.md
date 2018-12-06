@@ -7,8 +7,8 @@ in an Atlassian product or plugin.
 
 ## Why?
 
-Atlassian's P2 plugin system was shipped in 2008. At the time, the dependency management
-system in P2 -- the Web Resource Manager, or WRM -- was a godsend for managing the growing
+[Atlassian's P2 plugin system][atlassian-p2] was shipped in 2008. At the time, the dependency management
+system in P2 -- [the Web Resource Manager, or WRM][atlassian-wrm] -- was a godsend for managing the growing
 complexity of the front-end resources. It offered, amongst other things:
 
 * The ability to specify bundles of related resources, called a "web-resource".
@@ -118,6 +118,9 @@ in the `<instruction>` section of the AMPS plugin's build configuration.
 ### Demonstration P2 plugin usage
 
 You can see a demonstration P2 plugin using the webpack plugin here: [sao4fed-bundle-the-ui][101]
+
+* Watch this AtlasCamp 2018 talk which uses this plugin amongst others to make your devloop super fast: https://youtu.be/VamdjcJCc0Y
+* Watch this AtlasCamp 2017 talk about how to build and integrate your own front-end devtooling on top of P2, which introduced the alpha version of this plugin: https://youtu.be/2yf-TzKerVQ?t=537
 
 ## Features
 
@@ -537,31 +540,16 @@ This plugin has been built to work with the following versions of the external b
 
 * Webpack 4+
 * Node 6+ (at P2 plugin build-time)
-* Atlassian Maven Plugin Suite (AMPS) 6.2.11+
+* [Atlassian Maven Plugin Suite (AMPS)][atlassian-amps] 6.2.11+
+* [Atlassian Web Resource Manager (WRM)][atlassian-wrm] 3.0+
 
-## Developing the plugin
 
-### Getting started
-
-#### Prerequisites
-
-* [node](https://nodejs.org/) version should be 6 or above
-  (follow the [Node installation instructions][102]; check with `node -v`)
-* [yarn](https://yarnpkg.com/) should be installed globally
-  (follow the [Yarn installation instructions][103]; check with `yarn --version`)
-
-## Work to do
-
-This is still beta software. The following features are planned:
-
-* Exporting re-consumable modules within generated web-resources (#10)
-* Conversion of `WRM.require` calls in source to async chunk calls (#5)
-* Support for adding web-resource conditions (#2)
-* Webpack HotReload support (requires a server add-on) (#8)
 
 
 
 [101]: https://bitbucket.org/serverecosystem/sao4fed-bundle-the-ui
-[102]: https://docs.npmjs.com/getting-started/installing-node
-[103]: https://yarnpkg.com/lang/en/docs/install/
 [104]: https://bitbucket.org/atlassian/atlassian-qunit-plugin
+[atlassian-sdk]: https://developer.atlassian.com/server/framework/atlassian-sdk
+[atlassian-amps]: https://developer.atlassian.com/server/framework/atlassian-sdk/working-with-maven/#using-the-amps-maven-plugin-directly
+[atlassian-p2]: https://bitbucket.org/atlassian/atlassian-plugins
+[atlassian-wrm]: https://bitbucket.org/atlassian/atlassian-plugins-webresource
