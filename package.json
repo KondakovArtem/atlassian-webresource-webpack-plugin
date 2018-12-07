@@ -39,6 +39,9 @@
     "type": "git",
     "url": "https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin.git"
   },
+  "bugs": {
+    "url": "https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/issues"
+  },
   "dependencies": {
     "glob": "^7.1.2",
     "mkdirp": "^0.5.1",

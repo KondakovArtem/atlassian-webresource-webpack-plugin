@@ -1,5 +1,9 @@
 ## Unreleased
-* **[New]**: Added a new `locationPrefix` configuration option, intended to use when webpack's output will be in a sub-directory of the ultimate plugin's root directory.
+
+
+## 4.0.0 (December 7, 2018)
+* feature: Added a new `locationPrefix` configuration option, intended to use when webpack's output will be in a sub-directory of the ultimate plugin's root directory.
+    * [@dluksza](https://bitbucket.org/dluksza) in [PR #56](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/56) and [PR #67](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/67).
 * **[BREAKING]**: The way that compiled output works has changed.
     * No special handling occurs for Maven-based project output directories (i.e., `target/classes`).
     * It is now assumed that your webpack output is placed in the root of your plugin.
@@ -16,8 +20,10 @@
 * Assets will be added to the correct web-resources when using the `mini-css-extract-plugin` v0.4.3 and higher (fixes #52).
 
 ## 3.1.0 (November 12, 2018)
-* **[BREAKING]**: Passing the custom `transformationMap` will no longer extend the default transformations. You can use the `WrmPlugin.extendTransformations(customTransformationMap)` function to extend the default transformers with a custom mapping.
-* **[New]**: Allow to completely disable all the transformations by passing a `false` value to the `transformationMap` config.
+* feature: Allow to completely disable all the transformations by passing a `false` value to the `transformationMap` config.
+    * [@maciej-adamczak](https://bitbucket.org/maciej-adamczak) in [PR #59](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/59)
+* **[BREAKING]**: Passing the custom `transformationMap` will no longer extend the default transformations.
+    * You can use the `WrmPlugin.extendTransformations(customTransformationMap)` function to extend the default transformers with a custom mapping.
 
 ## 3.0.0 (September 3, 2018)
 * expose "prepare"-step for watch-mode as explicit flag, instead of assuming anything at runtime.
