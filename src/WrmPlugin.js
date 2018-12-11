@@ -66,6 +66,7 @@ class WrmPlugin {
      * @param {Object} options.webresourceKeyMap - Optional map of an explicit name for the web-resource generated per entry point. e.g.: {\n\t"my-entry": "legacy-webresource-name"\n}
      * @param {Object} options.providedDependencies - Map of provided dependencies. If somewhere in the code this dependency is required, it will not be bundled but instead replaced with the specified placeholder.
      * @param {String} options.xmlDescriptors - Path to the directory where this plugin stores the descriptors about this plugin, used by the WRM to load your frontend code.
+     * @param {String} options.manifestPath - Optional path to the manifest file where this plugin stores the mapping of modules to generated web-resources. e.g.: {\n\t"my-entry": "com.example.app:entrypoint-my-entry"\n}. Useful if you set { output: { library, libraryTarget } } in your webpack config, to use your build result as provided dependencies for other builds.
      * @param {String} options.assetContentTypes - Specific content-types to be used for certain asset types. Will be added as '<param name="content-type"...' to the resource of the asset.
      * @param {String} [options.locationPrefix=''] - Specify the sub-directory for all web-resource location values.
      * @param {String} options.watch - Trigger watch mode - this requires webpack-dev-server and will redirect requests to the entrypoints to the dev-server that must be running under webpacks "options.output.publicPath"
@@ -319,10 +320,11 @@ ${standardScript}`;
             const testResourcesGenerator = new QUnitTestResources(this.assetUUID, this.options, compiler, compilation);
 
             const webResources = [];
+            const entryPointsResourceDescriptors = appResourceGenerator.getEntryPointsResourceDescriptors();
 
             const resourceDescriptors = createResourceDescriptors(
                 this.options.standalone
-                    ? appResourceGenerator.getEntryPointsResourceDescriptors()
+                    ? entryPointsResourceDescriptors
                     : appResourceGenerator.getResourceDescriptors(),
                 this.options.transformationMap,
                 pathPrefix,
@@ -348,10 +350,41 @@ ${standardScript}`;
 
             const xmlDescriptors = PrettyData.xml(`<bundles>${webResources.join('')}</bundles>`);
             const xmlDescriptorWebpackPath = path.relative(outputPath, this.options.xmlDescriptors);
+
             compilation.assets[xmlDescriptorWebpackPath] = {
                 source: () => new Buffer(xmlDescriptors),
                 size: () => Buffer.byteLength(xmlDescriptors),
             };
+
+            if (this.options.manifestPath && compiler.options.output.library && compiler.options.output.libraryTarget) {
+                const libraryTarget = compiler.options.output.libraryTarget;
+
+                if (libraryTarget === 'amd') {
+                    const manifestMapping = entryPointsResourceDescriptors
+                        .filter(({ attributes }) => attributes.moduleId)
+                        .reduce((result, { attributes: { key, moduleId } }) => {
+                            result[moduleId] = {
+                                dependency: `${this.options.pluginKey}:${key}`,
+                                import: {
+                                    var: `require('${moduleId}')`,
+                                    amd: moduleId,
+                                },
+                            };
+                            return result;
+                        }, {});
+                    const manifestJSON = JSON.stringify(manifestMapping, null, 4);
+                    const manifestWebpackPath = path.relative(outputPath, this.options.manifestPath);
+
+                    compilation.assets[manifestWebpackPath] = {
+                        source: () => new Buffer(manifestJSON),
+                        size: () => Buffer.byteLength(manifestJSON),
+                    };
+                } else {
+                    logger.error(
+                        `Could not create manifest mapping. LibraryTarget '${libraryTarget}' is not supported.`
+                    );
+                }
+            }
 
             if (this.options.watch && this.options.watchPrepare) {
                 const entrypointDescriptors = appResourceGenerator.getResourceDescriptors();

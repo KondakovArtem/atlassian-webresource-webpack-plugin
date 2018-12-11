@@ -478,6 +478,26 @@ When your code is compiled through webpack, any occurrence of `dependency-name` 
 statement will be replaced in the webpack output, and an appropriate web-resource `<dependency>` will be
 added to the generated web-resource.
 
+
+### `manifestPath` (Optional)
+
+A path to a manifest file where the plugin will store a map of objects, including the generated web-resource keys.
+This map is the exact same format that is accepted with `providedDependencies`,
+so one can use this map as a source for `providedDependencies` in another build:
+
+```json
+{
+  "dependency-name": {
+    "dependency": "atlassian.plugin.key:webresource-key",
+    "import": {
+      "var": "require('dependency-amd-module-name')",
+      "amd": "dependency-amd-module-name"
+    }
+  }
+}
+```
+
+
 ### `assetContentTypes` (Optional)
 
 An object specifying content-types the server should respond with for a certain assets file-type (e.g. images/fonts):

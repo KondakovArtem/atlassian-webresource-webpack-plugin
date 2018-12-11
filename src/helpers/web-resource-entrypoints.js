@@ -15,7 +15,7 @@ function getWebresourceAttributesForEntry(entry, webresourceKeyMap) {
     const wrKey = webresourceKeyMap[entry];
 
     // Create the default attribute values
-    let attrs = { key: `entrypoint-${entry}` };
+    let attrs = { key: `entrypoint-${entry}`, moduleId: entry };
 
     // Extend the attributes with parsed, valid values
     if (typeof wrKey === 'object') {
