@@ -479,9 +479,9 @@ statement will be replaced in the webpack output, and an appropriate web-resourc
 added to the generated web-resource.
 
 
-### `manifestPath` (Optional)
+### `wrmManifestPath` (Optional)
 
-A path to a manifest file where the plugin will store a map of objects, including the generated web-resource keys.
+A path to a WRM manifest file where the plugin will store a map of objects, including the generated web-resource keys.
 This map is the exact same format that is accepted with `providedDependencies`,
 so one can use this map as a source for `providedDependencies` in another build:
 

@@ -66,7 +66,7 @@ class WrmPlugin {
      * @param {Object} options.webresourceKeyMap - Optional map of an explicit name for the web-resource generated per entry point. e.g.: {\n\t"my-entry": "legacy-webresource-name"\n}
      * @param {Object} options.providedDependencies - Map of provided dependencies. If somewhere in the code this dependency is required, it will not be bundled but instead replaced with the specified placeholder.
      * @param {String} options.xmlDescriptors - Path to the directory where this plugin stores the descriptors about this plugin, used by the WRM to load your frontend code.
-     * @param {String} options.manifestPath - Optional path to the manifest file where this plugin stores the mapping of modules to generated web-resources. e.g.: {\n\t"my-entry": "com.example.app:entrypoint-my-entry"\n}. Useful if you set { output: { library, libraryTarget } } in your webpack config, to use your build result as provided dependencies for other builds.
+     * @param {String} options.wrmManifestPath - Optional path to the WRM manifest file where this plugin stores the mapping of modules to generated web-resources. e.g.: {\n\t"my-entry": "com.example.app:entrypoint-my-entry"\n}. Useful if you set { output: { library, libraryTarget } } in your webpack config, to use your build result as provided dependencies for other builds.
      * @param {String} options.assetContentTypes - Specific content-types to be used for certain asset types. Will be added as '<param name="content-type"...' to the resource of the asset.
      * @param {String} [options.locationPrefix=''] - Specify the sub-directory for all web-resource location values.
      * @param {String} options.watch - Trigger watch mode - this requires webpack-dev-server and will redirect requests to the entrypoints to the dev-server that must be running under webpacks "options.output.publicPath"
@@ -356,11 +356,15 @@ ${standardScript}`;
                 size: () => Buffer.byteLength(xmlDescriptors),
             };
 
-            if (this.options.manifestPath && compiler.options.output.library && compiler.options.output.libraryTarget) {
+            if (
+                this.options.wrmManifestPath &&
+                compiler.options.output.library &&
+                compiler.options.output.libraryTarget
+            ) {
                 const libraryTarget = compiler.options.output.libraryTarget;
 
                 if (libraryTarget === 'amd') {
-                    const manifestMapping = entryPointsResourceDescriptors
+                    const wrmManifestMapping = entryPointsResourceDescriptors
                         .filter(({ attributes }) => attributes.moduleId)
                         .reduce((result, { attributes: { key, moduleId } }) => {
                             result[moduleId] = {
@@ -372,12 +376,12 @@ ${standardScript}`;
                             };
                             return result;
                         }, {});
-                    const manifestJSON = JSON.stringify(manifestMapping, null, 4);
-                    const manifestWebpackPath = path.relative(outputPath, this.options.manifestPath);
+                    const wrmManifestJSON = JSON.stringify(wrmManifestMapping, null, 4);
+                    const wrmManifestWebpackPath = path.relative(outputPath, this.options.wrmManifestPath);
 
-                    compilation.assets[manifestWebpackPath] = {
-                        source: () => new Buffer(manifestJSON),
-                        size: () => Buffer.byteLength(manifestJSON),
+                    compilation.assets[wrmManifestWebpackPath] = {
+                        source: () => new Buffer(wrmManifestJSON),
+                        size: () => Buffer.byteLength(wrmManifestJSON),
                     };
                 } else {
                     logger.error(

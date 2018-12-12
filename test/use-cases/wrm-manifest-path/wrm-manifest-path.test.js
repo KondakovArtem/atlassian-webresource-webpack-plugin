@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 const targetDir = path.join(__dirname, 'target');
-const manifestOutput = path.join(targetDir, 'manifest.json');
+const wrmManifestOutput = path.join(targetDir, 'manifest.json');
 
 describe('manifest-path', function() {
     let config = require('./webpack.config.js');
@@ -17,7 +17,7 @@ describe('manifest-path', function() {
             }
             assert.equal(stats.hasErrors(), false);
             assert.equal(stats.hasWarnings(), false);
-            assert.equal(fs.existsSync(manifestOutput), true);
+            assert.equal(fs.existsSync(wrmManifestOutput), true);
             done();
         });
     });
@@ -28,17 +28,17 @@ describe('manifest-path', function() {
                 throw err;
             }
 
-            const manifest = require(manifestOutput);
-            const entries = Object.getOwnPropertyNames(manifest);
+            const wrmManifest = require(wrmManifestOutput);
+            const entries = Object.getOwnPropertyNames(wrmManifest);
             assert.equal(entries.length, 2);
 
-            assert.equal(manifest.app.dependency, 'com.atlassian.plugin.test:entrypoint-app');
-            assert.equal(manifest.app.import.var, `require('app')`);
-            assert.equal(manifest.app.import.amd, 'app');
+            assert.equal(wrmManifest.app.dependency, 'com.atlassian.plugin.test:entrypoint-app');
+            assert.equal(wrmManifest.app.import.var, `require('app')`);
+            assert.equal(wrmManifest.app.import.amd, 'app');
 
-            assert.equal(manifest.app2.dependency, 'com.atlassian.plugin.test:app2-custom-entrypoint-name');
-            assert.equal(manifest.app2.import.var, `require('app2')`);
-            assert.equal(manifest.app2.import.amd, 'app2');
+            assert.equal(wrmManifest.app2.dependency, 'com.atlassian.plugin.test:app2-custom-entrypoint-name');
+            assert.equal(wrmManifest.app2.import.var, `require('app2')`);
+            assert.equal(wrmManifest.app2.import.amd, 'app2');
 
             done();
         });

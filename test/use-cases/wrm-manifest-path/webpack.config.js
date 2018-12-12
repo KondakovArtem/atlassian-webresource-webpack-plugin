@@ -14,7 +14,7 @@ module.exports = {
             pluginKey: 'com.atlassian.plugin.test',
             xmlDescriptors: path.join(OUTPUT_DIR, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml'),
             verbose: false,
-            manifestPath: path.join(OUTPUT_DIR, 'manifest.json'),
+            wrmManifestPath: path.join(OUTPUT_DIR, 'manifest.json'),
             webresourceKeyMap: { app2: 'app2-custom-entrypoint-name' },
         }),
     ],
