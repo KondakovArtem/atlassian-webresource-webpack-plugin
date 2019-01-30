@@ -1,11 +1,16 @@
-const assert = require('chai').assert;
+const chai = require('chai');
 const parse = require('xml-parser');
 const webpack = require('webpack');
 const fs = require('fs');
 const path = require('path');
 
+chai.use(require('chai-uuid'));
+const assert = chai.assert;
+
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
+
+const uuidLength = require('uuid/v4')().length;
 
 describe('split-chunks-with-tests', function() {
     this.timeout(10000);
@@ -131,11 +136,18 @@ describe('split-chunks-with-tests', function() {
         });
 
         it('should contain the resources as specified in its entry point - including those from split chunks', () => {
-            assert.strictEqual(
-                resourcesTestApp[0],
-                'qunit-require-shim-DEV_PSEUDO_HASH.js',
-                'expected resource not found'
+            const extLength = 3;
+
+            const assetsResourceKeyApp1 = resourcesTestApp[0];
+            const assetsResourcePrefixApp1 = assetsResourceKeyApp1.substr(
+                0,
+                assetsResourceKeyApp1.length - uuidLength - extLength
             );
+            const assetsResourceUuidApp1 = assetsResourceKeyApp1.substr(-(uuidLength + extLength), uuidLength);
+
+            assert.strictEqual(assetsResourcePrefixApp1, 'qunit-require-shim-', 'expected resource not found');
+            assert.uuid(assetsResourceUuidApp1, 'v4', 'expected resource not found');
+
             assert.strictEqual(
                 resourcesTestApp[1],
                 'test/use-cases/split-chunks-with-tests/src/bar.js',
@@ -152,11 +164,16 @@ describe('split-chunks-with-tests', function() {
                 'expected resource not found'
             );
 
-            assert.strictEqual(
-                resourcesTestApp2[0],
-                'qunit-require-shim-DEV_PSEUDO_HASH.js',
-                'expected resource not found'
+            const assetsResourceKeyApp2 = resourcesTestApp[0];
+            const assetsResourcePrefixApp2 = assetsResourceKeyApp2.substr(
+                0,
+                assetsResourceKeyApp2.length - uuidLength - extLength
             );
+            const assetsResourceUuidApp2 = assetsResourceKeyApp2.substr(-(uuidLength + extLength), uuidLength);
+
+            assert.strictEqual(assetsResourcePrefixApp2, 'qunit-require-shim-', 'expected resource not found');
+            assert.uuid(assetsResourceUuidApp2, 'v4', 'expected resource not found');
+
             assert.strictEqual(
                 resourcesTestApp2[1],
                 'test/use-cases/split-chunks-with-tests/src/bar.js',

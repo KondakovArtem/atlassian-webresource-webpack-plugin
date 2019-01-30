@@ -9,11 +9,11 @@ const WebpackHelpers = require('./WebpackHelpers');
 
 const RESOURCE_JOINER = '__RESOURCE__JOINER__';
 module.exports = class QUnitTestResources {
-    constructor(assetUUID, options, compiler, compilation) {
+    constructor(assetsUUID, options, compiler, compilation) {
         this.options = options;
         this.compiler = compiler;
         this.compilation = compilation;
-        this.qunitRequireMockPath = `qunit-require-shim-${assetUUID}.js`;
+        this.qunitRequireMockPath = `qunit-require-shim-${assetsUUID}.js`;
     }
 
     createAllFileTestWebResources() {

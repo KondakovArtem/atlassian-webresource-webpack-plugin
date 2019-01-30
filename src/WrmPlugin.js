@@ -20,6 +20,7 @@ const PrettyData = require('pretty-data').pd;
 const uuidv4Gen = require('uuid/v4');
 const fs = require('fs');
 const mkdirp = require('mkdirp');
+const once = require('lodash.once');
 const urlJoin = require('url-join');
 
 const {
@@ -119,9 +120,18 @@ class WrmPlugin {
             transformationMap === false ? {} : transformationMap
         );
 
-        // generate an asset uuid per build - this is used to ensure we have a new "cache" for our assets per build.
-        // As JIRA-Server does not "rebuild" too often, this can be considered reasonable.
-        this.assetUUID = process.env.NODE_ENV === 'production' ? uuidv4Gen() : 'DEV_PSEUDO_HASH';
+        this.getAssetsUUID = once(this.getAssetsUUID.bind(this));
+    }
+
+    /**
+     * Generate an asset uuid per build - this is used to ensure we have a new "cache" for our assets per build.
+     * As JIRA-Server does not "rebuild" too often, this can be considered reasonable.
+     *
+     * @param   {Boolean}   isProduction    Is webpack running in production mode
+     * @returns {String}                    Unique hash ID
+     */
+    getAssetsUUID(isProduction) {
+        return isProduction ? uuidv4Gen() : 'DEV_PSEUDO_HASH';
     }
 
     ensureTransformationsAreUnique(transformations) {
@@ -157,19 +167,21 @@ An automated jsonpFunction name for this plugin was created:
     }
 
     overwritePublicPath(compiler) {
-        const that = this;
+        const isProductionMode = WebpackHelpers.isRunningInProductionMode(compiler);
+
         compiler.hooks.compilation.tap('OverwritePublicPath Compilation', compilation => {
-            compilation.mainTemplate.hooks.requireExtensions.tap('OverwritePublicPath Require-Extensions', function(
-                standardScript
-            ) {
-                return `${standardScript}
+            compilation.mainTemplate.hooks.requireExtensions.tap(
+                'OverwritePublicPath Require-Extensions',
+                standardScript => {
+                    return `${standardScript}
 if (typeof AJS !== "undefined") {
     ${compilation.mainTemplate.requireFn}.p = AJS.contextPath() + "/download/resources/${
-                    that.options.pluginKey
-                }:assets-${that.assetUUID}/";
+                        this.options.pluginKey
+                    }:assets-${this.getAssetsUUID(isProductionMode)}/";
 }
 `;
-            });
+                }
+            );
         });
     }
 
@@ -293,6 +305,9 @@ ${standardScript}`;
 
         this.assetNames = new Map();
 
+        const isProductionMode = WebpackHelpers.isRunningInProductionMode(compiler);
+        const assetsUUID = this.getAssetsUUID(isProductionMode);
+
         // Generate a 1:1 mapping from original filenames to compiled filenames
         compiler.hooks.compilation.tap('wrm plugin setup phase', compilation => {
             compilation.hooks.normalModuleLoader.tap('wrm plugin - normal module', (loaderContext, module) => {
@@ -310,13 +325,13 @@ ${standardScript}`;
         compiler.hooks.emit.tapAsync('wrm plugin emit phase', (compilation, callback) => {
             const pathPrefix = extractPathPrefixForXml(this.options.locationPrefix);
             const appResourceGenerator = new AppResources(
-                this.assetUUID,
+                assetsUUID,
                 this.assetNames,
                 this.options,
                 compiler,
                 compilation
             );
-            const testResourcesGenerator = new QUnitTestResources(this.assetUUID, this.options, compiler, compilation);
+            const testResourcesGenerator = new QUnitTestResources(assetsUUID, this.options, compiler, compilation);
 
             const webResources = [];
 

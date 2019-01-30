@@ -10,8 +10,8 @@ const { getBaseContexts } = require('./settings/base-contexts');
 const RUNTIME_WR_KEY = 'common-runtime';
 
 module.exports = class AppResources {
-    constructor(assetUUID, assetNames, options, compiler, compilation) {
-        this.assetUUID = assetUUID;
+    constructor(assetsUUID, assetNames, options, compiler, compilation) {
+        this.assetsUUID = assetsUUID;
         this.assetNames = assetNames;
         this.options = options;
         this.compiler = compiler;
@@ -32,7 +32,7 @@ module.exports = class AppResources {
         const assetFiles = Object.keys(this.compilation.assets).filter(p => !/\.(js|css|soy)(\.map)?$/.test(p)); // remove anything that we know is handled differently
 
         const assets = {
-            attributes: { key: `assets-${this.assetUUID}` },
+            attributes: { key: `assets-${this.assetsUUID}` },
             resources: assetFiles,
         };
 

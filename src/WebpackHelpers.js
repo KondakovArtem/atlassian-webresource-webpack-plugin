@@ -150,4 +150,16 @@ This might be worth looking into as it could be an issue.
     static getChunkIdentifier(chunk) {
         return chunk.name || chunk.id;
     }
+
+    /**
+     * Checks if webpack compiler is running in production mode
+     *
+     * @param   {Object}    compiler    Webpack compiler
+     * @returns {Boolean}               Returns true if webpack is running in production mode, false otherwise
+     */
+    static isRunningInProductionMode(compiler) {
+        const { options } = compiler;
+
+        return Boolean(options.mode && options.mode === 'production');
+    }
 };
