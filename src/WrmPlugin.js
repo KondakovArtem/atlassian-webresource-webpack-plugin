@@ -280,9 +280,6 @@ ${standardScript}`;
         if (this.options.noWRM) {
             return false;
         }
-        if (this.options.watch) {
-            return false;
-        }
 
         return true;
     }
