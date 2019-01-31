@@ -28,6 +28,7 @@ const {
     createTestResourceDescriptors,
 } = require('./helpers/web-resource-generator');
 const { extractPathPrefixForXml } = require('./helpers/options-parser');
+const { providedDependencies } = require('./helpers/provided-dependencies');
 
 const ProvidedExternalDependencyModule = require('./webpack-modules/ProvidedExternalDependencyModule');
 const WrmDependencyModule = require('./webpack-modules/WrmDependencyModule');
@@ -356,38 +357,45 @@ ${standardScript}`;
                 size: () => Buffer.byteLength(xmlDescriptors),
             };
 
-            if (
-                this.options.wrmManifestPath &&
-                compiler.options.output.library &&
-                compiler.options.output.libraryTarget
-            ) {
-                const libraryTarget = compiler.options.output.libraryTarget;
+            if (this.options.wrmManifestPath) {
+                const { library, libraryTarget } = compiler.options.output;
+                if (!library || !libraryTarget) {
+                    logger.error(
+                        'Can only use wrmManifestPath in conjunction with output.library and output.libraryTarget'
+                    );
+                    return;
+                }
 
-                if (libraryTarget === 'amd') {
-                    const wrmManifestMapping = entryPointsResourceDescriptors
-                        .filter(({ attributes }) => attributes.moduleId)
-                        .reduce((result, { attributes: { key, moduleId } }) => {
-                            result[moduleId] = {
-                                dependency: `${this.options.pluginKey}:${key}`,
-                                import: {
-                                    var: `require('${moduleId}')`,
-                                    amd: moduleId,
-                                },
-                            };
-                            return result;
-                        }, {});
-                    const wrmManifestJSON = JSON.stringify(wrmManifestMapping, null, 4);
-                    const wrmManifestWebpackPath = path.relative(outputPath, this.options.wrmManifestPath);
-
-                    compilation.assets[wrmManifestWebpackPath] = {
-                        source: () => new Buffer(wrmManifestJSON),
-                        size: () => Buffer.byteLength(wrmManifestJSON),
-                    };
-                } else {
+                if (libraryTarget !== 'amd') {
                     logger.error(
                         `Could not create manifest mapping. LibraryTarget '${libraryTarget}' is not supported.`
                     );
+                    return;
                 }
+
+                const wrmManifestMapping = entryPointsResourceDescriptors
+                    .filter(({ attributes }) => attributes.moduleId)
+                    .reduce((result, { attributes: { key: resourceKey, moduleId } }) => {
+                        const libraryName = compilation.mainTemplate.getAssetPath(compiler.options.output.library, {
+                            chunk: { name: moduleId },
+                        });
+
+                        result[moduleId] = providedDependencies(
+                            this.options.pluginKey,
+                            resourceKey,
+                            `require('${libraryName}')`,
+                            libraryName
+                        );
+
+                        return result;
+                    }, {});
+                const wrmManifestJSON = JSON.stringify(wrmManifestMapping, null, 4);
+                const wrmManifestWebpackPath = path.relative(outputPath, this.options.wrmManifestPath);
+
+                compilation.assets[wrmManifestWebpackPath] = {
+                    source: () => new Buffer(wrmManifestJSON),
+                    size: () => Buffer.byteLength(wrmManifestJSON),
+                };
             }
 
             if (this.options.watch && this.options.watchPrepare) {

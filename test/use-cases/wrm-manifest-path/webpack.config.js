@@ -21,7 +21,7 @@ module.exports = {
     output: {
         filename: '[name].js',
         path: OUTPUT_DIR,
-        library: '[name]',
+        library: '[name]-with-a-custom-library-name',
         libraryTarget: 'amd',
     },
 };

@@ -497,6 +497,22 @@ so one can use this map as a source for `providedDependencies` in another build:
 }
 ```
 
+#### Notes and limitations
+
+* Both `output.library` and `output.libraryTarget` must be set
+* `output.library` must not contain \[chunk\] or \[hash\], however \[name\] is allowed
+* `output.libraryTarget` must be set to `amd`
+
+#### Example configuration
+
+```json
+{
+    output: {
+        library: "[name]",
+        libraryTarget: "amd"
+    }
+}
+```
 
 ### `assetContentTypes` (Optional)
 
