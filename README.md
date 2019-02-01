@@ -487,11 +487,13 @@ so one can use this map as a source for `providedDependencies` in another build:
 
 ```json
 {
-  "dependency-name": {
-    "dependency": "atlassian.plugin.key:webresource-key",
-    "import": {
-      "var": "require('dependency-amd-module-name')",
-      "amd": "dependency-amd-module-name"
+  providedDependencies: {
+    "dependency-name": {
+      "dependency": "atlassian.plugin.key:webresource-key",
+      "import": {
+        "var": "require('dependency-amd-module-name')",
+        "amd": "dependency-amd-module-name"
+      }
     }
   }
 }

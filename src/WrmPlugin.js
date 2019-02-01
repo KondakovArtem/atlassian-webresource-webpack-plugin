@@ -389,7 +389,7 @@ ${standardScript}`;
 
                         return result;
                     }, {});
-                const wrmManifestJSON = JSON.stringify(wrmManifestMapping, null, 4);
+                const wrmManifestJSON = JSON.stringify({ providedDependencies: wrmManifestMapping }, null, 4);
                 const wrmManifestWebpackPath = path.relative(outputPath, this.options.wrmManifestPath);
 
                 compilation.assets[wrmManifestWebpackPath] = {

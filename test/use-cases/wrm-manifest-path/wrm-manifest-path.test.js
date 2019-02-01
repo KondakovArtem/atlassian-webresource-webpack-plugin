@@ -28,7 +28,7 @@ describe('wrm-manifest-path', function() {
                 throw err;
             }
 
-            const wrmManifest = require(wrmManifestOutput);
+            const wrmManifest = require(wrmManifestOutput).providedDependencies;
             const entries = Object.getOwnPropertyNames(wrmManifest);
             assert.equal(entries.length, 2);
             assert.equal(wrmManifest.app.dependency, 'com.atlassian.plugin.test:entrypoint-app');
@@ -44,7 +44,7 @@ describe('wrm-manifest-path', function() {
                 throw err;
             }
 
-            const wrmManifest = require(wrmManifestOutput);
+            const wrmManifest = require(wrmManifestOutput).providedDependencies;
             assert.equal(wrmManifest.app.import.var, `require('app-with-a-custom-library-name')`);
             assert.equal(wrmManifest.app.import.amd, 'app-with-a-custom-library-name');
 
