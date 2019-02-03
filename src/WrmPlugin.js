@@ -368,7 +368,7 @@ ${standardScript}`;
 
                 if (libraryTarget !== 'amd') {
                     logger.error(
-                        `Could not create manifest mapping. LibraryTarget '${libraryTarget}' is not supported.`
+                        `Could not create manifest mapping. LibraryTarget '${libraryTarget}' is not supported. Use 'amd'`
                     );
                     return;
                 }
