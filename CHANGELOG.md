@@ -1,11 +1,9 @@
-## Unreleased
-
-
 ## 4.0.1 (January 30, 2019)
 * Assets hash UUID is correctly generated for production (fixes #59).
     * [@maciej-adamczak](https://bitbucket.org/maciej-adamczak) in [PR #70](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/70)
 * Fixed a bug in watch mode with provided dependencies, dynamic imports, and named chunks.
     * [@maciej-adamczak](https://bitbucket.org/maciej-adamczak) in [PR #71](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/71)
+* **[New]** Added a new `wrmManifestPath` configuration option, which will create a `JSON` file with a map of web-resource keys and the proper way to import them. This JSON file can be used as an input for the `providedDependencies` configuration option, which is particularly useful when stringing together interdependent webpack configurations. See README.md for more details on how to make use of this option.
 
 ## 4.0.0 (December 7, 2018)
 * feature: Added a new `locationPrefix` configuration option, intended to use when webpack's output will be in a sub-directory of the ultimate plugin's root directory.
