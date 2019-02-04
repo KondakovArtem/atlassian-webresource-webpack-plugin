@@ -1,4 +1,4 @@
-## 4.0.1 (January 30, 2019)
+## 4.1.0 (February 4, 2019)
 * Assets hash UUID is correctly generated for production (fixes #59).
     * [@maciej-adamczak](https://bitbucket.org/maciej-adamczak) in [PR #70](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/70)
 * Fixed a bug in watch mode with provided dependencies, dynamic imports, and named chunks.
