@@ -340,8 +340,11 @@ ${standardScript}`;
             const webResources = [];
             const entryPointsResourceDescriptors = appResourceGenerator.getEntryPointsResourceDescriptors();
 
+            // `assetContentTypes` is DEPRECATED. This code block ensures we're backwards compatible, by applying the
+            // specified `assetContentTypes` into the `resourceParamMap`.
+            // This should be removed once we get rid of `assetContentTypes` once and for all.
             if (this.options.assetContentTypes) {
-                logger.error(
+                logger.warn(
                     `Option 'assetContentTypes' is deprecated and will be removed in a future version. Use 'resourceParamMap' instead.`
                 );
 
@@ -355,7 +358,7 @@ ${standardScript}`;
                     const params = this.options.resourceParamMap[fileExtension];
 
                     if (params.find(param => param.name === 'content-type')) {
-                        logger.error(
+                        logger.warn(
                             `There's already a 'content-type' defined for '${fileExtension}' in 'resourceParamMap'. Please stop using 'assetContentTypes'`
                         );
                     } else {
