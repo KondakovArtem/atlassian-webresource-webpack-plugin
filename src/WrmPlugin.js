@@ -106,8 +106,13 @@ class WrmPlugin {
                 webresourceKeyMap: {},
                 providedDependencies: new Map(),
                 verbose: false,
-                assetContentTypes: {
-                    svg: 'image/svg+xml',
+                resourceParamMap: {
+                    svg: [
+                        {
+                            name: 'content-type',
+                            value: 'image/svg+xml',
+                        },
+                    ],
                 },
                 transformationMap: defaultTransformations,
             },
@@ -335,13 +340,37 @@ ${standardScript}`;
             const webResources = [];
             const entryPointsResourceDescriptors = appResourceGenerator.getEntryPointsResourceDescriptors();
 
+            if (this.options.assetContentTypes) {
+                logger.error(
+                    `Option 'assetContentTypes' is deprecated and will be removed in a future version. Use 'resourceParamMap' instead.`
+                );
+
+                Object.keys(this.options.assetContentTypes).forEach(fileExtension => {
+                    const contentType = this.options.assetContentTypes[fileExtension];
+
+                    if (!this.options.resourceParamMap[fileExtension]) {
+                        this.options.resourceParamMap[fileExtension] = [];
+                    }
+
+                    const params = this.options.resourceParamMap[fileExtension];
+
+                    if (params.find(param => param.name === 'content-type')) {
+                        logger.error(
+                            `There's already a 'content-type' defined for '${fileExtension}' in 'resourceParamMap'. Please stop using 'assetContentTypes'`
+                        );
+                    } else {
+                        params.push({ name: 'content-type', value: contentType });
+                    }
+                });
+            }
+
             const resourceDescriptors = createResourceDescriptors(
                 this.options.standalone
                     ? entryPointsResourceDescriptors
                     : appResourceGenerator.getResourceDescriptors(),
                 this.options.transformationMap,
                 pathPrefix,
-                this.options.assetContentTypes,
+                this.options.resourceParamMap,
                 this.options.standalone
             );
             webResources.push(resourceDescriptors);
