@@ -531,21 +531,6 @@ To specify for example content-types the server should respond with for a certai
 }
 ```
 
-To specify a `param` that will be applied to every file-type, use `*`:
-
-```json
-{
-  "resourceParamMap": {
-    "*": [{
-      "name": "source",
-      "value": "webContextStatic"
-    }]
-  }
-}
-```
-
-**Note**: When using `*`, the parameter will be applied to *every* resource, including other file-types declared in the `resourceParamMap` e.g. `svg`.
-
 Setting specific content-types may be required by certain Atlassian products depending on the file-type to load.
 *Contains content-type for svg as "image/svg+xml" by default*
 

@@ -25,10 +25,6 @@ function generateResourceElement(resource, parameterMap) {
     const renderParameters = attributes => children.push(renderElement('param', attributes));
     parameters.forEach(renderParameters);
 
-    // If '*' has been defined in the parameterMap, apply its values to resources of any type.
-    const starParameters = parameterMap['*'] || [];
-    starParameters.forEach(renderParameters);
-
     return renderElement(
         'resource',
         {

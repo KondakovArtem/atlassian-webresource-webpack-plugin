@@ -21,24 +21,6 @@ module.exports = {
             pluginKey: 'com.atlassian.plugin.test',
             xmlDescriptors: path.join(OUTPUT_DIR, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml'),
             verbose: false,
-            resourceParamMap: {
-                svg: [
-                    {
-                        name: 'content-type',
-                        value: 'image/svg+xml',
-                    },
-                    {
-                        name: 'foo',
-                        value: 'bar',
-                    },
-                ],
-                png: [
-                    {
-                        name: 'bar',
-                        value: 'baz',
-                    },
-                ],
-            },
         }),
     ],
     output: {
