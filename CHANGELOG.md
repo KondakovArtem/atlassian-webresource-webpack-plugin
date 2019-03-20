@@ -1,3 +1,10 @@
+## 4.2.0 (March 20, 2019)
+* feature: Added a `resourceParamMap` configuration option that allows adding `<param>` blocks to `<resource>`s.
+    * [@hwiggers](https://bitbucket.org/hwiggers) in [PR #73](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/73)
+* bugfix: the runtime chunk filename now follows the output filename naming pattern (fixes #57).
+    * [@hwiggers](https://bitbucket.org/hwiggers) in [PR #75](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/75)
+* deprecated: The `assetContentTypes` configuration has been replaced by `resourceParamMap`.
+
 ## 4.1.0 (February 4, 2019)
 * Assets hash UUID is correctly generated for production (fixes #59).
     * [@maciej-adamczak](https://bitbucket.org/maciej-adamczak) in [PR #70](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/70)
