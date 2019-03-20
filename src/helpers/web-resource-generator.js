@@ -14,17 +14,16 @@ function generateDependencies(dependencies) {
 
 /**
  * @param {Resource} resource
- * @param {[]} contentTypes
+ * @param parameterMap
  * @returns {string} an XML representation of a {@link Resource}.
  */
-function generateResourceElement(resource, contentTypes) {
+function generateResourceElement(resource, parameterMap) {
     const { name, location } = resource;
-    const assetContentTyp = path.extname(location).substr(1);
-    const contentTypeForAsset = contentTypes[assetContentTyp];
+    const assetContentType = path.extname(location).substr(1);
+    const parameters = parameterMap[assetContentType] || [];
     const children = [];
-    if (contentTypeForAsset) {
-        children.push(renderElement('param', { name: 'content-type', value: contentTypeForAsset }));
-    }
+    const renderParameters = attributes => children.push(renderElement('param', attributes));
+    parameters.forEach(renderParameters);
 
     return renderElement(
         'resource',
@@ -47,14 +46,14 @@ function generateQunitResourceElement(filepath) {
 }
 
 /**
- * @param {[]} contentTypes
+ * @param {[]} parameterMap
  * @param {Resource[]} resources
  * @returns {string} an XML string of all {@link Resource} elements
  */
-function generateResources(contentTypes, resources) {
+function generateResources(parameterMap, resources) {
     return resources
         .filter(r => !!r)
-        .map(resource => generateResourceElement(resource, contentTypes))
+        .map(resource => generateResourceElement(resource, parameterMap))
         .join('\n');
 }
 
@@ -62,11 +61,11 @@ function generateResources(contentTypes, resources) {
  * @param {WrmEntrypoint} webresource
  * @param transformations
  * @param pathPrefix
- * @param contentTypes
+ * @param parameterMap
  * @param standalone
  * @returns {string} an XML representation of the {@link WrmEntrypoint}.
  */
-function createWebResource(webresource, transformations, pathPrefix = '', contentTypes = {}, standalone) {
+function createWebResource(webresource, transformations, pathPrefix = '', parameterMap = {}, standalone) {
     const { resources = [], externalResources = [], contexts, dependencies, conditions } = webresource;
     const attributes = parseWebResourceAttributes(webresource.attributes);
     const allResources = [];
@@ -81,7 +80,7 @@ function createWebResource(webresource, transformations, pathPrefix = '', conten
     );
 
     if (standalone) {
-        children.push(generateResources(contentTypes, allResources));
+        children.push(generateResources(parameterMap, allResources));
     } else {
         // add resources for indirect dependencies (e.g., images extracted from CSS)
         allResources.push(...externalResources);
@@ -89,7 +88,7 @@ function createWebResource(webresource, transformations, pathPrefix = '', conten
             renderTransformation(transformations, allResources),
             generateContext(contexts),
             generateDependencies(dependencies),
-            generateResources(contentTypes, allResources),
+            generateResources(parameterMap, allResources),
             renderCondition(conditions)
         );
     }
@@ -97,9 +96,9 @@ function createWebResource(webresource, transformations, pathPrefix = '', conten
     return renderElement('web-resource', attributes, children);
 }
 
-function createResourceDescriptors(jsonDescriptors, transformations, pathPrefix, contentTypes, standalone) {
+function createResourceDescriptors(jsonDescriptors, transformations, pathPrefix, parameterMap, standalone) {
     const descriptors = jsonDescriptors.map(descriptor =>
-        createWebResource(descriptor, transformations, pathPrefix, contentTypes, standalone)
+        createWebResource(descriptor, transformations, pathPrefix, parameterMap, standalone)
     );
     return descriptors.join('');
 }

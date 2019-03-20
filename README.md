@@ -514,7 +514,29 @@ so one can use this map as a source for `providedDependencies` in another build:
 }
 ```
 
-### `assetContentTypes` (Optional)
+### `resourceParamMap` (Optional)
+
+An object specifying additional parameters (`<param/>`) for `resource`s.
+
+To specify for example content-types the server should respond with for a certain assets file-type (e.g. images/fonts):
+
+```json
+{
+  "resourceParamMap": {
+    "svg": [{
+      "name": "content-type",
+      "value": "image/svg+xml"
+    }]
+  }
+}
+```
+
+Setting specific content-types may be required by certain Atlassian products depending on the file-type to load.
+*Contains content-type for svg as "image/svg+xml" by default*
+
+### `assetContentTypes` (DEPRECATED) (Optional)
+
+> This option is **deprecated** and will be removed in a future version. Please use `resourceParamMap` instead.
 
 An object specifying content-types the server should respond with for a certain assets file-type (e.g. images/fonts):
 
@@ -528,6 +550,7 @@ An object specifying content-types the server should respond with for a certain 
 
 This may be required by certain Atlassian products depending on the file-type to load.
 *Contains content-type for svg as "image/svg+xml" by default*
+
 
 ### `locationPrefix` (Optional)
 

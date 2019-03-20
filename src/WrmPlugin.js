@@ -70,6 +70,7 @@ class WrmPlugin {
      * @param {String} options.xmlDescriptors - Path to the directory where this plugin stores the descriptors about this plugin, used by the WRM to load your frontend code.
      * @param {String} options.wrmManifestPath - Optional path to the WRM manifest file where this plugin stores the mapping of modules to generated web-resources. e.g.: {\n\t"my-entry": "com.example.app:entrypoint-my-entry"\n}. Useful if you set { output: { library, libraryTarget } } in your webpack config, to use your build result as provided dependencies for other builds.
      * @param {String} options.assetContentTypes - Specific content-types to be used for certain asset types. Will be added as '<param name="content-type"...' to the resource of the asset.
+     * @param {Object} options.resourceParamMap - Map of parameters to be added to specific file types.
      * @param {String} [options.locationPrefix=''] - Specify the sub-directory for all web-resource location values.
      * @param {String} options.watch - Trigger watch mode - this requires webpack-dev-server and will redirect requests to the entrypoints to the dev-server that must be running under webpacks "options.output.publicPath"
      * @param {String} options.watchPrepare - In conjunction with watch mode - indicates that only "redirects" to a webserver should be build in this run.
@@ -106,8 +107,13 @@ class WrmPlugin {
                 webresourceKeyMap: {},
                 providedDependencies: new Map(),
                 verbose: false,
-                assetContentTypes: {
-                    svg: 'image/svg+xml',
+                resourceParamMap: {
+                    svg: [
+                        {
+                            name: 'content-type',
+                            value: 'image/svg+xml',
+                        },
+                    ],
                 },
                 transformationMap: defaultTransformations,
             },
@@ -334,6 +340,34 @@ ${standardScript}`;
 
             const webResources = [];
             const entryPointsResourceDescriptors = appResourceGenerator.getEntryPointsResourceDescriptors();
+            const resourceParamMap = Object.assign({}, this.options.resourceParamMap);
+
+            // `assetContentTypes` is DEPRECATED. This code block ensures we're backwards compatible, by applying the
+            // specified `assetContentTypes` into the `resourceParamMap`.
+            // This should be removed once we get rid of `assetContentTypes` once and for all.
+            if (this.options.assetContentTypes) {
+                logger.warn(
+                    `Option 'assetContentTypes' is deprecated and will be removed in a future version. Use 'resourceParamMap' instead. See README for further instructions.`
+                );
+
+                Object.keys(this.options.assetContentTypes).forEach(fileExtension => {
+                    const contentType = this.options.assetContentTypes[fileExtension];
+
+                    if (!resourceParamMap[fileExtension]) {
+                        resourceParamMap[fileExtension] = [];
+                    }
+
+                    const params = resourceParamMap[fileExtension];
+
+                    if (params.find(param => param.name === 'content-type')) {
+                        logger.warn(
+                            `There's already a 'content-type' defined for '${fileExtension}' in 'resourceParamMap'. Please stop using 'assetContentTypes'`
+                        );
+                    } else {
+                        params.push({ name: 'content-type', value: contentType });
+                    }
+                });
+            }
 
             const resourceDescriptors = createResourceDescriptors(
                 this.options.standalone
@@ -341,7 +375,7 @@ ${standardScript}`;
                     : appResourceGenerator.getResourceDescriptors(),
                 this.options.transformationMap,
                 pathPrefix,
-                this.options.assetContentTypes,
+                resourceParamMap,
                 this.options.standalone
             );
             webResources.push(resourceDescriptors);
