@@ -24,8 +24,10 @@ module.exports = class AppResources {
         return runtimeChunkCfg && runtimeChunkCfg.name && typeof runtimeChunkCfg.name === 'string';
     }
 
-    getSingleRuntimeChunkName() {
-        return this.compiler.options.optimization.runtimeChunk.name;
+    getSingleRuntimeFiles(entrypoints) {
+        return Array.from(entrypoints.values())
+            .map(entrypoint => entrypoint.runtimeChunk.files)
+            .find(Boolean);
     }
 
     getAssetResourceDescriptor() {
@@ -171,11 +173,10 @@ module.exports = class AppResources {
         });
 
         if (this.isSingleRuntime()) {
-            const runtimeName = `${this.getSingleRuntimeChunkName()}.js`;
             prodEntryPoints.push({
                 attributes: { key: RUNTIME_WR_KEY },
                 dependencies: getBaseContexts(),
-                resources: [runtimeName],
+                resources: this.getSingleRuntimeFiles(entrypoints),
             });
         }
 

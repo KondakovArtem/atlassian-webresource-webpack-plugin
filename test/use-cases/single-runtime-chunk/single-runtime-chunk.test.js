@@ -94,6 +94,14 @@ describe('single runtime chunk', function() {
         runTheTestsFor(config, `${name}.js`);
     });
 
+    describe('when configured with a name and custom output format', function() {
+        const name = 'fun';
+        const config = baseConfig({ name }, webresourceOutput);
+        config.output.filename = 'prefixed.[name].suffixed.js';
+
+        runTheTestsFor(config, `prefixed.${name}.suffixed.js`);
+    });
+
     describe('when not configured', function() {
         const config = baseConfig(false, webresourceOutput);
         let wrNodes;
