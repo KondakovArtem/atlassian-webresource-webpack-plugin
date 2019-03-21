@@ -71,19 +71,17 @@ function createWebResource(webresource, transformations, pathPrefix = '', parame
     const allResources = [];
     const children = [];
 
+    /** convert filepaths in to {@link Resource}s. */
+    const convertFilePaths = location => pathPrefix + location;
+
     // add resources for direct dependencies (e.g., JS and CSS files)
-    allResources.push(
-        ...resources.map(r => {
-            /** convert filepaths in to {@link Resource}s. */
-            return { name: r, location: pathPrefix + r };
-        })
-    );
+    allResources.push(...resources.map(res => ({ name: res, location: convertFilePaths(res) })));
 
     if (standalone) {
         children.push(generateResources(parameterMap, allResources));
     } else {
         // add resources for indirect dependencies (e.g., images extracted from CSS)
-        allResources.push(...externalResources);
+        allResources.push(...externalResources.map(wr => ({ name: wr.name, location: convertFilePaths(wr.location) })));
         children.push(
             renderTransformation(transformations, allResources),
             generateContext(contexts),
