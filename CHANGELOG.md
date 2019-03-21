@@ -1,3 +1,7 @@
+## 4.3.0 (March 21, 2019)
+* bugfix: `locationPrefix` is now added to legacy web-resource inclusions as well.
+    * [@mdiberardino](https://bitbucket.org/mdiberardino) in [PR #74](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/74)
+
 ## 4.2.0 (March 20, 2019)
 * feature: Added a `resourceParamMap` configuration option that allows adding `<param>` blocks to `<resource>`s.
     * [@hwiggers](https://bitbucket.org/hwiggers) in [PR #73](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/73)
