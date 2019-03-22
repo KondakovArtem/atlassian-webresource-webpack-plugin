@@ -16,6 +16,11 @@ module.exports = class ProvidedExternalDependencyModule extends ExternalModule {
         this._target = target;
     }
 
+    // Override Webpack behaviour to access external modules from require(...) instead of a global variable.
+    getSourceForAmdOrUmdExternal(id, optional, request) {
+        return `module.exports = ${this._request.var};`;
+    }
+
     libIdent() {
         return `${this._dependency}/${this._request[this._target]}`;
     }
