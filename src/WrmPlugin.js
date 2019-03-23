@@ -1,18 +1,3 @@
-/**
- * A Webpack plugin that takes the compilation tree and creates <web-resource> XML definitions.
- * - A <web-resource> for each entry point, including:
- *    * its WRM dependencies
- *    * [entrypoint].bundle.js && [entrypoint].bundle.css,
- *    * <context> set to the entry point name.
- *
- * - A <web-resource> for each requireJS module required using require.ensure (async), including
- *    * its WRM dependencies
- *    * <context> set the the chunk name (last param of the require.ensure call)
- *
- * - A single <web-resource> for all requireJS module required called using require.ensure (async)
- *     * [named-chunk].chunk.js files
- */
-
 const assert = require('assert');
 const path = require('path');
 const { createHash } = require('crypto');
@@ -59,24 +44,40 @@ class WrmPlugin {
     }
 
     /**
+     * A Webpack plugin that takes the compilation tree and creates <web-resource> XML definitions that mirror the
+     * dependency graph.
+     *
+     * This plugin will:
+     *
+     * - generate <web-resource> definitions for each entrypoint, along with additional <web-resource> definitions for
+     *   and appropriate dependencies on all chunks generated during compilation.
+     * - Add <dependency> declarations to each generated <web-resource> as appropriate, both for internal and external
+     *   dependencies in the graph.
+     * - Add appropriate metadata to the <web-resource> definition, such as appropriate <context>s,
+     *   enabled/disabled state, and more.
      *
      * @param {Object} options - options passed to WRMPlugin
      * @param {String} options.pluginKey - The fully qualified plugin key. e.g.: com.atlassian.jira.plugins.my-jira-plugin
-     * @param {Object} options.contextMap - One or more "context"s to which an entrypoint will be added. e.g.: {\n\t"my-entry": ["my-plugin-context"]\n}
-     * @param {Object} options.conditionMap - Map of conditions to be applied to the specified entry-point
-     * @param {Object} options.transformationMap - Map of transformations to be applied to the specified file-types
-     * @param {Object} options.webresourceKeyMap - Optional map of an explicit name for the web-resource generated per entry point. e.g.: {\n\t"my-entry": "legacy-webresource-name"\n}
-     * @param {Object} options.providedDependencies - Map of provided dependencies. If somewhere in the code this dependency is required, it will not be bundled but instead replaced with the specified placeholder.
      * @param {String} options.xmlDescriptors - Path to the directory where this plugin stores the descriptors about this plugin, used by the WRM to load your frontend code.
-     * @param {String} options.wrmManifestPath - Optional path to the WRM manifest file where this plugin stores the mapping of modules to generated web-resources. e.g.: {\n\t"my-entry": "com.example.app:entrypoint-my-entry"\n}. Useful if you set { output: { library, libraryTarget } } in your webpack config, to use your build result as provided dependencies for other builds.
-     * @param {String} options.assetContentTypes - Specific content-types to be used for certain asset types. Will be added as '<param name="content-type"...' to the resource of the asset.
-     * @param {Object} options.resourceParamMap - Map of parameters to be added to specific file types.
+     *
+     * @param {Map<String, Object>} [options.providedDependencies] - Map of ES6/AMD module identifiers to their related WRM module keys and JavaScript import values (read: webpack external dependency definition). If this module identifier is imported or required somewhere in the compiled code, it will not be bundled, but instead replaced with the specified external dependency placeholder.
+     *
      * @param {String} [options.locationPrefix=''] - Specify the sub-directory for all web-resource location values.
-     * @param {String} options.watch - Trigger watch mode - this requires webpack-dev-server and will redirect requests to the entrypoints to the dev-server that must be running under webpacks "options.output.publicPath"
-     * @param {String} options.watchPrepare - In conjunction with watch mode - indicates that only "redirects" to a webserver should be build in this run.
-     * @param {Boolean} options.standalone - Build standalone web-resources - assumes no transformations, other chunks or base contexts are needed
-     * @param {Boolean} options.noWRM - Do not add any WRM specifics to the webpack runtime to allow development on a greenfield
-     * @param {Boolean} options.verbose - Indicate if log output should be verbose - default is false.
+     * @param {String} [options.wrmManifestPath] - Path to the WRM manifest file where this plugin stores the mapping of modules to generated web-resources. e.g.: `{"my-entry": "com.example.app:entrypoint-my-entry"}`. Useful if you set { output: { library, libraryTarget } } in your webpack config, to use your build result as provided dependencies for other builds.
+     *
+     * @param {Object} [options.assetContentTypes] - [DEPRECATED - use {@param options.resourceParamMap} instead] Specific content-types to be used for certain asset types. Will be added as '<param name="content-type"...' to the resource of the asset.
+     * @param {Object} [options.conditionMap] - Conditions to be applied to the specified entry-point.
+     * @param {Object} [options.contextMap] - One or more "context"s to which an entrypoint will be added. e.g.: `{"my-entry": ["my-plugin-context", "another-context"]}`.
+     * @param {Object} [options.resourceParamMap] - Parameters to be added to specific file types.
+     * @param {Object} [options.transformationMap] - Transformations to be applied to the specified file-types.
+     * @param {Object} [options.webresourceKeyMap] - An explicit name for the web-resource generated per entry point. e.g.: `{"my-entry": "legacy-webresource-name"}`.
+     *
+     * @param {Boolean} [options.watch=false] - Trigger watch mode - this requires webpack-dev-server and will redirect requests to the entrypoints to the dev-server that must be running under webpack's `options.output.publicPath`.
+     * @param {Boolean} [options.watchPrepare=false] - In conjunction with watch mode - indicates that only "redirects" to a webserver should be build in this run.
+     * @param {Boolean} [options.standalone=false] - Build standalone web-resources - assumes no transformations, other chunks or base contexts are needed.
+     * @param {Boolean} [options.noWRM=false] - Do not add any WRM specifics to the webpack runtime to allow development on a greenfield.
+     * @param {Boolean} [options.verbose=false] - Indicate if log output should be verbose.
+     * @constructs
      */
     constructor(options = {}) {
         assert(
