@@ -25,22 +25,26 @@ const logger = require('./logger');
 const QUnitTestResources = require('./QUnitTestResources');
 const AppResources = require('./AppResources');
 const flattenReduce = require('./flattenReduce');
+const mergeMaps = require('./mergeMaps');
 
-const defaultTransformations = {
-    js: ['jsI18n'],
-    soy: ['soyTransformer', 'jsI18n'],
-    less: ['lessTransformer'],
-};
+const defaultResourceParams = new Map().set('svg', [
+    {
+        name: 'content-type',
+        value: 'image/svg+xml',
+    },
+]);
+
+const defaultTransformations = new Map()
+    .set('js', ['jsI18n'])
+    .set('soy', ['soyTransformer', 'jsI18n'])
+    .set('less', ['lessTransformer']);
 
 class WrmPlugin {
-    static extendTransformations(transformations) {
-        for (const key of Object.keys(defaultTransformations)) {
-            const customTransformations = Array.isArray(transformations[key]) ? transformations[key] : [];
-
-            transformations[key] = [...defaultTransformations[key], ...customTransformations];
-        }
-
-        return transformations;
+    static extendTransformations(values) {
+        return mergeMaps(new Map(), defaultTransformations, asMap(values), (map, k, v) => {
+            const oldVals = map.get(k);
+            return map.set(k, [].concat(oldVals).concat(v));
+        });
     }
 
     /**
@@ -66,11 +70,11 @@ class WrmPlugin {
      * @param {String} [options.wrmManifestPath] - Path to the WRM manifest file where this plugin stores the mapping of modules to generated web-resources. e.g.: `{"my-entry": "com.example.app:entrypoint-my-entry"}`. Useful if you set { output: { library, libraryTarget } } in your webpack config, to use your build result as provided dependencies for other builds.
      *
      * @param {Object} [options.assetContentTypes] - [DEPRECATED - use {@param options.resourceParamMap} instead] Specific content-types to be used for certain asset types. Will be added as '<param name="content-type"...' to the resource of the asset.
-     * @param {Object} [options.conditionMap] - Conditions to be applied to the specified entry-point.
-     * @param {Object} [options.contextMap] - One or more "context"s to which an entrypoint will be added. e.g.: `{"my-entry": ["my-plugin-context", "another-context"]}`.
-     * @param {Object} [options.resourceParamMap] - Parameters to be added to specific file types.
-     * @param {Object} [options.transformationMap] - Transformations to be applied to the specified file-types.
-     * @param {Object} [options.webresourceKeyMap] - An explicit name for the web-resource generated per entry point. e.g.: `{"my-entry": "legacy-webresource-name"}`.
+     * @param {Map<String, Object>} [options.conditionMap] - Conditions to be applied to the specified entry-point.
+     * @param {Map<String, Array<String>>} [options.contextMap] - One or more "context"s to which an entrypoint will be added. e.g.: `{"my-entry": ["my-plugin-context", "another-context"]}`
+     * @param {Map<String, Array<Object>>} [options.resourceParamMap] - Parameters to be added to specific file types.
+     * @param {Map<String, Array<String>>} [options.transformationMap] - Transformations to be applied to the specified file-types.
+     * @param {Map<String, String>} [options.webresourceKeyMap] - An explicit name for the web-resource generated per entry point. e.g.: `{"my-entry": "legacy-webresource-name"}`.
      *
      * @param {Boolean} [options.watch=false] - Trigger watch mode - this requires webpack-dev-server and will redirect requests to the entrypoints to the dev-server that must be running under webpack's `options.output.publicPath`.
      * @param {Boolean} [options.watchPrepare=false] - In conjunction with watch mode - indicates that only "redirects" to a webserver should be build in this run.
@@ -90,25 +94,15 @@ class WrmPlugin {
         );
         assert(path.isAbsolute(options.xmlDescriptors), `Option [String] "xmlDescriptors" must be absolute!`);
 
-        // convert various maybe-objects to maps
-        ['providedDependencies'].forEach(prop => asMap(options, prop));
-
         // pull out our options
         this.options = Object.assign(
             {
-                conditionMap: {},
-                contextMap: {},
-                webresourceKeyMap: {},
+                conditionMap: new Map(),
+                contextMap: new Map(),
+                webresourceKeyMap: new Map(),
                 providedDependencies: new Map(),
                 verbose: false,
-                resourceParamMap: {
-                    svg: [
-                        {
-                            name: 'content-type',
-                            value: 'image/svg+xml',
-                        },
-                    ],
-                },
+                resourceParamMap: defaultResourceParams,
                 transformationMap: defaultTransformations,
             },
             options
@@ -116,11 +110,13 @@ class WrmPlugin {
 
         logger.setVerbose(this.options.verbose);
 
-        // make sure transformation map is an object of unique items
-        const { transformationMap } = this.options;
-        this.options.transformationMap = this.ensureTransformationsAreUnique(
-            transformationMap === false ? {} : transformationMap
+        // convert various maybe-objects to maps
+        ['providedDependencies', 'conditionMap', 'contextMap', 'resourceParamMap', 'webresourceKeyMap'].forEach(prop =>
+            asMap(this.options, prop)
         );
+
+        // make sure transformation map is an object of unique items
+        this.options.transformationMap = this.ensureTransformationsAreUnique(this.options.transformationMap);
 
         this.getAssetsUUID = once(this.getAssetsUUID.bind(this));
     }
@@ -137,11 +133,10 @@ class WrmPlugin {
     }
 
     ensureTransformationsAreUnique(transformations) {
-        return Object.keys(transformations).reduce((result, key) => {
-            result[key] = Array.from(new Set(transformations[key]));
-
-            return result;
-        }, {});
+        return mergeMaps(new Map(), asMap(transformations), (map, key, val) => {
+            const values = [].concat(val).filter(v => !!v);
+            return map.set(key, Array.from(new Set(values)));
+        });
     }
 
     checkConfig(compiler) {
@@ -334,7 +329,7 @@ ${standardScript}`;
 
             const webResources = [];
             const entryPointsResourceDescriptors = appResourceGenerator.getEntryPointsResourceDescriptors();
-            const resourceParamMap = Object.assign({}, this.options.resourceParamMap);
+            const resourceParamMap = this.options.resourceParamMap;
 
             // `assetContentTypes` is DEPRECATED. This code block ensures we're backwards compatible, by applying the
             // specified `assetContentTypes` into the `resourceParamMap`.
@@ -347,11 +342,11 @@ ${standardScript}`;
                 Object.keys(this.options.assetContentTypes).forEach(fileExtension => {
                     const contentType = this.options.assetContentTypes[fileExtension];
 
-                    if (!resourceParamMap[fileExtension]) {
-                        resourceParamMap[fileExtension] = [];
+                    if (!resourceParamMap.has(fileExtension)) {
+                        resourceParamMap.set(fileExtension, []);
                     }
 
-                    const params = resourceParamMap[fileExtension];
+                    const params = resourceParamMap.get(fileExtension);
 
                     if (params.find(param => param.name === 'content-type')) {
                         logger.warn(

@@ -1,18 +1,23 @@
 const { parseWebResourceAttributes } = require('./web-resource-parser');
 
+/**
+ * @param {String} entry
+ * @param {Map<String, Array<String>>} contextMap
+ * @returns {Array<String>}
+ */
 function getContextForEntry(entry, contextMap) {
-    const contexts = [].concat(entry).concat(contextMap[entry]);
+    const contexts = [].concat(entry).concat(contextMap.get(entry));
     const validContexts = contexts.filter(context => context && typeof context === 'string');
     return validContexts;
 }
 
 /**
  * @param {String} entry
- * @param {Object} webresourceKeyMap
+ * @param {Map<String, String>} webresourceKeyMap
  * @returns {WebResourceAttributes}
  */
 function getWebresourceAttributesForEntry(entry, webresourceKeyMap) {
-    const wrKey = webresourceKeyMap[entry];
+    const wrKey = webresourceKeyMap.get(entry);
 
     // Create the default attribute values
     let attrs = { key: `entrypoint-${entry}`, moduleId: entry };
@@ -30,8 +35,13 @@ function getWebresourceAttributesForEntry(entry, webresourceKeyMap) {
     return attrs;
 }
 
+/**
+ * @param {String} entry
+ * @param {Map<String, Object>} conditionMap
+ * @returns {*}
+ */
 function getConditionForEntry(entry, conditionMap) {
-    return conditionMap[entry];
+    return conditionMap.get(entry);
 }
 
 module.exports = {
