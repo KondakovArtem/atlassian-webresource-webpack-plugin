@@ -13,7 +13,7 @@ const {
     createResourceDescriptors,
     createTestResourceDescriptors,
 } = require('./helpers/web-resource-generator');
-const { extractPathPrefixForXml } = require('./helpers/options-parser');
+const { asMap, extractPathPrefixForXml } = require('./helpers/options-parser');
 const { providedDependencies } = require('./helpers/provided-dependencies');
 
 const ProvidedExternalDependencyModule = require('./webpack-modules/ProvidedExternalDependencyModule');
@@ -90,15 +90,8 @@ class WrmPlugin {
         );
         assert(path.isAbsolute(options.xmlDescriptors), `Option [String] "xmlDescriptors" must be absolute!`);
 
-        // convert providedDependencies object to map
-        if (typeof options.providedDependencies === 'object' && !(options.providedDependencies instanceof Map)) {
-            const deps = options.providedDependencies;
-            const map = new Map();
-            Object.keys(deps).forEach(key => {
-                map.set(key, deps[key]);
-            });
-            options.providedDependencies = map;
-        }
+        // convert various maybe-objects to maps
+        ['providedDependencies'].forEach(prop => asMap(options, prop));
 
         // pull out our options
         this.options = Object.assign(
