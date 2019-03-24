@@ -11,7 +11,7 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.(png|svg)$/,
+                test: /\.(png|svg|jpg)$/,
                 loader: 'file-loader',
             },
         ],
@@ -36,6 +36,20 @@ module.exports = {
                     {
                         name: 'bar',
                         value: 'baz',
+                    },
+                ],
+                jpg: [
+                    {
+                        name: 'duped',
+                        value: 'first',
+                    },
+                    {
+                        name: 'bar',
+                        value: 'baz',
+                    },
+                    {
+                        name: 'duped',
+                        value: 'second',
                     },
                 ],
             },

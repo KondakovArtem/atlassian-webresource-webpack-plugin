@@ -7,6 +7,7 @@ const fs = require('fs');
 const mkdirp = require('mkdirp');
 const once = require('lodash.once');
 const urlJoin = require('url-join');
+const unionBy = require('lodash/unionBy');
 
 const {
     createQUnitResourceDescriptors,
@@ -115,7 +116,8 @@ class WrmPlugin {
             asMap(this.options, prop)
         );
 
-        // make sure transformation map is an object of unique items
+        // make sure various maps contain only unique items
+        this.options.resourceParamMap = this.ensureResourceParamsAreUnique(this.options.resourceParamMap);
         this.options.transformationMap = this.ensureTransformationsAreUnique(this.options.transformationMap);
 
         this.getAssetsUUID = once(this.getAssetsUUID.bind(this));
@@ -136,6 +138,13 @@ class WrmPlugin {
         return mergeMaps(new Map(), asMap(transformations), (map, key, val) => {
             const values = [].concat(val).filter(v => !!v);
             return map.set(key, Array.from(new Set(values)));
+        });
+    }
+
+    ensureResourceParamsAreUnique(params) {
+        return mergeMaps(new Map(), asMap(params), (map, key, val) => {
+            const values = [].concat(val).filter(v => !!v);
+            return map.set(key, unionBy(values.reverse(), 'name').reverse());
         });
     }
 
