@@ -1,4 +1,5 @@
 const { parseWebResourceAttributes } = require('./web-resource-parser');
+const { sanitizeKey } = require('./web-resource-key');
 
 function getContextForEntry(entry, contextMap) {
     const contexts = [].concat(entry).concat(contextMap[entry]);
@@ -15,7 +16,7 @@ function getWebresourceAttributesForEntry(entry, webresourceKeyMap) {
     const wrKey = webresourceKeyMap[entry];
 
     // Create the default attribute values
-    let attrs = { key: `entrypoint-${entry}`, moduleId: entry };
+    let attrs = { key: sanitizeKey(`entrypoint-${entry}`), moduleId: entry };
 
     // Extend the attributes with parsed, valid values
     if (typeof wrKey === 'object') {

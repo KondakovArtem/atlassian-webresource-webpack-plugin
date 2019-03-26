@@ -3,6 +3,7 @@ const {
     getContextForEntry,
     getWebresourceAttributesForEntry,
 } = require('./helpers/web-resource-entrypoints');
+const { sanitizeKey } = require('./helpers/web-resource-key');
 const flattenReduce = require('./flattenReduce');
 const WebpackHelpers = require('./WebpackHelpers');
 const { getBaseContexts } = require('./settings/base-contexts');
@@ -70,7 +71,7 @@ module.exports = class AppResources {
         const syncSplitChunkDependencyKeyMap = new Map();
         for (const c of syncSplitChunks) {
             const chunkIdentifier = WebpackHelpers.getChunkIdentifier(c);
-            const webResourceKey = `split_${chunkIdentifier}`;
+            const webResourceKey = sanitizeKey(`split_${chunkIdentifier}`);
             syncSplitChunkDependencyKeyMap.set(chunkIdentifier, {
                 key: webResourceKey,
                 dependency: `${pluginKey}:${webResourceKey}`,
