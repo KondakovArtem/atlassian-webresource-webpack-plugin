@@ -3,6 +3,17 @@ const assert = require('chai').assert;
 const ProvidedExternalDependencyModule = require('../../src/webpack-modules/ProvidedExternalDependencyModule');
 
 describe('ProvidedExternalDependencyModule', () => {
+    describe('getSourceForAmdOrUmdExternal', () => {
+        it("should create a `module.exports` based on 'var'", () => {
+            const pedm = new ProvidedExternalDependencyModule(
+                { var: 'require("foo")', amd: 'bar' },
+                'some-dependency',
+                'amd'
+            );
+            assert.equal(pedm.getSourceForAmdOrUmdExternal(), 'module.exports = require("foo");');
+        });
+    });
+
     describe('libIdent', () => {
         it("should specify a 'libIdent' method used by webpack to create a unique id", () => {
             const pedm = new ProvidedExternalDependencyModule({ amd: 'something' }, 'some-dependency', 'amd');
