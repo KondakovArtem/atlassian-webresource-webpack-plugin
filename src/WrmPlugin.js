@@ -459,10 +459,14 @@ ${standardScript}`;
                         const pathName = urlJoin(compiler.options.output.publicPath, file);
                         return `
 !function(){
-    var script = document.createElement('script');
-    script.src = '${pathName}';
-    script.async = false;
-    document.head.appendChild(script);
+    if (document.readyState !== "complete") {
+        document.write('<script src="${pathName}"></script>')
+    } else {
+        var script = document.createElement('script');
+        script.src = '${pathName}';
+        script.async = false;
+        document.head.appendChild(script);
+    }
 }();
 `.trim();
                     }
