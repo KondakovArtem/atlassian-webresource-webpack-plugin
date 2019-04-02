@@ -455,21 +455,31 @@ ${standardScript}`;
                 compiler.hooks.done.tap('add watch mode modules', () => {
                     mkdirp.sync(path.dirname(this.options.xmlDescriptors));
                     fs.writeFileSync(this.options.xmlDescriptors, xmlDescriptors, 'utf8');
-                    function generateAssetCall(file) {
+
+                    const generateAssetCall = file => {
                         const pathName = urlJoin(compiler.options.output.publicPath, file);
-                        return `
+
+                        const appendScript = `
+var script = document.createElement('script');
+script.src = '${pathName}';
+script.async = false;
+document.head.appendChild(script);`.trim();
+
+                        if (this.options.useDocumentWriteInWatchMode) {
+                            return `
 !function(){
-    if (document.readyState !== "complete") {
+    if (document.readyState === "loading") {
         document.write('<script src="${pathName}"></script>')
     } else {
-        var script = document.createElement('script');
-        script.src = '${pathName}';
-        script.async = false;
-        document.head.appendChild(script);
+        ${appendScript}
     }
 }();
-`.trim();
-                    }
+`;
+                        }
+
+                        return `!function() { ${appendScript} }();`;
+                    };
+
                     for (const { fileName, writePath } of redirectDescriptors) {
                         fs.writeFileSync(writePath, generateAssetCall(fileName), 'utf8');
                     }
