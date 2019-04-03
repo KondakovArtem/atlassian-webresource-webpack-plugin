@@ -2,25 +2,17 @@ const path = require('path');
 
 const pathSeparatorRegex = new RegExp(`^\\${path.sep}|\\${path.sep}$`, 'g');
 
+/**
+ * Converts an object in to a Map.
+ * @param {Object} original
+ * @returns {Map} a map with key-value pairs from the object.
+ * returns an empty map if the original value was falsy or not an object.
+ */
 function toMap(original) {
     if (original instanceof Map) {
         return original;
     }
-    const map = new Map();
-    if (typeof original === 'object') {
-        Object.keys(original).forEach(key => {
-            map.set(key, original[key]);
-        });
-    }
-    return map;
-}
-
-function asMap(options, prop) {
-    if (prop && prop.length) {
-        options[prop] = toMap(options[prop]);
-        return;
-    }
-    return toMap(options);
+    return original && typeof original === 'object' ? new Map(Object.entries(original)) : new Map();
 }
 
 function extractPathPrefixForXml(pathPrefix) {
@@ -35,6 +27,6 @@ function extractPathPrefixForXml(pathPrefix) {
 }
 
 module.exports = {
-    asMap,
+    toMap,
     extractPathPrefixForXml,
 };

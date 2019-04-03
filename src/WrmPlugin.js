@@ -14,7 +14,7 @@ const {
     createResourceDescriptors,
     createTestResourceDescriptors,
 } = require('./helpers/web-resource-generator');
-const { asMap, extractPathPrefixForXml } = require('./helpers/options-parser');
+const { toMap, extractPathPrefixForXml } = require('./helpers/options-parser');
 const { providedDependencies } = require('./helpers/provided-dependencies');
 
 const ProvidedExternalDependencyModule = require('./webpack-modules/ProvidedExternalDependencyModule');
@@ -42,7 +42,7 @@ const defaultTransformations = new Map()
 
 class WrmPlugin {
     static extendTransformations(values) {
-        return mergeMaps(new Map(), defaultTransformations, asMap(values), (map, k, v) => {
+        return mergeMaps(new Map(), defaultTransformations, toMap(values), (map, k, v) => {
             const oldVals = map.get(k);
             return map.set(k, [].concat(oldVals).concat(v));
         });
@@ -112,8 +112,8 @@ class WrmPlugin {
         logger.setVerbose(this.options.verbose);
 
         // convert various maybe-objects to maps
-        ['providedDependencies', 'conditionMap', 'contextMap', 'resourceParamMap', 'webresourceKeyMap'].forEach(prop =>
-            asMap(this.options, prop)
+        ['providedDependencies', 'conditionMap', 'contextMap', 'resourceParamMap', 'webresourceKeyMap'].forEach(
+            prop => (this.options[prop] = toMap(this.options[prop]))
         );
 
         // make sure various maps contain only unique items
@@ -135,14 +135,14 @@ class WrmPlugin {
     }
 
     ensureTransformationsAreUnique(transformations) {
-        return mergeMaps(new Map(), asMap(transformations), (map, key, val) => {
+        return mergeMaps(new Map(), toMap(transformations), (map, key, val) => {
             const values = [].concat(val).filter(v => !!v);
             return map.set(key, Array.from(new Set(values)));
         });
     }
 
     ensureResourceParamsAreUnique(params) {
-        return mergeMaps(new Map(), asMap(params), (map, key, val) => {
+        return mergeMaps(new Map(), toMap(params), (map, key, val) => {
             const values = [].concat(val).filter(v => !!v);
             return map.set(key, unionBy(values.reverse(), 'name').reverse());
         });

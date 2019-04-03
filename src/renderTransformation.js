@@ -1,6 +1,6 @@
 const path = require('path');
 const { renderElement } = require('./helpers/xml');
-const { asMap } = require('./helpers/options-parser');
+const { toMap } = require('./helpers/options-parser');
 
 function renderTransformer(transformers) {
     if (transformers && transformers.length) {
@@ -30,7 +30,7 @@ function transformFilterFactory(resources) {
  * @returns {string} the rendered XML for each necessary transform.
  */
 module.exports = function renderTransformation(transformations, resources = []) {
-    const transMap = asMap(transformations);
+    const transMap = toMap(transformations);
     return Array.from(transMap.keys())
         .filter(transformFilterFactory(resources))
         .map(fileExtension =>
