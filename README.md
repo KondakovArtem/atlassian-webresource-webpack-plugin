@@ -568,7 +568,7 @@ Use when running the process with a webpack-dev-server.
 ### `useDocumentWriteInWatchMode` (Optional)
 When set to `true`, the generated watch mode modules will add the script tags to the document synchronously with `document.write` while the document is loading, rather than always relying on asynchronously appended script tags (default behaviour).
 
-This is useful when bundles are expected to be available on the page early, e.g. when server side soy templates require them.
+This is useful when bundles are expected to be available on the page early, e.g. when code in a template relies on javascript to be loaded blockingly.
 
 ### `__testGlobs__` (Optional) (Deprecated)
 
