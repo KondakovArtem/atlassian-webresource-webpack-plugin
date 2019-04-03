@@ -5,7 +5,7 @@ const PrettyData = require('pretty-data').pd;
 const uuidv4Gen = require('uuid/v4');
 const fs = require('fs');
 const mkdirp = require('mkdirp');
-const once = require('lodash.once');
+const once = require('lodash/once');
 const urlJoin = require('url-join');
 const unionBy = require('lodash/unionBy');
 
