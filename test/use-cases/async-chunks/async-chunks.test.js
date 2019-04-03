@@ -50,11 +50,21 @@ describe('async-chunks', function() {
         // setup
         const bundleFile = fs.readFileSync(path.join(targetDir, 'runtime~app.js'), 'utf-8');
         const expectedRuntimeAdjustment = `
-/******/ 				var WRMChildChunkIds = {"0":true,"1":true};
-/******/ 				if (WRMChildChunkIds[chunkId]) {
-/******/ 				    WRM.require('wrc!com.atlassian.plugin.test:' + chunkId)
-/******/ 				    return promise;
-/******/ 				}`;
+/******/ 		var WRMChildChunkIds = {"0":true,"1":true};
+/******/ 		if (WRMChildChunkIds[chunkId]) {
+/******/ 		    if(installedChunks[chunkId] === 0) { // 0 means "already installed".
+/******/ 		        return Promise.resolve();
+/******/ 		    }
+/******/
+/******/ 		    if (installedChunks[chunkId]) {
+/******/ 		        return installedChunks[chunkId][2];
+/******/ 		    }
+/******/
+/******/ 		    WRM.require('wrc!com.atlassian.plugin.test:' + chunkId)
+/******/ 		    return new Promise(function(resolve, reject) {
+/******/ 		        installedChunks[chunkId] = [resolve, reject];
+/******/ 		    });
+/******/ 		}`;
 
         assert.include(bundleFile, expectedRuntimeAdjustment);
     });
