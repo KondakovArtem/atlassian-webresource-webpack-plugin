@@ -42,7 +42,7 @@ const defaultTransformations = new Map()
 
 class WrmPlugin {
     static extendTransformations(values) {
-        return mergeMaps(new Map(), defaultTransformations, toMap(values), (map, k, v) => {
+        return mergeMaps(defaultTransformations, toMap(values), (v, k, map) => {
             const oldVals = map.get(k);
             return map.set(k, [].concat(oldVals).concat(v));
         });
@@ -135,17 +135,21 @@ class WrmPlugin {
     }
 
     ensureTransformationsAreUnique(transformations) {
-        return mergeMaps(new Map(), toMap(transformations), (map, key, val) => {
+        const results = toMap(transformations);
+        results.forEach((val, key, map) => {
             const values = [].concat(val).filter(v => !!v);
-            return map.set(key, Array.from(new Set(values)));
+            map.set(key, Array.from(new Set(values)));
         });
+        return results;
     }
 
     ensureResourceParamsAreUnique(params) {
-        return mergeMaps(new Map(), toMap(params), (map, key, val) => {
+        const results = toMap(params);
+        results.forEach((val, key, map) => {
             const values = [].concat(val).filter(v => !!v);
-            return map.set(key, unionBy(values.reverse(), 'name').reverse());
+            map.set(key, unionBy(values.reverse(), 'name').reverse());
         });
+        return results;
     }
 
     checkConfig(compiler) {
