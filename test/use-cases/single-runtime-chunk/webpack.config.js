@@ -3,7 +3,7 @@ const WrmPlugin = require('../../../src/WrmPlugin');
 const FRONTEND_SRC_DIR = path.resolve(__dirname, 'src');
 const OUTPUT_DIR = path.resolve(__dirname, 'target');
 
-module.exports = (runtimeChunk, webresourceOutput) => ({
+module.exports = (runtimeChunk, webresourceOutput, singleRuntimeWebResourceKey) => ({
     mode: 'development',
     context: FRONTEND_SRC_DIR,
     entry: {
@@ -23,6 +23,7 @@ module.exports = (runtimeChunk, webresourceOutput) => ({
             pluginKey: 'com.atlassian.plugin.test',
             xmlDescriptors: webresourceOutput,
             verbose: false,
+            singleRuntimeWebResourceKey,
         }),
     ],
     output: {

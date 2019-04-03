@@ -133,6 +133,8 @@ module.exports = class AppResources {
             syncSplitChunks
         );
 
+        const singleRuntimeWebResourceKey = this.options.singleRuntimeWebResourceKey || RUNTIME_WR_KEY;
+
         // Used in prod
         const prodEntryPoints = [...entrypoints].map(([name, entrypoint]) => {
             const webResourceAttrs = getWebresourceAttributesForEntry(name, this.options.webresourceKeyMap);
@@ -157,7 +159,7 @@ module.exports = class AppResources {
             );
 
             if (this.isSingleRuntime()) {
-                dependencyList.unshift(`${this.options.pluginKey}:${RUNTIME_WR_KEY}`);
+                dependencyList.unshift(`${this.options.pluginKey}:${singleRuntimeWebResourceKey}`);
             } else {
                 resourceList.unshift(...runtimeChunk.files);
             }
@@ -174,7 +176,7 @@ module.exports = class AppResources {
 
         if (this.isSingleRuntime()) {
             prodEntryPoints.push({
-                attributes: { key: RUNTIME_WR_KEY },
+                attributes: { key: singleRuntimeWebResourceKey },
                 dependencies: getBaseContexts(),
                 resources: this.getSingleRuntimeFiles(entrypoints),
             });

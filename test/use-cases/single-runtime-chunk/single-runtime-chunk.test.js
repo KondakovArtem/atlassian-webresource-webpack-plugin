@@ -20,8 +20,9 @@ describe('single runtime chunk', function() {
         return node.children.filter(n => n.name === 'dependency');
     }
 
-    function runTheTestsFor(config, runtimeName) {
+    function runTheTestsFor(config, runtimeName, runtimeWrKey) {
         let wrNodes;
+        runtimeWrKey = runtimeWrKey || RUNTIME_WR_KEY;
 
         before(function(done) {
             webpack(config, (err, st) => {
@@ -34,11 +35,11 @@ describe('single runtime chunk', function() {
 
         it('creates a web-resource for the runtime', function() {
             const wrKeys = wrNodes.map(n => n.attributes.key);
-            assert.include(wrKeys, RUNTIME_WR_KEY, 'dedicated web-resource for the runtime not found');
+            assert.include(wrKeys, runtimeWrKey, 'dedicated web-resource for the runtime not found');
         });
 
         it('adds the runtime to the dedicated web-resource for it', function() {
-            const runtimeWR = wrNodes.find(n => n.attributes.key === RUNTIME_WR_KEY);
+            const runtimeWR = wrNodes.find(n => n.attributes.key === runtimeWrKey);
             const runtimeResources = getResources(runtimeWR);
             const runtimeResourceLocations = runtimeResources.map(n => n.attributes.location);
             assert.equal(runtimeResources.length, 1, 'should only have a single resource');
@@ -46,7 +47,7 @@ describe('single runtime chunk', function() {
         });
 
         it('adds base WRM dependencies to the runtime web-resource', function() {
-            const runtimeWR = wrNodes.find(n => n.attributes.key === RUNTIME_WR_KEY);
+            const runtimeWR = wrNodes.find(n => n.attributes.key === runtimeWrKey);
             const dependencies = getDependencies(runtimeWR);
             const dependencyNames = dependencies.map(d => d.content);
             assert.includeMembers(
@@ -74,7 +75,7 @@ describe('single runtime chunk', function() {
                 const dependencyNames = dependencies.map(d => d.content);
                 assert.include(
                     dependencyNames,
-                    `${PLUGIN_KEY}:${RUNTIME_WR_KEY}`,
+                    `${PLUGIN_KEY}:${runtimeWrKey}`,
                     `web-resource ${wrName} should depend on runtime, but doesn't`
                 );
             });
@@ -100,6 +101,14 @@ describe('single runtime chunk', function() {
         config.output.filename = 'prefixed.[name].suffixed.js';
 
         runTheTestsFor(config, `prefixed.${name}.suffixed.js`);
+    });
+
+    describe('when configured with a web-resource key', function() {
+        const name = 'custom';
+        const webresourceKey = 'foobar';
+        const config = baseConfig({ name }, webresourceOutput, webresourceKey);
+
+        runTheTestsFor(config, `${name}.js`, webresourceKey);
     });
 
     describe('when not configured', function() {

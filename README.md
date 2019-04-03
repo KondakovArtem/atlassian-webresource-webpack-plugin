@@ -593,6 +593,9 @@ as pure unit tests (e.g., via Jest or Mocha) or pure black-box integration tests
 Will not add any WRM-specifics to the webpack-runtime or try to redirect async-chunk requests while still handling requests to `wr-dependency` and `wr-resource`. 
 This can be useful to develop frontend outside of a running product that provides the WRM functionality.
 
+### `singleRuntimeWebResourceKey` (Optional)
+Set a specific web-resource key for the Webpack runtime when using the Webpack option `optimization.runtimeChunk` to `single` (see [runtimeChunk documentation](https://webpack.js.org/configuration/optimization/#optimizationruntimechunk)). Default is `common-runtime`.
+
 ### `verbose` (Optional)
 Indicate verbosity of log output. Default is `false`.
 
