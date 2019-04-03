@@ -42,9 +42,13 @@ const defaultTransformations = new Map()
 
 class WrmPlugin {
     static extendTransformations(values) {
-        return mergeMaps(defaultTransformations, toMap(values), (v, k, map) => {
-            const oldVals = map.get(k);
-            return map.set(k, [].concat(oldVals).concat(v));
+        return mergeMaps(defaultTransformations, toMap(values), (val, key, map) => {
+            const oldVals = map.get(key);
+            const newVals = []
+                .concat(oldVals)
+                .concat(val)
+                .filter(v => !!v);
+            return map.set(key, newVals);
         });
     }
 
