@@ -1,5 +1,6 @@
 const path = require('path');
 const { renderElement } = require('./helpers/xml');
+const { toMap } = require('./helpers/options-parser');
 
 function renderTransformer(transformers) {
     if (transformers && transformers.length) {
@@ -24,18 +25,19 @@ function transformFilterFactory(resources) {
 /**
  * Converts a map of filetype-to-transformer entries in to the set of XML transform elements
  * required for a given set of resources. Renders every transform if no resources are provided.
- * @param transformations
+ * @param {Map<String, Array<String>>} transformations
  * @param {Resource[]} resources
  * @returns {string} the rendered XML for each necessary transform.
  */
 module.exports = function renderTransformation(transformations, resources = []) {
-    return Object.keys(transformations)
+    const transMap = toMap(transformations);
+    return Array.from(transMap.keys())
         .filter(transformFilterFactory(resources))
         .map(fileExtension =>
             renderElement(
                 'transformation',
                 { extension: fileExtension },
-                renderTransformer(transformations[fileExtension])
+                renderTransformer(transMap.get(fileExtension))
             )
         )
         .join('');

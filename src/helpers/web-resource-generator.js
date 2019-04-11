@@ -14,13 +14,13 @@ function generateDependencies(dependencies) {
 
 /**
  * @param {Resource} resource
- * @param parameterMap
+ * @param {Map<String, Array<Object>>} parameterMap
  * @returns {string} an XML representation of a {@link Resource}.
  */
 function generateResourceElement(resource, parameterMap) {
     const { name, location } = resource;
     const assetContentType = path.extname(location).substr(1);
-    const parameters = parameterMap[assetContentType] || [];
+    const parameters = parameterMap.get(assetContentType) || [];
     const children = [];
     const renderParameters = attributes => children.push(renderElement('param', attributes));
     parameters.forEach(renderParameters);
@@ -46,7 +46,7 @@ function generateQunitResourceElement(filepath) {
 }
 
 /**
- * @param {[]} parameterMap
+ * @param {Map<String, Array<Object>>} parameterMap
  * @param {Resource[]} resources
  * @returns {string} an XML string of all {@link Resource} elements
  */
@@ -59,13 +59,13 @@ function generateResources(parameterMap, resources) {
 
 /**
  * @param {WrmEntrypoint} webresource
- * @param transformations
- * @param pathPrefix
- * @param parameterMap
+ * @param {Map<String, Array<String>>} transformations
+ * @param {String} pathPrefix
+ * @param {Map<String, Array<Object>>} parameterMap
  * @param standalone
  * @returns {string} an XML representation of the {@link WrmEntrypoint}.
  */
-function createWebResource(webresource, transformations, pathPrefix = '', parameterMap = {}, standalone) {
+function createWebResource(webresource, transformations, pathPrefix = '', parameterMap = new Map(), standalone) {
     const { resources = [], externalResources = [], contexts, dependencies, conditions } = webresource;
     const attributes = parseWebResourceAttributes(webresource.attributes);
     const allResources = [];
