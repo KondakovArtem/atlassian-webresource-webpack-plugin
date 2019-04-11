@@ -1,3 +1,11 @@
+## 4.4.0 (April 11, 2019)
+* feature: added `singleRuntimeWebResourceKey` option to allow changing the webpack runtime name.
+  Check the readme for usage details.
+    * [@hwiggers](https://bitbucket.org/hwiggers) in [PR #76](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/76)
+* feature: added `useDocumentWriteInWatchMode` option to control how code is rendered via the WRM during webpack watch mode.
+  Check the readme for usage details.
+    * [@mdiberardino](https://bitbucket.org/mdiberardino) in [PR #81](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/81)
+
 ## 4.3.0 (March 21, 2019)
 * bugfix: `locationPrefix` is now added to legacy web-resource inclusions as well.
     * [@mdiberardino](https://bitbucket.org/mdiberardino) in [PR #74](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/74)
