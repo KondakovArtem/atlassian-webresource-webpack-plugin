@@ -266,12 +266,17 @@ if (WRMChildChunkIds[chunkId]) {
         return installedChunks[chunkId][2];
     }
 
-    WRM.require('wrc!${this.options.pluginKey}:' + chunkId)
-    return new Promise(function(resolve, reject) {
-        installedChunks[chunkId] = [resolve, reject];
-    });
-}
-${source}`;
+    return Promise.all([
+        new Promise(function(resolve, reject) {
+            installedChunks[chunkId] = [resolve, reject];
+        }),
+        new Promise(function(resolve, reject) {
+            WRM.require('wrc!${this.options.pluginKey}:' + chunkId, function(){
+                resolve();
+            })
+        }),
+    ]);
+}`;
                 }
             );
         });
