@@ -79,10 +79,16 @@ describe('async-chunks-of-async-chunks-with-multiple-entrypoints', function() {
 /******/ 		        return installedChunks[chunkId][2];
 /******/ 		    }
 /******/
-/******/ 		    WRM.require('wrc!com.atlassian.plugin.test:' + chunkId)
-/******/ 		    return new Promise(function(resolve, reject) {
-/******/ 		        installedChunks[chunkId] = [resolve, reject];
-/******/ 		    });
+/******/ 		    return Promise.all([
+/******/ 		        new Promise(function(resolve, reject) {
+/******/ 		            installedChunks[chunkId] = [resolve, reject];
+/******/ 		        }),
+/******/ 		        new Promise(function(resolve, reject) {
+/******/ 		            WRM.require('wrc!com.atlassian.plugin.test:' + chunkId, function(){
+/******/ 		                resolve();
+/******/ 		            })
+/******/ 		        }),
+/******/ 		    ]);
 /******/ 		}`;
 
         assert.include(bundleFile, expectedRuntimeAdjustment);
