@@ -1,3 +1,7 @@
+## 4.4.1 (April 12, 2019)
+* bugfix: Using the `mini-css-extract-plugin` will no longer trigger unwanted requests trying to load style files.
+    * [@timse2](https://bitbucket.org/timse2/) in [PR #82](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/82)
+
 ## 4.4.0 (April 11, 2019)
 * feature: added `singleRuntimeWebResourceKey` option to allow changing the webpack runtime name.
   Check the readme for usage details.
