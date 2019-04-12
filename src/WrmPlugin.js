@@ -271,9 +271,7 @@ if (WRMChildChunkIds[chunkId]) {
             installedChunks[chunkId] = [resolve, reject];
         }),
         new Promise(function(resolve, reject) {
-            WRM.require('wrc!${this.options.pluginKey}:' + chunkId, function(){
-                resolve();
-            })
+            WRM.require('wrc!${this.options.pluginKey}:' + chunkId).then(resolve, reject);
         }),
     ]);
 }`;

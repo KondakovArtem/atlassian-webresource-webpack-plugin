@@ -75,9 +75,7 @@ describe('async-chunks-of-async-chunks', function() {
 /******/ 		            installedChunks[chunkId] = [resolve, reject];
 /******/ 		        }),
 /******/ 		        new Promise(function(resolve, reject) {
-/******/ 		            WRM.require('wrc!com.atlassian.plugin.test:' + chunkId, function(){
-/******/ 		                resolve();
-/******/ 		            })
+/******/ 		            WRM.require('wrc!com.atlassian.plugin.test:' + chunkId).then(resolve, reject);
 /******/ 		        }),
 /******/ 		    ]);
 /******/ 		}`;

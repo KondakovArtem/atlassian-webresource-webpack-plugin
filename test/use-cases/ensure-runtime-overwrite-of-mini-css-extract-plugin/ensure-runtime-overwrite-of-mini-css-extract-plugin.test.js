@@ -40,9 +40,7 @@ describe('ensure-runtime-overwrite-of-mini-css-extract-plugin', function() {
 /******/ 		            installedChunks[chunkId] = [resolve, reject];
 /******/ 		        }),
 /******/ 		        new Promise(function(resolve, reject) {
-/******/ 		            WRM.require('wrc!com.atlassian.plugin.test:' + chunkId, function(){
-/******/ 		                resolve();
-/******/ 		            })
+/******/ 		            WRM.require('wrc!com.atlassian.plugin.test:' + chunkId).then(resolve, reject);
 /******/ 		        }),
 /******/ 		    ]);
 /******/ 		}
@@ -85,9 +83,7 @@ describe('ensure-runtime-overwrite-of-mini-css-extract-plugin', function() {
 /******/ 		            installedChunks[chunkId] = [resolve, reject];
 /******/ 		        }),
 /******/ 		        new Promise(function(resolve, reject) {
-/******/ 		            WRM.require('wrc!com.atlassian.plugin.test:' + chunkId, function(){
-/******/ 		                resolve();
-/******/ 		            })
+/******/ 		            WRM.require('wrc!com.atlassian.plugin.test:' + chunkId).then(resolve, reject);
 /******/ 		        }),
 /******/ 		    ]);
 /******/ 		}
