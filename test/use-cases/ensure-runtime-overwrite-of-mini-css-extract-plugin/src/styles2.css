@@ -1,0 +1,8 @@
+.wurst {
+    background-color: red;
+    background-image: url('./rect2.svg');
+}
+
+.tricky {
+    background: url('./rect.svg');
+}

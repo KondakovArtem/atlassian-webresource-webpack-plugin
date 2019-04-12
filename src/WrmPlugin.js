@@ -248,9 +248,9 @@ if (typeof AJS !== "undefined") {
                 const SyncWaterfallHook = require('tapable').SyncWaterfallHook;
                 compilation.mainTemplate.hooks.jsonpScript = new SyncWaterfallHook(['source', 'chunk', 'hash']);
             }
-            compilation.mainTemplate.hooks.jsonpScript.tap(
+            compilation.mainTemplate.hooks.requireEnsure.tap(
                 'enable async loading with wrm - jsonp-script',
-                standardScript => {
+                (source, chunk, hash) => {
                     // mostly async?
                     const entryPointsChildChunks = WebpackHelpers.getAllAsyncChunks([
                         ...compilation.entrypoints.values(),
@@ -264,10 +264,23 @@ if (typeof AJS !== "undefined") {
                     return `
 var WRMChildChunkIds = ${JSON.stringify(childChunkIds)};
 if (WRMChildChunkIds[chunkId]) {
-    WRM.require('wrc!${this.options.pluginKey}:' + chunkId)
-    return promise;
-}
-${standardScript}`;
+    if(installedChunks[chunkId] === 0) { // 0 means "already installed".
+        return Promise.resolve();
+    }
+
+    if (installedChunks[chunkId]) {
+        return installedChunks[chunkId][2];
+    }
+
+    return Promise.all([
+        new Promise(function(resolve, reject) {
+            installedChunks[chunkId] = [resolve, reject];
+        }),
+        new Promise(function(resolve, reject) {
+            WRM.require('wrc!${this.options.pluginKey}:' + chunkId).then(resolve, reject);
+        }),
+    ]);
+}`;
                 }
             );
         });
