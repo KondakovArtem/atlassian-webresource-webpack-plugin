@@ -251,36 +251,25 @@ if (typeof AJS !== "undefined") {
             compilation.mainTemplate.hooks.requireEnsure.tap(
                 'enable async loading with wrm - jsonp-script',
                 (source, chunk, hash) => {
-                    // mostly async?
-                    const entryPointsChildChunks = WebpackHelpers.getAllAsyncChunks([
-                        ...compilation.entrypoints.values(),
-                    ]);
-                    const childChunkIds = entryPointsChildChunks
-                        .map(c => c.id)
-                        .reduce((map, id) => {
-                            map[id] = true;
-                            return map;
-                        }, {});
                     return `
-var WRMChildChunkIds = ${JSON.stringify(childChunkIds)};
-if (WRMChildChunkIds[chunkId]) {
-    if(installedChunks[chunkId] === 0) { // 0 means "already installed".
-        return Promise.resolve();
-    }
+if(installedChunks[chunkId] === 0) { // 0 means "already installed".
+    return Promise.resolve();
+}
 
-    if (installedChunks[chunkId]) {
-        return installedChunks[chunkId][2];
-    }
+if (installedChunks[chunkId]) {
+    return installedChunks[chunkId][2];
+}
 
-    return Promise.all([
-        new Promise(function(resolve, reject) {
-            installedChunks[chunkId] = [resolve, reject];
-        }),
-        new Promise(function(resolve, reject) {
-            WRM.require('wrc!${this.options.pluginKey}:' + chunkId).then(resolve, reject);
-        }),
-    ]);
-}`;
+promises.push([
+    new Promise(function(resolve, reject) {
+        installedChunks[chunkId] = [resolve, reject];
+    }),
+    new Promise(function(resolve, reject) {
+        WRM.require('wrc!${this.options.pluginKey}:' + chunkId).then(resolve, reject);
+    }),
+]);
+return installedChunks[chunkId][2] = Promise.all(promises);
+`;
                 }
             );
         });

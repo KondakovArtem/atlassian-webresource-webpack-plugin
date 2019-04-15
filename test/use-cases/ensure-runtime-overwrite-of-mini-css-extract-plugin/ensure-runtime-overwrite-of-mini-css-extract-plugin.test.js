@@ -22,30 +22,25 @@ describe('ensure-runtime-overwrite-of-mini-css-extract-plugin', function() {
             const bundleFile = fs.readFileSync(path.join(targetDir, 'app-before.js'), 'utf-8');
 
             const expectedRuntimeAdjustment = `
-/******/ 	__webpack_require__.e = function requireEnsure(chunkId) {
 /******/ 		var promises = [];
 /******/
-/******/ 		var WRMChildChunkIds = {"0":true};
-/******/ 		if (WRMChildChunkIds[chunkId]) {
-/******/ 		    if(installedChunks[chunkId] === 0) { // 0 means "already installed".
-/******/ 		        return Promise.resolve();
-/******/ 		    }
-/******/
-/******/ 		    if (installedChunks[chunkId]) {
-/******/ 		        return installedChunks[chunkId][2];
-/******/ 		    }
-/******/
-/******/ 		    return Promise.all([
-/******/ 		        new Promise(function(resolve, reject) {
-/******/ 		            installedChunks[chunkId] = [resolve, reject];
-/******/ 		        }),
-/******/ 		        new Promise(function(resolve, reject) {
-/******/ 		            WRM.require('wrc!com.atlassian.plugin.test:' + chunkId).then(resolve, reject);
-/******/ 		        }),
-/******/ 		    ]);
+/******/ 		if(installedChunks[chunkId] === 0) { // 0 means "already installed".
+/******/ 		    return Promise.resolve();
 /******/ 		}
-/******/ 		return Promise.all(promises);
-/******/ 	};`;
+/******/
+/******/ 		if (installedChunks[chunkId]) {
+/******/ 		    return installedChunks[chunkId][2];
+/******/ 		}
+/******/
+/******/ 		promises.push([
+/******/ 		    new Promise(function(resolve, reject) {
+/******/ 		        installedChunks[chunkId] = [resolve, reject];
+/******/ 		    }),
+/******/ 		    new Promise(function(resolve, reject) {
+/******/ 		        WRM.require('wrc!com.atlassian.plugin.test:' + chunkId).then(resolve, reject);
+/******/ 		    }),
+/******/ 		]);
+/******/ 		return installedChunks[chunkId][2] = Promise.all(promises);`;
 
             assert.include(bundleFile, expectedRuntimeAdjustment, 'expect runtime overwrite');
         });
@@ -65,30 +60,25 @@ describe('ensure-runtime-overwrite-of-mini-css-extract-plugin', function() {
             const bundleFile = fs.readFileSync(path.join(targetDir, 'app-after.js'), 'utf-8');
 
             const expectedRuntimeAdjustment = `
-/******/ 	__webpack_require__.e = function requireEnsure(chunkId) {
 /******/ 		var promises = [];
 /******/
-/******/ 		var WRMChildChunkIds = {"0":true};
-/******/ 		if (WRMChildChunkIds[chunkId]) {
-/******/ 		    if(installedChunks[chunkId] === 0) { // 0 means "already installed".
-/******/ 		        return Promise.resolve();
-/******/ 		    }
-/******/
-/******/ 		    if (installedChunks[chunkId]) {
-/******/ 		        return installedChunks[chunkId][2];
-/******/ 		    }
-/******/
-/******/ 		    return Promise.all([
-/******/ 		        new Promise(function(resolve, reject) {
-/******/ 		            installedChunks[chunkId] = [resolve, reject];
-/******/ 		        }),
-/******/ 		        new Promise(function(resolve, reject) {
-/******/ 		            WRM.require('wrc!com.atlassian.plugin.test:' + chunkId).then(resolve, reject);
-/******/ 		        }),
-/******/ 		    ]);
+/******/ 		if(installedChunks[chunkId] === 0) { // 0 means "already installed".
+/******/ 		    return Promise.resolve();
 /******/ 		}
-/******/ 		return Promise.all(promises);
-/******/ 	};`;
+/******/
+/******/ 		if (installedChunks[chunkId]) {
+/******/ 		    return installedChunks[chunkId][2];
+/******/ 		}
+/******/
+/******/ 		promises.push([
+/******/ 		    new Promise(function(resolve, reject) {
+/******/ 		        installedChunks[chunkId] = [resolve, reject];
+/******/ 		    }),
+/******/ 		    new Promise(function(resolve, reject) {
+/******/ 		        WRM.require('wrc!com.atlassian.plugin.test:' + chunkId).then(resolve, reject);
+/******/ 		    }),
+/******/ 		]);
+/******/ 		return installedChunks[chunkId][2] = Promise.all(promises);`;
 
             assert.include(bundleFile, expectedRuntimeAdjustment, 'expect runtime overwrite');
         });
