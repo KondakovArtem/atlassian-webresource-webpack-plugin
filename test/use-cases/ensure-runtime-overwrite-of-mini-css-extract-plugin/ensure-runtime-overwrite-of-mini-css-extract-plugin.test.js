@@ -32,14 +32,14 @@ describe('ensure-runtime-overwrite-of-mini-css-extract-plugin', function() {
 /******/ 		    return installedChunks[chunkId][2];
 /******/ 		}
 /******/
-/******/ 		promises.push([
+/******/ 		promises.push(
 /******/ 		    new Promise(function(resolve, reject) {
 /******/ 		        installedChunks[chunkId] = [resolve, reject];
 /******/ 		    }),
 /******/ 		    new Promise(function(resolve, reject) {
 /******/ 		        WRM.require('wrc!com.atlassian.plugin.test:' + chunkId).then(resolve, reject);
 /******/ 		    }),
-/******/ 		]);
+/******/ 		);
 /******/ 		return installedChunks[chunkId][2] = Promise.all(promises);`;
 
             assert.include(bundleFile, expectedRuntimeAdjustment, 'expect runtime overwrite');
@@ -70,14 +70,14 @@ describe('ensure-runtime-overwrite-of-mini-css-extract-plugin', function() {
 /******/ 		    return installedChunks[chunkId][2];
 /******/ 		}
 /******/
-/******/ 		promises.push([
+/******/ 		promises.push(
 /******/ 		    new Promise(function(resolve, reject) {
 /******/ 		        installedChunks[chunkId] = [resolve, reject];
 /******/ 		    }),
 /******/ 		    new Promise(function(resolve, reject) {
 /******/ 		        WRM.require('wrc!com.atlassian.plugin.test:' + chunkId).then(resolve, reject);
 /******/ 		    }),
-/******/ 		]);
+/******/ 		);
 /******/ 		return installedChunks[chunkId][2] = Promise.all(promises);`;
 
             assert.include(bundleFile, expectedRuntimeAdjustment, 'expect runtime overwrite');

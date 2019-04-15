@@ -1,4 +1,4 @@
-## 4.4.2 (April 15, 2019)
+## 4.4.2/4.4.3 (April 15, 2019)
 * bugfix: Fix bug introduced due to changes in 4.4.1 where undefined was returned by require.ensure instead of a promise.
     * [@timse2](https://bitbucket.org/timse2/) in [PR #83](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/83)
 
