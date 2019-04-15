@@ -1,6 +1,6 @@
 {
   "name": "atlassian-webresource-webpack-plugin",
-  "version": "4.4.1",
+  "version": "4.4.2",
   "description": "Auto-generates web-resource definitions from your webpacked code, for usage in an Atlassian product or plugin.",
   "main": "src/WrmPlugin.js",
   "license": "Apache-2.0",
