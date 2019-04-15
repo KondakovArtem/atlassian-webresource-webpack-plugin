@@ -60,25 +60,25 @@ describe('async-chunks-of-async-chunks', function() {
         // setup
         const bundleFile = fs.readFileSync(path.join(targetDir, 'runtime~app.js'), 'utf-8');
         const expectedRuntimeAdjustment = `
-/******/ 		var WRMChildChunkIds = {"async-bar":true,"async-async-bar":true,"async-async-async-bar":true,"async-async-bar-two":true,"async-foo":true};
-/******/ 		if (WRMChildChunkIds[chunkId]) {
-/******/ 		    if(installedChunks[chunkId] === 0) { // 0 means "already installed".
-/******/ 		        return Promise.resolve();
-/******/ 		    }
+/******/ 		var promises = [];
 /******/
-/******/ 		    if (installedChunks[chunkId]) {
-/******/ 		        return installedChunks[chunkId][2];
-/******/ 		    }
+/******/ 		if(installedChunks[chunkId] === 0) { // 0 means "already installed".
+/******/ 		    return Promise.resolve();
+/******/ 		}
 /******/
-/******/ 		    return Promise.all([
-/******/ 		        new Promise(function(resolve, reject) {
-/******/ 		            installedChunks[chunkId] = [resolve, reject];
-/******/ 		        }),
-/******/ 		        new Promise(function(resolve, reject) {
-/******/ 		            WRM.require('wrc!com.atlassian.plugin.test:' + chunkId).then(resolve, reject);
-/******/ 		        }),
-/******/ 		    ]);
-/******/ 		}`;
+/******/ 		if (installedChunks[chunkId]) {
+/******/ 		    return installedChunks[chunkId][2];
+/******/ 		}
+/******/
+/******/ 		promises.push([
+/******/ 		    new Promise(function(resolve, reject) {
+/******/ 		        installedChunks[chunkId] = [resolve, reject];
+/******/ 		    }),
+/******/ 		    new Promise(function(resolve, reject) {
+/******/ 		        WRM.require('wrc!com.atlassian.plugin.test:' + chunkId).then(resolve, reject);
+/******/ 		    }),
+/******/ 		]);
+/******/ 		return installedChunks[chunkId][2] = Promise.all(promises);`;
 
         assert.include(bundleFile, expectedRuntimeAdjustment);
     });
