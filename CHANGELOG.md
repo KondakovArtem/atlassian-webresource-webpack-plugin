@@ -1,3 +1,7 @@
+## 4.5.0 (May 30, 2019)
+* feature: added `addEntrypointNameAsContext` option to control whether generated web-resources are added to a context by default or not.
+    * [@chrisdarroch](https://bitbucket.org/chrisdarroch) in [PR #79](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/79).
+
 ## 4.4.4 (May 30, 2019)
 * bugfix: The generated loader code works in older browsers that don't like trailing commas in their JavaScript.
     * Pietro in [PR #84](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/84)
