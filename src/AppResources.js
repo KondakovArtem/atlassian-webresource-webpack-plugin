@@ -166,7 +166,7 @@ module.exports = class AppResources {
 
             return {
                 attributes: webResourceAttrs,
-                contexts: getContextForEntry(name, this.options.contextMap),
+                contexts: getContextForEntry(name, this.options.contextMap, this.options.addEntrypointNameAsContext),
                 conditions: getConditionForEntry(name, this.options.conditionMap),
                 externalResources: WebpackHelpers.getExternalResourcesForChunk(runtimeChunk),
                 resources: Array.from(new Set(resourceList)),

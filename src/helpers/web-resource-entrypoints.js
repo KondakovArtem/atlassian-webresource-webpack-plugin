@@ -3,12 +3,15 @@ const { parseWebResourceAttributes } = require('./web-resource-parser');
 /**
  * @param {String} entry
  * @param {Map<String, Array<String>>} contextMap
+ * @param {Boolean} addEntrypointNameAsContext
  * @returns {Array<String>}
  */
-function getContextForEntry(entry, contextMap) {
-    const contexts = [].concat(entry).concat(contextMap.get(entry));
-    const validContexts = contexts.filter(context => context && typeof context === 'string');
-    return validContexts;
+function getContextForEntry(entry, contextMap, addEntrypointNameAsContext) {
+    const contexts = [].concat(contextMap.get(entry));
+    if (addEntrypointNameAsContext) {
+        contexts.unshift(entry);
+    }
+    return contexts.filter(context => context && typeof context === 'string');
 }
 
 /**

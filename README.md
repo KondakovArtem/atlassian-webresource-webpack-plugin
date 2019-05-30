@@ -278,6 +278,13 @@ standard Maven project).
 The sub-directory part of this configuration value needs to be configured in the project's `pom.xml`, as
 demonstrated in the basic usage section above.
 
+### `addEntrypointNameAsContext` (Optional)
+
+When set to `true` (the default value), all generated web-resources will be added to
+a context with the same name as the entrypoint.
+
+This behaviour can be disabled by setting the value of this option to `false`.
+
 ### `contextMap` (Optional)
 
 A set of key-value pairs that allows you to specify which webpack entry-points

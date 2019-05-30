@@ -46,6 +46,7 @@ describe('simple', function() {
             assert.nestedPropertyVal(node, 'children[0].attributes.key', 'jsI18n');
         });
 
+        // @deprecated
         it('has a context named after the entry point', () => {
             let node = contextEntryNode.children
                 .filter(n => n.name === 'context')

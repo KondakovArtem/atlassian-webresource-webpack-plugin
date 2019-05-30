@@ -7,7 +7,7 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('specify-explicit-context', function() {
+describe('specify-explicit-context (with no auto-generated values)', function() {
     const config = require('./webpack.config.js');
 
     let stats;
@@ -48,42 +48,37 @@ describe('specify-explicit-context', function() {
         const wrWithGoodConfig = getWebresourceLike('good-newcontexts');
         const contexts = getContent(getContexts(wrWithGoodConfig));
         assert.ok(contexts);
-        assert.equal(contexts.length, 3);
         assert.include(contexts, 'some:weird:context');
         assert.include(contexts, 'foo.bar');
-        assert.include(contexts, 'app-good-newcontexts');
+        assert.notInclude(contexts, 'app-good-newcontexts');
     });
 
     it('should add the entrypoint name as a context when there is no contextMap config for it', () => {
         const wrWithImplicitConfig = getWebresourceLike('good-implicit');
         const contexts = getContent(getContexts(wrWithImplicitConfig));
         assert.ok(contexts);
-        assert.equal(contexts.length, 1);
-        assert.include(contexts, 'app-good-implicit');
+        assert.equal(contexts.length, 0);
     });
 
     it('should ignore non-array configuration values gracefully', () => {
         const wrWithBadConfig = getWebresourceLike('bad-objectlike');
         const contexts = getContent(getContexts(wrWithBadConfig));
         assert.ok(contexts);
-        assert.equal(contexts.length, 1);
-        assert.include(contexts, 'app-bad-objectlike');
+        assert.equal(contexts.length, 0);
     });
 
     it('should ignore falsy configuration values gracefully', () => {
         const wrWithBadConfig = getWebresourceLike('bad-falsy');
         const contexts = getContent(getContexts(wrWithBadConfig));
         assert.ok(contexts);
-        assert.equal(contexts.length, 1);
-        assert.include(contexts, 'app-bad-falsy');
+        assert.equal(contexts.length, 0);
     });
 
     it('should ignore non-string context names gracefully', () => {
         const wrWithBadValues = getWebresourceLike('bad-emptyvalues');
         const contexts = getContent(getContexts(wrWithBadValues));
         assert.ok(contexts);
-        assert.equal(contexts.length, 2);
-        assert.include(contexts, 'app-bad-emptyvalues');
         assert.include(contexts, 'foo.bar');
+        assert.notInclude(contexts, 'app-bad-emptyvalues');
     });
 });
