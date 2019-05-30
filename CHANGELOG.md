@@ -1,3 +1,7 @@
+## 4.4.4 (May 30, 2019)
+* bugfix: The generated loader code works in older browsers that don't like trailing commas in their JavaScript.
+    * Pietro in [PR #84](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/84)
+
 ## 4.4.2/4.4.3 (April 15, 2019)
 * bugfix: Fix bug introduced due to changes in 4.4.1 where undefined was returned by require.ensure instead of a promise.
     * [@timse2](https://bitbucket.org/timse2/) in [PR #83](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/83)
