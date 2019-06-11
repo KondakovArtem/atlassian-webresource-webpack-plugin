@@ -440,12 +440,14 @@ This parameter can take either `string` or `object` with properties `key`, `name
 
 Mapping as follows:
 ```json
-webresourceKeyMap: {
-  firstWebResource: 'first-web-resource',
-  secondWebResource: {
-    key: 'second-web-resource',
-    name: 'Second WebResource',
-    state: 'disabled'
+{
+  "webresourceKeyMap": {
+    "firstWebResource": "first-web-resource",
+    "secondWebResource": {
+      "key": "second-web-resource",
+      "name": "Second WebResource",
+      "state": "disabled"
+    }
   }
 }
 ```
@@ -491,7 +493,7 @@ so one can use this map as a source for `providedDependencies` in another build:
 
 ```json
 {
-  providedDependencies: {
+  "providedDependencies": {
     "dependency-name": {
       "dependency": "atlassian.plugin.key:webresource-key",
       "import": {
@@ -514,9 +516,9 @@ so one can use this map as a source for `providedDependencies` in another build:
 
 ```json
 {
-    output: {
-        library: "[name]",
-        libraryTarget: "amd"
+    "output": {
+        "library": "[name]",
+        "libraryTarget": "amd"
     }
 }
 ```
@@ -541,24 +543,6 @@ To specify for example content-types the server should respond with for a certai
 Setting specific content-types may be required by certain Atlassian products depending on the file-type to load.
 *Contains content-type for svg as "image/svg+xml" by default*
 
-### `assetContentTypes` (DEPRECATED) (Optional)
-
-> This option is **deprecated** and will be removed in a future version. Please use `resourceParamMap` instead.
-
-An object specifying content-types the server should respond with for a certain assets file-type (e.g. images/fonts):
-
-```json
-{
-  "assetContentTypes": {
-    "svg": "image/svg+xml"
-  }
-}
-```
-
-This may be required by certain Atlassian products depending on the file-type to load.
-*Contains content-type for svg as "image/svg+xml" by default*
-
-
 ### `locationPrefix` (Optional)
 
 Adds given prefix value to `location` attribute of `resource` node.
@@ -576,6 +560,41 @@ Use when running the process with a webpack-dev-server.
 When set to `true`, the generated watch mode modules will add the script tags to the document synchronously with `document.write` while the document is loading, rather than always relying on asynchronously appended script tags (default behaviour).
 
 This is useful when bundles are expected to be available on the page early, e.g. when code in a template relies on javascript to be loaded blockingly.
+
+### `noWRM` (Optional)
+Will not add any WRM-specifics to the webpack-runtime or try to redirect async-chunk requests while still handling requests to `wr-dependency` and `wr-resource`. 
+This can be useful to develop frontend outside of a running product that provides the WRM functionality.
+
+### `singleRuntimeWebResourceKey` (Optional)
+Set a specific web-resource key for the Webpack runtime when using the Webpack option `optimization.runtimeChunk` to `single` (see [runtimeChunk documentation](https://webpack.js.org/configuration/optimization/#optimizationruntimechunk)). Default is `common-runtime`.
+
+### `verbose` (Optional)
+Indicate verbosity of log output. Default is `false`.
+
+### `standalone` (Optional) (Experimental)
+**Do not use this** 
+Builds standalone web-resources, no transformations and base-contexts will be applied.
+No non-entry-chunks are supported.
+*Experimental - may change or be removed again at any time* 
+
+## Deprecated configuration
+
+### `assetContentTypes` (DEPRECATED) (Optional)
+
+> This option is **deprecated** and will be removed in a future version. Please use `resourceParamMap` instead.
+
+An object specifying content-types the server should respond with for a certain assets file-type (e.g. images/fonts):
+
+```json
+{
+  "assetContentTypes": {
+    "svg": "image/svg+xml"
+  }
+}
+```
+
+This may be required by certain Atlassian products depending on the file-type to load.
+*Contains content-type for svg as "image/svg+xml" by default*
 
 ### `__testGlobs__` (Optional) (Deprecated)
 
@@ -596,22 +615,6 @@ This configuration option is deprecated and will be removed in a 1.0 release of 
 exists to give developers time to refactor and rewrite their QUnit tests as build-time tests; either
 as pure unit tests (e.g., via Jest or Mocha) or pure black-box integration tests (e.g., via Webdriver).
 
-### `noWRM` (Optional)
-Will not add any WRM-specifics to the webpack-runtime or try to redirect async-chunk requests while still handling requests to `wr-dependency` and `wr-resource`. 
-This can be useful to develop frontend outside of a running product that provides the WRM functionality.
-
-### `singleRuntimeWebResourceKey` (Optional)
-Set a specific web-resource key for the Webpack runtime when using the Webpack option `optimization.runtimeChunk` to `single` (see [runtimeChunk documentation](https://webpack.js.org/configuration/optimization/#optimizationruntimechunk)). Default is `common-runtime`.
-
-### `verbose` (Optional)
-Indicate verbosity of log output. Default is `false`.
-
-### `standalone` (Optional) (Experimental)
-**Do not use this** 
-Builds standalone web-resources, no transformations and base-contexts will be applied.
-No non-entry-chunks are supported.
-*Experimental - may change or be removed again at any time* 
-
 ## Minimum requirements
 
 This plugin has been built to work with the following versions of the external build tools:
@@ -620,9 +623,6 @@ This plugin has been built to work with the following versions of the external b
 * Node 6+ (at P2 plugin build-time)
 * [Atlassian Maven Plugin Suite (AMPS)][atlassian-amps] 6.2.11+
 * [Atlassian Web Resource Manager (WRM)][atlassian-wrm] 3.0+
-
-
-
 
 
 [101]: https://bitbucket.org/serverecosystem/sao4fed-bundle-the-ui

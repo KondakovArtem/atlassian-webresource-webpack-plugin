@@ -101,7 +101,13 @@
   },
   "keywords": [
     "atlassian",
-    "webpack"
+    "webpack",
+    "wrm",
+    "server",
+    "web",
+    "webresource",
+    "resource",
+    "manager"
   ],
   "scripts": {
     "lint": "eslint .",
