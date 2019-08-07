@@ -15,7 +15,7 @@ const {
     createTestResourceDescriptors,
 } = require('./helpers/web-resource-generator');
 const { toMap, extractPathPrefixForXml } = require('./helpers/options-parser');
-const { providedDependencies } = require('./helpers/provided-dependencies');
+const { buildProvidedDependency } = require('./helpers/provided-dependencies');
 
 const ProvidedExternalDependencyModule = require('./webpack-modules/ProvidedExternalDependencyModule');
 const WrmDependencyModule = require('./webpack-modules/WrmDependencyModule');
@@ -27,6 +27,8 @@ const QUnitTestResources = require('./QUnitTestResources');
 const AppResources = require('./AppResources');
 const flattenReduce = require('./flattenReduce');
 const mergeMaps = require('./mergeMaps');
+
+const { builtInProvidedDependencies } = require('./defaults/builtInProvidedDependencies');
 
 const defaultResourceParams = new Map().set('svg', [
     {
@@ -125,6 +127,7 @@ class WrmPlugin {
         // make sure various maps contain only unique items
         this.options.resourceParamMap = this.ensureResourceParamsAreUnique(this.options.resourceParamMap);
         this.options.transformationMap = this.ensureTransformationsAreUnique(this.options.transformationMap);
+        this.options.providedDependencies = this.ensureProvidedDependenciesAreUnique(this.options.providedDependencies);
 
         this.getAssetsUUID = once(this.getAssetsUUID.bind(this));
     }
@@ -156,6 +159,22 @@ class WrmPlugin {
             map.set(key, unionBy(values.reverse(), 'name').reverse());
         });
         return results;
+    }
+
+    ensureProvidedDependenciesAreUnique(providedDependencies) {
+        const result = new Map(builtInProvidedDependencies);
+
+        for (let [name, providedDependency] of providedDependencies) {
+            if (result.has(name)) {
+                continue;
+            }
+
+            result.set(name, providedDependency);
+        }
+
+        logger.log('Using provided dependencies', Array.from(result));
+
+        return result;
     }
 
     checkConfig(compiler) {
@@ -436,7 +455,7 @@ return installedChunks[chunkId][2] = Promise.all(promises);
                             chunk: { name: moduleId },
                         });
 
-                        result[moduleId] = providedDependencies(
+                        result[moduleId] = buildProvidedDependency(
                             this.options.pluginKey,
                             resourceKey,
                             `require('${libraryName}')`,

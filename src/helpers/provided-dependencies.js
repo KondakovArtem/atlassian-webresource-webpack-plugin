@@ -6,7 +6,7 @@
  * @param {String} importAmd
  * @return {{dependency: string, import: {var: *, amd: *}}}
  */
-function providedDependencies(pluginKey, resourceKey, importVar, importAmd) {
+function buildProvidedDependency(pluginKey, resourceKey, importVar, importAmd) {
     return {
         dependency: `${pluginKey}:${resourceKey}`,
         import: {
@@ -17,5 +17,5 @@ function providedDependencies(pluginKey, resourceKey, importVar, importAmd) {
 }
 
 module.exports = {
-    providedDependencies,
+    buildProvidedDependency,
 };

@@ -622,7 +622,7 @@ This plugin has been built to work with the following versions of the external b
 * Webpack 4+
 * Node 6+ (at P2 plugin build-time)
 * [Atlassian Maven Plugin Suite (AMPS)][atlassian-amps] 6.2.11+
-* [Atlassian Web Resource Manager (WRM)][atlassian-wrm] 3.0+
+* [Atlassian Web Resource Manager (WRM)][atlassian-wrm] 3.6+
 
 
 [101]: https://bitbucket.org/serverecosystem/sao4fed-bundle-the-ui
