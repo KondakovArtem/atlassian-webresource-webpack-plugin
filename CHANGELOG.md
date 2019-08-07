@@ -1,3 +1,7 @@
+## 4.6.0 (August 7, 2019)
+* feature: dependencies for all basic WRM modules are provided by default.
+    * [@maciej-adamczak](https://bitbucket.org/maciej-adamczak) in [PR #86](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/86)
+
 ## 4.5.0 (May 30, 2019)
 * feature: added `addEntrypointNameAsContext` option to control whether generated web-resources are added to a context by default or not.
     * [@chrisdarroch](https://bitbucket.org/chrisdarroch) in [PR #79](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/79).

@@ -465,19 +465,20 @@ will result in the following web-resources:
 ### `providedDependencies` (Optional)
 
 A map of objects that let you associate what web-resources house particular external JS dependencies.
+
 The format of an external dependency mapping is as follows:
 
 ```json
 {
   "dependency-name": {
     "dependency": "atlassian.plugin.key:webresource-key",
-    "import": {
-      "var": "require('dependency-amd-module-name')",
-      "amd": "dependency-amd-module-name"
-    }
+    "import": externals
   }
 }
 ```
+
+In this example, `externals` is a JSON object following the
+[Webpack externals format][webpack-externalobjects].
 
 When your code is compiled through webpack, any occurrence of `dependency-name` found in a module import
 statement will be replaced in the webpack output, and an appropriate web-resource `<dependency>` will be
@@ -631,3 +632,5 @@ This plugin has been built to work with the following versions of the external b
 [atlassian-amps]: https://developer.atlassian.com/server/framework/atlassian-sdk/working-with-maven/#using-the-amps-maven-plugin-directly
 [atlassian-p2]: https://bitbucket.org/atlassian/atlassian-plugins
 [atlassian-wrm]: https://bitbucket.org/atlassian/atlassian-plugins-webresource
+[webpack]: https://webpack.js.org/
+[webpack-externalobjects]: https://webpack.js.org/configuration/externals/#object
