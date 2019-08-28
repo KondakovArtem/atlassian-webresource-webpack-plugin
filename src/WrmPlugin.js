@@ -492,6 +492,7 @@ return installedChunks[chunkId][2] = Promise.all(promises);
 var script = document.createElement('script');
 script.src = '${pathName}';
 script.async = false;
+script.crossOrigin = 'anonymous';
 document.head.appendChild(script);`.trim();
 
                         if (this.options.useDocumentWriteInWatchMode) {
