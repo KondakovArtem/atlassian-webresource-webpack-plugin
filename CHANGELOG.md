@@ -1,3 +1,7 @@
+## 4.6.1 (August 29, 2019)
+* fix: enable cross-origin loading of resources in development mode only.
+    * Tobias in [PR #87](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/87)
+
 ## 4.6.0 (August 7, 2019)
 * feature: dependencies for all basic WRM modules are provided by default.
     * [@maciej-adamczak](https://bitbucket.org/maciej-adamczak) in [PR #86](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/86)
