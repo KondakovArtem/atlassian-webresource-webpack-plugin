@@ -1,3 +1,7 @@
+## 4.7.0 (September 11, 2019)
+* feature: added `addAsyncNameAsContext` option to add an auto-generated web-resource context to all async chunks.
+    * [@timse2](https://bitbucket.org/timse2/) in [PR #88](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/88)
+
 ## 4.6.1 (August 29, 2019)
 * fix: enable cross-origin loading of resources in development mode only.
     * Tobias in [PR #87](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/87)
