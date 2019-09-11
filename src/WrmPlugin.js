@@ -84,6 +84,7 @@ class WrmPlugin {
      * @param {Map<String, String>} [options.webresourceKeyMap] - An explicit name for the web-resource generated per entry point. e.g.: `{"my-entry": "legacy-webresource-name"}`.
      *
      * @param {Boolean} [options.addEntrypointNameAsContext=true] - Guarantees each entrypoint will be given a context matching its name. Use with caution; this can adversely affect page weight and may conflict with other plugins and feature code.
+     * @param {Boolean} [options.addAsyncNameAsContext=true] - Adds the name of the async chunk as a context prefixed by `async-chunk-`. Will only do so if a webpackChunkName is set.
      * @param {Boolean} [options.watch=false] - Trigger watch mode - this requires webpack-dev-server and will redirect requests to the entrypoints to the dev-server that must be running under webpack's `options.output.publicPath`.
      * @param {Boolean} [options.watchPrepare=false] - In conjunction with watch mode - indicates that only "redirects" to a webserver should be build in this run.
      * @param {Boolean} [options.standalone=false] - Build standalone web-resources - assumes no transformations, other chunks or base contexts are needed.
@@ -106,6 +107,7 @@ class WrmPlugin {
         this.options = Object.assign(
             {
                 addEntrypointNameAsContext: true,
+                addAsyncNameAsContext: true,
                 conditionMap: new Map(),
                 contextMap: new Map(),
                 webresourceKeyMap: new Map(),

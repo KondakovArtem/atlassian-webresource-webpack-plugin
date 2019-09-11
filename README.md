@@ -285,6 +285,13 @@ a context with the same name as the entrypoint.
 
 This behaviour can be disabled by setting the value of this option to `false`.
 
+### `addAsyncNameAsContext` (Optional)
+
+When set to `true` (the default value), all generated web-resources for async chunks that have a name (specified via `webpackChunkName` on import) will be added to
+a context of the name "async-chunk-<name as specified in webpackChunkName>".
+
+This behaviour can be disabled by setting the value of this option to `false`.
+
 ### `contextMap` (Optional)
 
 A set of key-value pairs that allows you to specify which webpack entry-points

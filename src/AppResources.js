@@ -117,6 +117,7 @@ module.exports = class AppResources {
                 externalResources: WebpackHelpers.getExternalResourcesForChunk(c),
                 resources: Array.from(new Set(c.files.concat(additionalFileDeps))),
                 dependencies: getBaseContexts().concat(WebpackHelpers.getDependenciesForChunks([c])),
+                contexts: this.options.addAsyncNameAsContext && c.name ? [`async-chunk-${c.name}`] : undefined,
             };
         });
 
