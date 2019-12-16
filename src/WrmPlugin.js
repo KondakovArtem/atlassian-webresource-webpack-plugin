@@ -280,7 +280,9 @@ if (typeof AJS !== "undefined") {
                 'enable async loading with wrm - jsonp-script',
                 (source, chunk, hash) => {
                     // Ensure the WRM.require function is available at runtime.
-                    addBaseContext('com.atlassian.plugins.atlassian-plugins-webresource-rest:web-resource-manager');
+                    // TODO: understand how to set this data on chunk "properly" so that
+                    //  our normalModuleFactory hook will pick it up and generate this dep for us.
+                    chunk.needsWrmRequire = true;
 
                     // Add the WRM async loader in to the webpack module runtime.
                     return `

@@ -68,6 +68,10 @@ module.exports = class WebpackHelpers {
             for (const dep of WebpackHelpers._getExternalDependencyModules(chunk)) {
                 externalDeps.add(dep);
             }
+            // TODO: figure out how to pass this "properly" as a module
+            if (chunk.needsWrmRequire) {
+                externalDeps.add('com.atlassian.plugins.atlassian-plugins-webresource-rest:web-resource-manager');
+            }
         }
         return Array.from(externalDeps);
     }
