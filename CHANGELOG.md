@@ -1,3 +1,8 @@
+## 4.7.1 (December 16, 2019)
+* chore: updated various module dependencies.
+* fix: added `webpack-sources` as a first-order dependency.
+    * [@mrzymski](https://bitbucket.org/mrzymski/) in [PR #89](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/89)
+
 ## 4.7.0 (September 11, 2019)
 * feature: added `addAsyncNameAsContext` option to add an auto-generated web-resource context to all async chunks.
     * [@timse2](https://bitbucket.org/timse2/) in [PR #88](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/88)
