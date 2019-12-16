@@ -1,3 +1,6 @@
+const isAmd = ['amd', 'amd-require', 'commonjs', 'commonjs2', 'umd', 'umd2', 'system'];
+const isVar = ['var', 'assign', 'global', 'window', 'self', 'root'];
+
 /**
  *
  * @param {String} pluginKey
@@ -7,13 +10,17 @@
  * @return {{dependency: string, import: {var: *, amd: *}}}
  */
 function buildProvidedDependency(pluginKey, resourceKey, importVar, importAmd) {
-    return {
+    const declaration = {
         dependency: `${pluginKey}:${resourceKey}`,
-        import: {
-            var: importVar,
-            amd: importAmd,
-        },
+        import: {},
     };
+    if (importVar) {
+        isVar.forEach(type => (declaration.import[type] = importVar));
+    }
+    if (importAmd) {
+        isAmd.forEach(type => (declaration.import[type] = importAmd));
+    }
+    return declaration;
 }
 
 module.exports = {

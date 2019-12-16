@@ -16,6 +16,7 @@ const {
 } = require('./helpers/web-resource-generator');
 const { toMap, extractPathPrefixForXml } = require('./helpers/options-parser');
 const { buildProvidedDependency } = require('./helpers/provided-dependencies');
+const { addBaseContext } = require('./settings/base-contexts');
 
 const ProvidedExternalDependencyModule = require('./webpack-modules/ProvidedExternalDependencyModule');
 const WrmDependencyModule = require('./webpack-modules/WrmDependencyModule');
@@ -210,6 +211,10 @@ An automated jsonpFunction name for this plugin was created:
             compilation.mainTemplate.hooks.requireExtensions.tap(
                 'OverwritePublicPath Require-Extensions',
                 standardScript => {
+                    // Ensure the `AJS.contextPath` function is available at runtime.
+                    addBaseContext('com.atlassian.plugins.atlassian-plugins-webresource-plugin:context-path');
+
+                    // Add the public path extension to the webpack module runtime.
                     return `${standardScript}
 if (typeof AJS !== "undefined") {
     ${compilation.mainTemplate.requireFn}.p = AJS.contextPath() + "/download/resources/${
@@ -274,6 +279,10 @@ if (typeof AJS !== "undefined") {
             compilation.mainTemplate.hooks.requireEnsure.tap(
                 'enable async loading with wrm - jsonp-script',
                 (source, chunk, hash) => {
+                    // Ensure the WRM.require function is available at runtime.
+                    addBaseContext('com.atlassian.plugins.atlassian-plugins-webresource-rest:web-resource-manager');
+
+                    // Add the WRM async loader in to the webpack module runtime.
                     return `
 if(installedChunks[chunkId] === 0) { // 0 means "already installed".
     return Promise.resolve();
