@@ -1,6 +1,7 @@
 # Atlassian Web-Resource Webpack Plugin
-[![node](https://img.shields.io/badge/node-6.9%2B-brightgreen.svg)]()
-[![yarn](https://img.shields.io/badge/yarn-0.23.1-brightgreen.svg)]()
+[![node](https://img.shields.io/badge/node-8.12%2B-blue.svg)]()
+[![npm](https://img.shields.io/badge/npm-6.9%2B-blue.svg)]()
+[![webpack](https://img.shields.io/badge/webpack-4%2B-blue.svg)]()
 
 Auto-generates web-resource definitions from your webpacked code, for usage
 in an Atlassian product or plugin.
