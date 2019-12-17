@@ -3,7 +3,7 @@ const parse = require('xml-parser');
 const webpack = require('webpack');
 const fs = require('fs');
 const path = require('path');
-
+const { setBaseContexts } = require('../../../src/settings/base-contexts');
 const RUNTIME_WR_KEY = 'common-runtime';
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-single.xml');
@@ -11,6 +11,7 @@ const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 
 describe('single runtime chunk', function() {
     const baseConfig = require('./webpack.config.js');
     const PLUGIN_KEY = 'com.atlassian.plugin.test';
+    const BASE_DEPS = ['base.context:dep1', 'base.context:dep2'];
 
     function getResources(node) {
         return node.children.filter(n => n.name === 'resource');
@@ -25,6 +26,8 @@ describe('single runtime chunk', function() {
         runtimeWrKey = runtimeWrKey || RUNTIME_WR_KEY;
 
         before(function(done) {
+            setBaseContexts(BASE_DEPS);
+
             webpack(config, (err, st) => {
                 const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
                 const results = parse(xmlFile);
@@ -46,18 +49,11 @@ describe('single runtime chunk', function() {
             assert.equal(runtimeResourceLocations[0], runtimeName, 'should be the runtime');
         });
 
-        it('adds base WRM dependencies to the runtime web-resource', function() {
+        it('adds base dependencies to the runtime web-resource', function() {
             const runtimeWR = wrNodes.find(n => n.attributes.key === runtimeWrKey);
             const dependencies = getDependencies(runtimeWR);
             const dependencyNames = dependencies.map(d => d.content);
-            assert.includeMembers(
-                dependencyNames,
-                [
-                    'com.atlassian.plugins.atlassian-plugins-webresource-rest:web-resource-manager',
-                    'com.atlassian.plugins.atlassian-plugins-webresource-plugin:context-path',
-                ],
-                'runtime should include deps from the WRM it needs, but did not'
-            );
+            assert.includeMembers(dependencyNames, BASE_DEPS, 'runtime should include base deps, but did not');
         });
 
         it('does not add the runtime to more than one web-resource', function() {

@@ -73,23 +73,41 @@ describe('async-chunks', function() {
         assert.include(bundleFile, expectedRuntimeAdjustment);
     });
 
-    it('adds shared provided dependencies only to the entry point', () => {
-        const appDeps = getContent(getDependencies(app));
-        const async1Deps = getContent(getDependencies(asyncChunk1));
-        const async2Deps = getContent(getDependencies(asyncChunk2));
+    describe('web-resource dependencies', () => {
+        let entryDeps;
+        let appDeps;
+        let async1Deps;
+        let async2Deps;
 
-        assert.ok(appDeps.includes('com.atlassian.plugin.jslibs:underscore-1.4.4'));
-        assert.notEqual(async1Deps.includes('com.atlassian.plugin.jslibs:underscore-1.4.4'), true);
-        assert.notEqual(async2Deps.includes('com.atlassian.plugin.jslibs:underscore-1.4.4'), true);
-    });
+        beforeEach(() => {
+            entryDeps = getContent(getDependencies(runtime));
+            appDeps = getContent(getDependencies(app));
+            async1Deps = getContent(getDependencies(asyncChunk1));
+            async2Deps = getContent(getDependencies(asyncChunk2));
+        });
 
-    it('adds async-chunk-only deps only to the async-chunk-webresource', () => {
-        const entryDeps = getContent(getDependencies(app));
-        const async1Deps = getContent(getDependencies(asyncChunk1));
-        const async2Deps = getContent(getDependencies(asyncChunk2));
+        it('adds required WRM dependency only to the web-resource with the webpack runtime', () => {
+            const WRM_KEY = 'com.atlassian.plugins.atlassian-plugins-webresource-rest:web-resource-manager';
+            assert.equal(entryDeps.includes(WRM_KEY), true);
+            assert.notEqual(appDeps.includes(WRM_KEY), true);
+            assert.notEqual(async1Deps.includes(WRM_KEY), true);
+            assert.notEqual(async2Deps.includes(WRM_KEY), true);
+        });
 
-        assert.ok(async1Deps.includes('jira.webresources:jquery'));
-        assert.notEqual(entryDeps.includes('jira.webresources:jquery'), true);
-        assert.notEqual(async2Deps.includes('jira.webresources:jquery'), true);
+        it('adds shared provided dependencies only to the app', () => {
+            const UNDERSCORE_KEY = 'com.atlassian.plugin.jslibs:underscore-1.4.4';
+            assert.notEqual(entryDeps.includes(UNDERSCORE_KEY), true);
+            assert.equal(appDeps.includes(UNDERSCORE_KEY), true);
+            assert.notEqual(async1Deps.includes(UNDERSCORE_KEY), true);
+            assert.notEqual(async2Deps.includes(UNDERSCORE_KEY), true);
+        });
+
+        it('adds async-chunk-only deps only to the async-chunk-webresource', () => {
+            const JQUERY_KEY = 'jira.webresources:jquery';
+            assert.notEqual(entryDeps.includes(JQUERY_KEY), true);
+            assert.notEqual(appDeps.includes(JQUERY_KEY), true);
+            assert.equal(async1Deps.includes(JQUERY_KEY), true);
+            assert.notEqual(async2Deps.includes(JQUERY_KEY), true);
+        });
     });
 });
