@@ -1,3 +1,8 @@
+/**
+ * @fileOverview
+ * Collects a set of web-resource dependencies that should be added
+ * to all the web-resources generated during compilation.
+ */
 const _ = require('lodash');
 const CROSS_PLATFORM_BASE_CONTEXTS = [];
 
@@ -8,30 +13,30 @@ function process(arr) {
         .value();
 }
 
-function BaseContexts() {
-    let configuredContexts = [];
+let configuredContexts = [];
 
-    return {
-        getBaseContexts() {
-            // defensively cloning so consumers can't accidentally add anything
-            return [...configuredContexts];
-        },
-
-        setBaseContexts(val) {
-            const contexts = [];
-            if (val instanceof Array) {
-                contexts.push(...val);
-            } else if (typeof val === 'string') {
-                contexts.push(val);
-            }
-
-            configuredContexts = process(contexts);
-        },
-
-        addBaseContext(val) {
-            configuredContexts = process([...configuredContexts, val]);
-        },
-    };
+function getBaseContexts() {
+    // defensively cloning so consumers can't accidentally add anything
+    return [...configuredContexts];
 }
 
-module.exports = new BaseContexts();
+function setBaseContexts(val) {
+    const contexts = [];
+    if (val instanceof Array) {
+        contexts.push(...val);
+    } else if (typeof val === 'string') {
+        contexts.push(val);
+    }
+
+    configuredContexts = process(contexts);
+}
+
+function addBaseContext(val) {
+    configuredContexts = process([...configuredContexts, val]);
+}
+
+module.exports = {
+    addBaseContext,
+    getBaseContexts,
+    setBaseContexts,
+};
