@@ -4,10 +4,10 @@
  * to all the web-resources generated during compilation.
  */
 const _ = require('lodash');
-const CROSS_PLATFORM_BASE_CONTEXTS = [];
+const CROSS_PLATFORM_BASE_DEPS = [];
 
 function process(arr) {
-    return _.chain([].concat(CROSS_PLATFORM_BASE_CONTEXTS, arr))
+    return _.chain([].concat(CROSS_PLATFORM_BASE_DEPS, arr))
         .filter(val => !!val)
         .uniq()
         .value();
@@ -15,12 +15,12 @@ function process(arr) {
 
 let configuredContexts = [];
 
-function getBaseContexts() {
+function getBaseDependencies() {
     // defensively cloning so consumers can't accidentally add anything
     return [...configuredContexts];
 }
 
-function setBaseContexts(val) {
+function setBaseDependencies(val) {
     const contexts = [];
     if (val instanceof Array) {
         contexts.push(...val);
@@ -31,12 +31,12 @@ function setBaseContexts(val) {
     configuredContexts = process(contexts);
 }
 
-function addBaseContext(val) {
+function addBaseDependency(val) {
     configuredContexts = process([...configuredContexts, val]);
 }
 
 module.exports = {
-    addBaseContext,
-    getBaseContexts,
-    setBaseContexts,
+    addBaseDependency,
+    getBaseDependencies,
+    setBaseDependencies,
 };

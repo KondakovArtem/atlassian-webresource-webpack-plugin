@@ -3,7 +3,7 @@ const parse = require('xml-parser');
 const webpack = require('webpack');
 const fs = require('fs');
 const path = require('path');
-const { setBaseContexts } = require('../../../src/settings/base-contexts');
+const { setBaseDependencies } = require('../../../src/settings/base-dependencies');
 const RUNTIME_WR_KEY = 'common-runtime';
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-single.xml');
@@ -26,7 +26,7 @@ describe('single runtime chunk', function() {
         runtimeWrKey = runtimeWrKey || RUNTIME_WR_KEY;
 
         before(function(done) {
-            setBaseContexts(BASE_DEPS);
+            setBaseDependencies(BASE_DEPS);
 
             webpack(config, (err, st) => {
                 const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');

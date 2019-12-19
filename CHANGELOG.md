@@ -100,7 +100,7 @@
 ## 1.0.6 (May 17, 2018)
 
 * add repository/homepage link to package.json
-* add context-path dependency to base-contexts to ensure AJS.contextPath is always available
+* add context-path dependency to base-dependencies to ensure AJS.contextPath is always available
 
 ## 1.0.5 (May 15, 2018)
 

@@ -3,7 +3,7 @@ const parse = require('xml-parser');
 const webpack = require('webpack');
 const fs = require('fs');
 const path = require('path');
-const { getBaseContexts } = require('../../../src/settings/base-contexts');
+const { getBaseDependencies } = require('../../../src/settings/base-dependencies');
 
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
@@ -66,7 +66,7 @@ describe('wrm-resource-loading', function() {
             let dependencies = getContent(dependencyNodes);
             assert.sameMembers(
                 dependencies,
-                getBaseContexts(),
+                getBaseDependencies(),
                 'should only include the base dependencies, but no others'
             );
         });
