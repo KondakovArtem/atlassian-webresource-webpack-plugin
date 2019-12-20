@@ -1,3 +1,7 @@
+## 4.7.2 (December 20, 2019)
+* feat: adds ability to provide custom hash name for dev assets
+    * [@mszpyra](https://bitbucket.org/mszpyra/) in [PR #92](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/92)
+
 ## 4.7.1 (December 16, 2019)
 * chore: updated various module dependencies.
 * fix: added `webpack-sources` as a first-order dependency.

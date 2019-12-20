@@ -557,6 +557,9 @@ Setting specific content-types may be required by certain Atlassian products dep
 Adds given prefix value to `location` attribute of `resource` node.
 Use this option when your webpack output is placed in a subdirectory of the plugin's ultimate root folder.
 
+### `devAssetsHash` (Optional)
+Uses provided value (instead of DEV_PSEUDO_HASH) in the webresource name that contains all of the assets needed in development mode.
+
 ### `watch` and `watchPrepare` (Optional)
 Activates "watch-mode". This must be run in conjuction with a webpack-dev-server.
 #### `watchPrepare`

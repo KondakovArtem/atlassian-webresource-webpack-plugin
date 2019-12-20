@@ -42,6 +42,8 @@ const defaultTransformations = new Map()
     .set('soy', ['soyTransformer', 'jsI18n'])
     .set('less', ['lessTransformer']);
 
+const DEFAULT_DEV_ASSETS_HASH = 'DEV_PSEUDO_HASH';
+
 class WrmPlugin {
     static extendTransformations(values) {
         return mergeMaps(defaultTransformations, toMap(values), (val, key, map) => {
@@ -82,6 +84,7 @@ class WrmPlugin {
      * @param {Map<String, Array<Object>>} [options.resourceParamMap] - Parameters to be added to specific file types.
      * @param {Map<String, Array<String>>} [options.transformationMap] - Transformations to be applied to the specified file-types.
      * @param {Map<String, String>} [options.webresourceKeyMap] - An explicit name for the web-resource generated per entry point. e.g.: `{"my-entry": "legacy-webresource-name"}`.
+     * @param {String} [options.devAssetsHash] - Custom hash used in development environment resources name.
      *
      * @param {Boolean} [options.addEntrypointNameAsContext=true] - Guarantees each entrypoint will be given a context matching its name. Use with caution; this can adversely affect page weight and may conflict with other plugins and feature code.
      * @param {Boolean} [options.addAsyncNameAsContext=true] - Adds the name of the async chunk as a context prefixed by `async-chunk-`. Will only do so if a webpackChunkName is set.
@@ -142,7 +145,11 @@ class WrmPlugin {
      * @returns {String}                    Unique hash ID
      */
     getAssetsUUID(isProduction) {
-        return isProduction ? uuidv4Gen() : 'DEV_PSEUDO_HASH';
+        return isProduction ? uuidv4Gen() : this.getDevAssetHash();
+    }
+
+    getDevAssetHash() {
+        return this.options.devAssetsHash ? this.options.devAssetsHash : DEFAULT_DEV_ASSETS_HASH;
     }
 
     ensureTransformationsAreUnique(transformations) {
