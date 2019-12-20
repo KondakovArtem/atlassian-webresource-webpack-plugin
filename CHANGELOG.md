@@ -1,4 +1,6 @@
 ## 4.7.2 (December 20, 2019)
+* feat: if webpack mode is set to none determine the environment from process.env.NODE_ENV
+    * [@mszpyra](https://bitbucket.org/mszpyra/) in [PR #91](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/91)
 * feat: adds ability to provide custom hash name for dev assets
     * [@mszpyra](https://bitbucket.org/mszpyra/) in [PR #92](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/92)
 

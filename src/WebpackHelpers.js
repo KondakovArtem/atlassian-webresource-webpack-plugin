@@ -160,6 +160,13 @@ This might be worth looking into as it could be an issue.
     static isRunningInProductionMode(compiler) {
         const { options } = compiler;
 
-        return Boolean(options.mode && options.mode === 'production');
+        if (options.mode) {
+            if (options.mode === 'production') {
+                return true;
+            } else if (options.mode === 'none') {
+                return process.env.NODE_ENV === 'production';
+            }
+        }
+        return false;
     }
 };
