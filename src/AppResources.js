@@ -5,7 +5,7 @@ const {
 } = require('./helpers/web-resource-entrypoints');
 const flattenReduce = require('./flattenReduce');
 const WebpackHelpers = require('./WebpackHelpers');
-const { getBaseContexts } = require('./settings/base-contexts');
+const { getBaseDependencies } = require('./settings/base-dependencies');
 
 const RUNTIME_WR_KEY = 'common-runtime';
 
@@ -99,7 +99,7 @@ module.exports = class AppResources {
                 attributes: syncSplitChunkDependencyKeyMap.get(WebpackHelpers.getChunkIdentifier(c)),
                 externalResources: WebpackHelpers.getExternalResourcesForChunk(c),
                 resources: Array.from(new Set(c.files.concat(additionalFileDeps))),
-                dependencies: getBaseContexts().concat(WebpackHelpers.getDependenciesForChunks([c])),
+                dependencies: getBaseDependencies().concat(WebpackHelpers.getDependenciesForChunks([c])),
             };
         });
 
@@ -116,7 +116,7 @@ module.exports = class AppResources {
                 attributes: { key: `${c.id}` },
                 externalResources: WebpackHelpers.getExternalResourcesForChunk(c),
                 resources: Array.from(new Set(c.files.concat(additionalFileDeps))),
-                dependencies: getBaseContexts().concat(WebpackHelpers.getDependenciesForChunks([c])),
+                dependencies: getBaseDependencies().concat(WebpackHelpers.getDependenciesForChunks([c])),
                 contexts: this.options.addAsyncNameAsContext && c.name ? [`async-chunk-${c.name}`] : undefined,
             };
         });
@@ -154,7 +154,7 @@ module.exports = class AppResources {
             // Construct the list of resources to add to this web-resource
             const resourceList = [].concat(...additionalFileDeps);
             const dependencyList = [].concat(
-                getBaseContexts(),
+                getBaseDependencies(),
                 WebpackHelpers.getDependenciesForChunks([runtimeChunk]),
                 sharedSplitDeps
             );
@@ -178,7 +178,7 @@ module.exports = class AppResources {
         if (this.isSingleRuntime()) {
             prodEntryPoints.push({
                 attributes: { key: singleRuntimeWebResourceKey },
-                dependencies: getBaseContexts(),
+                dependencies: getBaseDependencies(),
                 resources: this.getSingleRuntimeFiles(entrypoints),
             });
         }

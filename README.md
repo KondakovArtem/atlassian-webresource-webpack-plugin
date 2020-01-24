@@ -585,7 +585,7 @@ Indicate verbosity of log output. Default is `false`.
 
 ### `standalone` (Optional) (Experimental)
 **Do not use this** 
-Builds standalone web-resources, no transformations and base-contexts will be applied.
+Builds standalone web-resources, no transformations and base-dependencies will be applied.
 No non-entry-chunks are supported.
 *Experimental - may change or be removed again at any time* 
 

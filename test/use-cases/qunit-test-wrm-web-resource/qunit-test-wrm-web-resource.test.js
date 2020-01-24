@@ -90,12 +90,9 @@ describe('qunit-test-wrm-web-resource', function() {
             const deps2 = getContent(getDependencies(testEntry2));
 
             // check
-            assert.deepEqual(
-                deps1,
-                ['some.weird:web-resource', 'foo-bar:baz'],
-                'unexpected dependencies for first entry'
-            );
-            assert.deepEqual(deps2, ['some.weird:web-resource'], 'unexpected dependencies for second entry');
+            assert.include(deps1, 'some.weird:web-resource');
+            assert.include(deps1, 'foo-bar:baz');
+            assert.include(deps2, 'some.weird:web-resource');
         });
 
         it('should contain a mock-require as the first file dependency per entry', () => {
