@@ -1,3 +1,9 @@
+## 4.8.0 (January 29, 2020)
+* feat: the `WRM.require` function and associated web-resource dependency will only be added to chunks that need it (i.e., any chunk that lazy-loads other chunks). This makes compiled web-resources with no code-splitting a bit smaller at product runtime.
+    * [@chrisdarroch](https://bitbucket.org/chrisdarroch) in [PR #90](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/90).
+* fix: assets served from webpack's public path will receive cache headers.
+    * [@chrisdarroch](https://bitbucket.org/chrisdarroch) in [PR #93](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/93).
+
 ## 4.7.2 (December 20, 2019)
 * feat: if webpack mode is set to none determine the environment from process.env.NODE_ENV
     * [@mszpyra](https://bitbucket.org/mszpyra/) in [PR #91](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/91)
