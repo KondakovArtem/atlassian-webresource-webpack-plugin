@@ -220,13 +220,14 @@ An automated jsonpFunction name for this plugin was created:
                 standardScript => {
                     // Ensure the `AJS.contextPath` function is available at runtime.
                     addBaseDependency('com.atlassian.plugins.atlassian-plugins-webresource-plugin:context-path');
+                    const uuid = this.getAssetsUUID(isProductionMode);
 
                     // Add the public path extension to the webpack module runtime.
                     return `${standardScript}
 if (typeof AJS !== "undefined") {
-    ${compilation.mainTemplate.requireFn}.p = AJS.contextPath() + "/download/resources/${
+    ${compilation.mainTemplate.requireFn}.p = AJS.contextPath() + "/s/${uuid}/_/download/resources/${
                         this.options.pluginKey
-                    }:assets-${this.getAssetsUUID(isProductionMode)}/";
+                    }:assets-${uuid}/";
 }
 `;
                 }
