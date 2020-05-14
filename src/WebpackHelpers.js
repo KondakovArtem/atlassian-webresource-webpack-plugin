@@ -20,7 +20,7 @@ module.exports = class WebpackHelpers {
                     // circuit breaker
                     // dont use a chunk group more than once
                     const alreadySeen = seenChunkGroups.has(cg);
-                    seenChunkGroups.has(cg);
+                    seenChunkGroups.add(cg);
                     return !alreadySeen;
                 })
                 .map(cg => [...cg.chunks, ...recursivelyGetAllAsyncChunks(cg.getChildren())])
