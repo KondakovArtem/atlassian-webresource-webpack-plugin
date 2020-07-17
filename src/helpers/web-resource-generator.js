@@ -4,6 +4,17 @@ const { parseWebResourceAttributes } = require('./web-resource-parser');
 const renderCondition = require('../renderCondition');
 const renderTransformation = require('../renderTransformation');
 
+const renderData = data => {
+    if (!data) {
+        return '';
+    }
+
+    return renderElement('data', {
+        key: data.key,
+        class: data.class,
+    });
+};
+
 function generateContext(contexts) {
     return contexts ? contexts.map(context => `<context>${context}</context>`).join('') : '';
 }
@@ -66,7 +77,7 @@ function generateResources(parameterMap, resources) {
  * @returns {string} an XML representation of the {@link WrmEntrypoint}.
  */
 function createWebResource(webresource, transformations, pathPrefix = '', parameterMap = new Map(), standalone) {
-    const { resources = [], externalResources = [], contexts, dependencies, conditions } = webresource;
+    const { resources = [], externalResources = [], contexts, dependencies, conditions, data } = webresource;
     const attributes = parseWebResourceAttributes(webresource.attributes);
     const allResources = [];
     const children = [];
@@ -87,7 +98,8 @@ function createWebResource(webresource, transformations, pathPrefix = '', parame
             generateContext(contexts),
             generateDependencies(dependencies),
             generateResources(parameterMap, allResources),
-            renderCondition(conditions)
+            renderCondition(conditions),
+            renderData(data)
         );
     }
 

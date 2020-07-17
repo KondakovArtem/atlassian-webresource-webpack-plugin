@@ -113,6 +113,7 @@ class WrmPlugin {
                 addEntrypointNameAsContext: true,
                 addAsyncNameAsContext: true,
                 conditionMap: new Map(),
+                data: new Map(),
                 contextMap: new Map(),
                 webresourceKeyMap: new Map(),
                 providedDependencies: new Map(),
@@ -126,7 +127,7 @@ class WrmPlugin {
         logger.setVerbose(this.options.verbose);
 
         // convert various maybe-objects to maps
-        ['providedDependencies', 'conditionMap', 'contextMap', 'resourceParamMap', 'webresourceKeyMap'].forEach(
+        ['providedDependencies', 'conditionMap', 'contextMap', 'resourceParamMap', 'webresourceKeyMap', 'data'].forEach(
             prop => (this.options[prop] = toMap(this.options[prop]))
         );
 

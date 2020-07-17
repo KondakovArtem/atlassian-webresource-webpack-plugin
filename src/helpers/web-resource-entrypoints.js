@@ -47,8 +47,13 @@ function getConditionForEntry(entry, conditionMap) {
     return conditionMap.get(entry);
 }
 
+function getDataForEntry(entry, dataMap) {
+    return dataMap.get(entry);
+}
+
 module.exports = {
     getContextForEntry,
     getConditionForEntry,
     getWebresourceAttributesForEntry,
+    getDataForEntry,
 };
