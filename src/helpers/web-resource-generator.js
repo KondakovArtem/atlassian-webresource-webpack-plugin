@@ -4,15 +4,23 @@ const { parseWebResourceAttributes } = require('./web-resource-parser');
 const renderCondition = require('../renderCondition');
 const renderTransformation = require('../renderTransformation');
 
-const renderData = data => {
-    if (!data) {
-        return '';
+/**
+ * Renders list of data providers {@see DataProvider} as <data key="provider-key" class="data.provider.Class" /> elements
+ *
+ * @param {DataProvider[]} dataProviders
+ * @return {string[]}
+ */
+const renderDataProviders = dataProviders => {
+    if (!Array.isArray(dataProviders) || !dataProviders.length < 0) {
+        return [];
     }
 
-    return renderElement('data', {
-        key: data.key,
-        class: data.class,
-    });
+    return dataProviders.map(dataProvider =>
+        renderElement('data', {
+            key: dataProvider.key,
+            class: dataProvider.class,
+        })
+    );
 };
 
 function generateContext(contexts) {
@@ -77,7 +85,7 @@ function generateResources(parameterMap, resources) {
  * @returns {string} an XML representation of the {@link WrmEntrypoint}.
  */
 function createWebResource(webresource, transformations, pathPrefix = '', parameterMap = new Map(), standalone) {
-    const { resources = [], externalResources = [], contexts, dependencies, conditions, data } = webresource;
+    const { resources = [], externalResources = [], contexts, dependencies, conditions, dataProviders } = webresource;
     const attributes = parseWebResourceAttributes(webresource.attributes);
     const allResources = [];
     const children = [];
@@ -93,13 +101,14 @@ function createWebResource(webresource, transformations, pathPrefix = '', parame
     } else {
         // add resources for indirect dependencies (e.g., images extracted from CSS)
         allResources.push(...externalResources.map(wr => ({ name: wr.name, location: convertFilePaths(wr.location) })));
+
         children.push(
             renderTransformation(transformations, allResources),
             generateContext(contexts),
             generateDependencies(dependencies),
             generateResources(parameterMap, allResources),
             renderCondition(conditions),
-            renderData(data)
+            ...renderDataProviders(dataProviders)
         );
     }
 

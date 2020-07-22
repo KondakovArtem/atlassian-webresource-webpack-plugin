@@ -1,6 +1,6 @@
 const {
     getConditionForEntry,
-    getDataForEntry,
+    getDataProvidersForEntry,
     getContextForEntry,
     getWebresourceAttributesForEntry,
 } = require('./helpers/web-resource-entrypoints');
@@ -170,7 +170,7 @@ module.exports = class AppResources {
                 attributes: webResourceAttrs,
                 contexts: getContextForEntry(name, this.options.contextMap, this.options.addEntrypointNameAsContext),
                 conditions: getConditionForEntry(name, this.options.conditionMap),
-                data: getDataForEntry(name, this.options.data),
+                dataProviders: getDataProvidersForEntry(name, this.options.dataProvidersMap),
                 externalResources: WebpackHelpers.getExternalResourcesForChunk(runtimeChunk),
                 resources: Array.from(new Set(resourceList)),
                 dependencies: Array.from(new Set(dependencyList)),

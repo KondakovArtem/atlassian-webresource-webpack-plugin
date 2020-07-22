@@ -47,13 +47,20 @@ function getConditionForEntry(entry, conditionMap) {
     return conditionMap.get(entry);
 }
 
-function getDataForEntry(entry, dataMap) {
-    return dataMap.get(entry);
+/**
+ * Retrieves the list of data providers for given entrypoint
+ *
+ * @param {String} entrypoint - webpack entrypoint key
+ * @param {Map<String, Array<{ key: String, class: String }>>} dataProvidersMap - All data providers from plugin options
+ * @return {DataProvider[]} - List of data providers for given entry point
+ */
+function getDataProvidersForEntry(entrypoint, dataProvidersMap) {
+    return dataProvidersMap.get(entrypoint) || [];
 }
 
 module.exports = {
     getContextForEntry,
     getConditionForEntry,
     getWebresourceAttributesForEntry,
-    getDataForEntry,
+    getDataProvidersForEntry,
 };

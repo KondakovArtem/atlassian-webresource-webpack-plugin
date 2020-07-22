@@ -41,3 +41,10 @@
  * @property {object[]} [conditions] - a list of conditions to apply to the web-resource to determine whether
  *   it should output its resources at runtime or not.
  */
+
+/**
+ * @typedef {Object} DataProvider
+ * @description Data provider shape used by `dataProvidersMap` option.
+ * @property {String} key - Data provider key e.g. `my-data-provider`
+ * @property {String} class - Data provider Java class e.g. `my.data.provider.JavaClass`
+ */

@@ -8,6 +8,7 @@ const mkdirp = require('mkdirp');
 const once = require('lodash/once');
 const urlJoin = require('url-join');
 const unionBy = require('lodash/unionBy');
+const isObject = require('lodash/isObject');
 
 const {
     createQUnitResourceDescriptors,
@@ -94,6 +95,9 @@ class WrmPlugin {
      * @param {Boolean} [options.standalone=false] - Build standalone web-resources - assumes no transformations, other chunks or base contexts are needed.
      * @param {Boolean} [options.noWRM=false] - Do not add any WRM specifics to the webpack runtime to allow development on a greenfield.
      * @param {Boolean} [options.verbose=false] - Indicate if log output should be verbose.
+     *
+     * @param {Map<String, DataProvider[]>} [options.dataProvidersMap] - A list of data providers that will be added to the entry point e.g.: `{"my-entry": [{ key: "data-provider-key", class: "my.data.provider.JavaClass" }]}`
+     *
      * @constructs
      */
     constructor(options = {}) {
@@ -113,7 +117,7 @@ class WrmPlugin {
                 addEntrypointNameAsContext: true,
                 addAsyncNameAsContext: true,
                 conditionMap: new Map(),
-                data: new Map(),
+                dataProvidersMap: new Map(),
                 contextMap: new Map(),
                 webresourceKeyMap: new Map(),
                 providedDependencies: new Map(),
@@ -127,14 +131,20 @@ class WrmPlugin {
         logger.setVerbose(this.options.verbose);
 
         // convert various maybe-objects to maps
-        ['providedDependencies', 'conditionMap', 'contextMap', 'resourceParamMap', 'webresourceKeyMap', 'data'].forEach(
-            prop => (this.options[prop] = toMap(this.options[prop]))
-        );
+        [
+            'providedDependencies',
+            'conditionMap',
+            'contextMap',
+            'resourceParamMap',
+            'webresourceKeyMap',
+            'dataProvidersMap',
+        ].forEach(prop => (this.options[prop] = toMap(this.options[prop])));
 
         // make sure various maps contain only unique items
         this.options.resourceParamMap = this.ensureResourceParamsAreUnique(this.options.resourceParamMap);
         this.options.transformationMap = this.ensureTransformationsAreUnique(this.options.transformationMap);
         this.options.providedDependencies = this.ensureProvidedDependenciesAreUnique(this.options.providedDependencies);
+        this.options.dataProvidersMap = this.ensureDataProvidersMapIsValid(this.options.dataProvidersMap);
 
         this.getAssetsUUID = once(this.getAssetsUUID.bind(this));
     }
@@ -186,6 +196,72 @@ class WrmPlugin {
         logger.log('Using provided dependencies', Array.from(result));
 
         return result;
+    }
+
+    /**
+     * Filters and validates the data provider option
+     *
+     * @param {Map<String,DataProvider[]>} dataProvidersMap
+     * @return {Map<String,DataProvider>}
+     */
+    ensureDataProvidersMapIsValid(dataProvidersMap) {
+        const map = new Map();
+        const requiredKeys = ['key', 'class'];
+
+        for (const [entryPoint, dataProviders] of dataProvidersMap) {
+            if (!Array.isArray(dataProviders)) {
+                logger.error(
+                    `The value of data providers for "${entryPoint}" entry point should be an array of data providers.`,
+                    { entryPoint, dataProviders }
+                );
+
+                continue;
+            }
+
+            const validDataProviders = [];
+
+            for (const dataProvider of dataProviders) {
+                const keys = isObject ? Object.keys(dataProvider) : [];
+                const isValidShape = requiredKeys.every(key => keys.includes(key));
+
+                if (!isValidShape) {
+                    logger.error(
+                        `The data provider shape for "${entryPoint}" entry point doesn't include required keys: ${requiredKeys.concat(
+                            ', '
+                        )}.`,
+                        { entryPoint, dataProvider }
+                    );
+
+                    continue;
+                }
+
+                const { key, class: providerClass } = dataProvider;
+
+                if (!key || !providerClass) {
+                    logger.error(
+                        `The data provider shape for "${entryPoint}" entry point contains missing or empty values.`,
+                        {
+                            entryPoint,
+                            key,
+                            class: providerClass,
+                        }
+                    );
+
+                    continue;
+                }
+
+                validDataProviders.push({
+                    key,
+                    class: providerClass,
+                });
+            }
+
+            if (validDataProviders.length) {
+                map.set(entryPoint, validDataProviders);
+            }
+        }
+
+        return map;
     }
 
     checkConfig(compiler) {
