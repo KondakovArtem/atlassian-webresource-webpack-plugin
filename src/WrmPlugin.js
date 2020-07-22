@@ -199,10 +199,10 @@ class WrmPlugin {
     }
 
     /**
-     * Filters and validates the data provider option
+     * Filters and validates the data providers option
      *
-     * @param {Map<String,DataProvider[]>} dataProvidersMap
-     * @return {Map<String,DataProvider>}
+     * @param {Map<String, DataProvider[]>} dataProvidersMap
+     * @return {Map<String, DataProvider[]>}
      */
     ensureDataProvidersMapIsValid(dataProvidersMap) {
         const map = new Map();

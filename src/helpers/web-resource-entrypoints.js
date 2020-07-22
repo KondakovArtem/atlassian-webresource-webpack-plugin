@@ -51,7 +51,7 @@ function getConditionForEntry(entry, conditionMap) {
  * Retrieves the list of data providers for given entrypoint
  *
  * @param {String} entrypoint - webpack entrypoint key
- * @param {Map<String, Array<{ key: String, class: String }>>} dataProvidersMap - All data providers from plugin options
+ * @param {Map<String, DataProvider[]>} dataProvidersMap - All data providers from plugin options
  * @return {DataProvider[]} - List of data providers for given entry point
  */
 function getDataProvidersForEntry(entrypoint, dataProvidersMap) {
