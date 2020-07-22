@@ -1,3 +1,8 @@
+## 4.9.0 (Unreleased)
+* feat: added `dataProvidersMap` option that adds missing support for [data providers](https://developer.atlassian.com/server/framework/atlassian-sdk/adding-data-providers-to-your-plugin/#defining-a-data-provider-in-a-web-resource).
+Data providers can be used to provide a data from the server-side to the frontend, and claimed using `WRM.data.claim` API.    
+    * [@maciej-adamczak](https://bitbucket.org/maciej-adamczak) in [PR #95](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/95).
+    
 ## 4.8.0 (January 29, 2020)
 * feat: the `WRM.require` function and associated web-resource dependency will only be added to chunks that need it (i.e., any chunk that lazy-loads other chunks). This makes compiled web-resources with no code-splitting a bit smaller at product runtime.
     * [@chrisdarroch](https://bitbucket.org/chrisdarroch) in [PR #90](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/90).

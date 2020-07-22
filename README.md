@@ -382,6 +382,67 @@ will yield:
 </conditions>
 ```
 
+### `dataProvidersMap` (Optional)
+
+The `dataProvidersMap` option allows configuring the association between entrypoint and a list of data providers.
+
+Data providers can be used to provide a data from the server-side to the frontend, and claimed using `WRM.data.claim` API. To read more about data providers refer to [the official documentation](https://developer.atlassian.com/server/framework/atlassian-sdk/adding-data-providers-to-your-plugin/). 
+
+To associate the entrypoint with list of data providers you can configure the webpack configuration as follow:
+
+```js
+{
+  entrypoints: {
+    'my-first-entry-point': './first-entry-point.js',
+    'my-second-entry-point': './first-entry-point.js',
+  },
+
+  plugins: [
+    WrmPlugin({
+        pluginKey: 'my.full.plugin.artifact-id',
+        dataProvidersMap: {
+          'my-first-entry-point': [
+            {
+               key: 'my-foo-data-provider',
+               class: 'com.example.myplugin.FooDataProvider'
+            }   
+          ],
+
+          'my-second-entry-point': [
+            {
+               key: 'my-bar-data-provider',
+               class: 'com.example.myplugin.BarDataProvider'
+            },
+
+            {
+               key: 'my-bizbaz-data-provider',
+               class: 'com.example.myplugin.BizBazDataProvider'
+            }
+          ],
+        }
+    })
+  ]
+}
+```
+
+will yield:
+```xml
+<web-resource key="<<key-of-my-first-entry-point>>">
+    <resource ... />
+    <resource ... />
+
+    <data key="my-foo-data-provider" class="com.example.myplugin.FooDataProvider" />
+</web-resource>
+
+<web-resource key="<<key-of-my-first-entry-point>>">
+    <resource ... />
+    <resource ... />
+
+    <data key="my-bar-data-provider" class="com.example.myplugin.BarDataProvider" />
+    <data key="my-bizbaz-data-provider" class="com.example.myplugin.BizBazDataProvider" />
+</web-resource>
+```
+
 ### `transformationMap` (Optional)
 
 An object specifying transformations to be applied to file types.
