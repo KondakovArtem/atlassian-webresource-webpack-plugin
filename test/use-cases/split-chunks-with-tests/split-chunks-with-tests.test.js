@@ -10,7 +10,7 @@ const assert = chai.assert;
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-const uuidLength = require('uuid/v4')().length;
+const uuidLength = require('uuid').v4().length;
 
 describe('split-chunks-with-tests', function () {
     this.timeout(10000);

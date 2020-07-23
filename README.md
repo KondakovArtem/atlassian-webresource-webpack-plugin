@@ -699,6 +699,18 @@ This plugin has been built to work with the following versions of the external b
 * [Atlassian Web Resource Manager (WRM)][atlassian-wrm] 3.6+
 
 
+# Troubleshooting and known problems
+
+## [#77 The plugin is not compatible with `css-loader` version 3+](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/issues/77)
+
+The current version of `atlassian-webresource-webpack-plugin` is **not compatible** with `css-loader` version 3+.
+Please use version 2 of `css-loader` while we are looking ad improving and fixing the compatibility issues:
+
+```sh
+npm install css-loader@2
+yarn add css-loader@2
+```
+
 [101]: https://bitbucket.org/serverecosystem/sao4fed-bundle-the-ui
 [104]: https://bitbucket.org/atlassian/atlassian-qunit-plugin
 [atlassian-sdk]: https://developer.atlassian.com/server/framework/atlassian-sdk

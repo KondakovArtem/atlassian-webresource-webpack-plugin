@@ -56,7 +56,7 @@ module.exports = class QUnitTestResources {
 
     injectQUnitShim() {
         this.compilation.assets[this.qunitRequireMockPath] = {
-            source: () => new Buffer(qUnitRequireMock),
+            source: () => Buffer.from(qUnitRequireMock),
             size: () => Buffer.byteLength(qUnitRequireMock),
         };
     }
