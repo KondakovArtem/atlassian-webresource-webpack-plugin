@@ -1,23 +1,33 @@
-image: node:10
-
 pipelines:
   default:
     - parallel:
-      - step:
-          name: Behaviour
-          script:
-            - npm install
-            - >
-              npm test
-              --
-              --reporter mocha-junit-reporter
-              --reporter-options mochaFile=./test-reports/mocha-junit.xml
-      - step:
-          name: Linting
-          script:
-            - npm install
-            - >
-              npm run lint
-              --
-              --format junit
-              --output-file ./test-reports/lint-junit.xml
+        - step:
+            name: Test with node 10
+            image: node:10
+            script:
+              - npm install
+              - >
+                npm test
+                --
+                --reporter mocha-junit-reporter
+                --reporter-options mochaFile=./test-reports/mocha-junit.xml
+        - step:
+            name: Test with node 12.18
+            image: node:12.18
+            script:
+              - npm install
+              - >
+                npm test
+                --
+                --reporter mocha-junit-reporter
+                --reporter-options mochaFile=./test-reports/mocha-junit.xml
+        - step:
+            name: Linting
+            image: node:12.18
+            script:
+              - npm install
+              - >
+                npm run lint
+                --
+                --format junit
+                --output-file ./test-reports/lint-junit.xml
