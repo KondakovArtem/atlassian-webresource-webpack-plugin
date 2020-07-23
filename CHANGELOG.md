@@ -1,4 +1,4 @@
-## 4.9.0 (Unreleased)
+## 4.9.0 (July 23, 2020)
 * feat: added `dataProvidersMap` option that adds missing support for [data providers](https://developer.atlassian.com/server/framework/atlassian-sdk/adding-data-providers-to-your-plugin/#defining-a-data-provider-in-a-web-resource).
 Data providers can be used to provide a data from the server-side to the frontend, and claimed using `WRM.data.claim` API.    
     * [@maciej-adamczak](https://bitbucket.org/maciej-adamczak) in [PR #95](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/95).
