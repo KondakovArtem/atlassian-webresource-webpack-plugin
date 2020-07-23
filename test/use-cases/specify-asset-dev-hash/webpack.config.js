@@ -22,7 +22,7 @@ const getFeatureWrmConfig = () => {
     };
 };
 
-const webResourcePlugin = isLibrary => {
+const webResourcePlugin = (isLibrary) => {
     const baseWrmConfig = {
         pluginKey: 'com.atlassian.plugin.test',
         xmlDescriptors: path.join(

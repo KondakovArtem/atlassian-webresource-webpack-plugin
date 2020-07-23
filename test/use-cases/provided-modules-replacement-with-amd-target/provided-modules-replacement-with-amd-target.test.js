@@ -10,7 +10,7 @@ chai.use(require('chai-string'));
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('provided-modules-replacement', function() {
+describe('provided-modules-replacement', function () {
     const config = require('./webpack.config.js');
 
     let stats;
@@ -19,21 +19,21 @@ describe('provided-modules-replacement', function() {
     let dependencies;
 
     function getDependencies(node) {
-        return node.children.filter(n => n.name === 'dependency');
+        return node.children.filter((n) => n.name === 'dependency');
     }
 
     function getContent(nodes) {
-        return nodes.map(n => n.content);
+        return nodes.map((n) => n.content);
     }
 
-    beforeEach(done => {
+    beforeEach((done) => {
         webpack(config, (err, st) => {
             error = err;
             stats = st;
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            entry = results.root.children.find(n => n.attributes.key.startsWith('entry'));
+            entry = results.root.children.find((n) => n.attributes.key.startsWith('entry'));
             dependencies = getContent(getDependencies(entry));
             done();
         });

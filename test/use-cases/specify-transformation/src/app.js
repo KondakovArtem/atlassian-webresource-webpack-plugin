@@ -5,9 +5,5 @@ import body from './test.html';
 import rect from './rect.svg';
 
 $(() => {
-    $('body')
-        .text(text)
-        .html(body)
-        .css(styles)
-        .append(rect);
+    $('body').text(text).html(body).css(styles).append(rect);
 });

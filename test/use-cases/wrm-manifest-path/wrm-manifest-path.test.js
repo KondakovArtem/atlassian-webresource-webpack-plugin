@@ -7,10 +7,10 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const wrmManifestOutput = path.join(targetDir, 'manifest.json');
 
-describe('wrm-manifest-path', function() {
+describe('wrm-manifest-path', function () {
     let config = require('./webpack.config.js');
 
-    it('generates a manifest JSON file', done => {
+    it('generates a manifest JSON file', (done) => {
         webpack(config, (err, stats) => {
             if (err) {
                 throw err;
@@ -22,8 +22,8 @@ describe('wrm-manifest-path', function() {
         });
     });
 
-    it('contains all entrypoints', done => {
-        webpack(config, err => {
+    it('contains all entrypoints', (done) => {
+        webpack(config, (err) => {
             if (err) {
                 throw err;
             }
@@ -38,8 +38,8 @@ describe('wrm-manifest-path', function() {
         });
     });
 
-    it('handles custom library [name]s', done => {
-        webpack(config, err => {
+    it('handles custom library [name]s', (done) => {
+        webpack(config, (err) => {
             if (err) {
                 throw err;
             }

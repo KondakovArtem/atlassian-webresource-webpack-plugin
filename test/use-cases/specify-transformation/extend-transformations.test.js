@@ -7,7 +7,7 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('specify-transformation', function() {
+describe('specify-transformation', function () {
     const config = require('./webpack.extend-tranformations.config');
 
     let stats;
@@ -15,18 +15,18 @@ describe('specify-transformation', function() {
     let wrNodes;
 
     function getWebresourceLike(needle) {
-        return wrNodes.find(n => n.attributes.key.indexOf(needle) > -1);
+        return wrNodes.find((n) => n.attributes.key.indexOf(needle) > -1);
     }
 
     function getTransformation(node) {
-        return node.children.filter(childNode => childNode.name === 'transformation');
+        return node.children.filter((childNode) => childNode.name === 'transformation');
     }
 
     function getTransformationByExtension(transformations, extname) {
-        return transformations.filter(transformation => transformation.attributes.extension === extname)[0];
+        return transformations.filter((transformation) => transformation.attributes.extension === extname)[0];
     }
 
-    beforeEach(done => {
+    beforeEach((done) => {
         webpack(config, (err, st) => {
             error = err;
             stats = st;
@@ -41,7 +41,7 @@ describe('specify-transformation', function() {
     describe('extending transformations', () => {
         let entryJsTrans, lessTrans, svgTrans;
 
-        beforeEach(function() {
+        beforeEach(function () {
             const entrypointTransformations = getTransformation(getWebresourceLike('app-one'));
             const assetTransformations = getTransformation(getWebresourceLike('assets'));
 
@@ -55,15 +55,30 @@ describe('specify-transformation', function() {
         });
 
         it('should include default transformations', () => {
-            assert.include(entryJsTrans.children.map(c => c.attributes.key), 'jsI18n');
-            assert.include(lessTrans.children.map(c => c.attributes.key), 'lessTransformer');
+            assert.include(
+                entryJsTrans.children.map((c) => c.attributes.key),
+                'jsI18n'
+            );
+            assert.include(
+                lessTrans.children.map((c) => c.attributes.key),
+                'lessTransformer'
+            );
         });
 
         it('should contain additional transformers', () => {
-            assert.include(entryJsTrans.children.map(c => c.attributes.key), 'custom-transformer');
-            assert.include(entryJsTrans.children.map(c => c.attributes.key), 'foo-transformer');
+            assert.include(
+                entryJsTrans.children.map((c) => c.attributes.key),
+                'custom-transformer'
+            );
+            assert.include(
+                entryJsTrans.children.map((c) => c.attributes.key),
+                'foo-transformer'
+            );
 
-            assert.include(svgTrans.children.map(c => c.attributes.key), 'bar');
+            assert.include(
+                svgTrans.children.map((c) => c.attributes.key),
+                'bar'
+            );
         });
     });
 });

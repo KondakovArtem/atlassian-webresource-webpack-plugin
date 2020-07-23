@@ -1,3 +1,3 @@
-define(['./b'], function(b) {
+define(['./b'], function (b) {
     return 'A';
 });

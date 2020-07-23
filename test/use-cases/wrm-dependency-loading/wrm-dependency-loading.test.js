@@ -7,17 +7,17 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('wrm-dependency-loading', function() {
+describe('wrm-dependency-loading', function () {
     let stats;
     let entry;
     let dependencies;
 
     function getDependencies(node) {
-        return node.children.filter(n => n.name === 'dependency');
+        return node.children.filter((n) => n.name === 'dependency');
     }
 
     function getContent(nodes) {
-        return nodes.map(n => n.content);
+        return nodes.map((n) => n.content);
     }
 
     function runWebpack(config, done) {
@@ -26,14 +26,14 @@ describe('wrm-dependency-loading', function() {
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            entry = results.root.children.find(n => n.attributes.key.startsWith('entry'));
+            entry = results.root.children.find((n) => n.attributes.key.startsWith('entry'));
             dependencies = getContent(getDependencies(entry));
             done();
         });
     }
 
     function runTheTestsFor(config) {
-        beforeEach(done => runWebpack(config, done));
+        beforeEach((done) => runWebpack(config, done));
 
         it('should create a webresource with dependencies', () => {
             assert.ok(entry);
@@ -48,12 +48,12 @@ describe('wrm-dependency-loading', function() {
         });
     }
 
-    describe('in ES6 modules', function() {
+    describe('in ES6 modules', function () {
         const config = require('./webpack.config.es6.js');
         runTheTestsFor(config);
     });
 
-    describe('in AMD', function() {
+    describe('in AMD', function () {
         const config = require('./webpack.config.amd.js');
         runTheTestsFor(config);
     });

@@ -7,7 +7,7 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('async-chunks-named-context', function() {
+describe('async-chunks-named-context', function () {
     const config = require('./webpack.config.js');
 
     let stats;
@@ -23,29 +23,29 @@ describe('async-chunks-named-context', function() {
     let asyncAsyncAsyncBar;
 
     function getDependencies(node) {
-        return node.children.filter(n => n.name === 'dependency');
+        return node.children.filter((n) => n.name === 'dependency');
     }
 
     function getContent(nodes) {
-        return nodes.map(n => n.content);
+        return nodes.map((n) => n.content);
     }
 
-    beforeEach(done => {
+    beforeEach((done) => {
         webpack(config, (err, st) => {
             stats = st;
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            runtime = results.root.children.find(n => n.attributes.key === 'entrypoint-app');
-            runtime2 = results.root.children.find(n => n.attributes.key === 'entrypoint-app2');
-            app = results.root.children.find(n => n.attributes.key === 'split_app');
-            app2 = results.root.children.find(n => n.attributes.key === 'split_app2');
-            splitAppAndApp2 = results.root.children.find(n => n.attributes.key === 'split_app~app2');
-            asyncBar = results.root.children.find(n => n.attributes.key === 'async-bar');
-            asyncFoo = results.root.children.find(n => n.attributes.key === 'async-foo');
-            asyncAsyncBar = results.root.children.find(n => n.attributes.key === 'async-async-bar');
-            asyncAsyncBarTwo = results.root.children.find(n => n.attributes.key === 'async-async-bar-two');
-            asyncAsyncAsyncBar = results.root.children.find(n => n.attributes.key === 'async-async-async-bar');
+            runtime = results.root.children.find((n) => n.attributes.key === 'entrypoint-app');
+            runtime2 = results.root.children.find((n) => n.attributes.key === 'entrypoint-app2');
+            app = results.root.children.find((n) => n.attributes.key === 'split_app');
+            app2 = results.root.children.find((n) => n.attributes.key === 'split_app2');
+            splitAppAndApp2 = results.root.children.find((n) => n.attributes.key === 'split_app~app2');
+            asyncBar = results.root.children.find((n) => n.attributes.key === 'async-bar');
+            asyncFoo = results.root.children.find((n) => n.attributes.key === 'async-foo');
+            asyncAsyncBar = results.root.children.find((n) => n.attributes.key === 'async-async-bar');
+            asyncAsyncBarTwo = results.root.children.find((n) => n.attributes.key === 'async-async-bar-two');
+            asyncAsyncAsyncBar = results.root.children.find((n) => n.attributes.key === 'async-async-async-bar');
             done();
         });
     });
@@ -66,7 +66,7 @@ describe('async-chunks-named-context', function() {
     });
 
     it('has a context named after the entry point', () => {
-        const getContext = node => node.children.filter(n => n.name === 'context')[0];
+        const getContext = (node) => node.children.filter((n) => n.name === 'context')[0];
         assert.nestedPropertyVal(getContext(asyncBar), 'content', 'async-chunk-async-bar');
         assert.nestedPropertyVal(getContext(asyncFoo), 'content', 'async-chunk-async-foo');
         assert.nestedPropertyVal(getContext(asyncAsyncBar), 'content', 'async-chunk-async-async-bar');

@@ -7,21 +7,21 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('asset-loading-via-js', function() {
+describe('asset-loading-via-js', function () {
     const config = require('./webpack.config.js');
 
     let stats;
     let assets;
     let resources;
 
-    beforeEach(done => {
+    beforeEach((done) => {
         webpack(config, (err, st) => {
             stats = st;
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            assets = results.root.children.find(n => n.attributes.key.startsWith('assets'));
-            resources = assets.children.filter(n => n.name === 'resource');
+            assets = results.root.children.find((n) => n.attributes.key.startsWith('assets'));
+            resources = assets.children.filter((n) => n.name === 'resource');
             done();
         });
     });
@@ -49,7 +49,7 @@ describe('asset-loading-via-js', function() {
         // setup
         const bundleFile = fs.readFileSync(path.join(targetDir, 'app.js'), 'utf-8');
         const publicPathLines = bundleFile.match(/__webpack_require__\.p\s*?=.+?;/g);
-        const injectedLine = publicPathLines.find(line => line.includes('download'));
+        const injectedLine = publicPathLines.find((line) => line.includes('download'));
 
         assert.isNotEmpty(
             injectedLine,

@@ -7,7 +7,7 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('async-chunks-of-async-chunks', function() {
+describe('async-chunks-of-async-chunks', function () {
     const config = require('./webpack.config.js');
 
     let stats;
@@ -20,26 +20,26 @@ describe('async-chunks-of-async-chunks', function() {
     let asyncAsyncAsyncBar;
 
     function getDependencies(node) {
-        return node.children.filter(n => n.name === 'dependency');
+        return node.children.filter((n) => n.name === 'dependency');
     }
 
     function getContent(nodes) {
-        return nodes.map(n => n.content);
+        return nodes.map((n) => n.content);
     }
 
-    beforeEach(done => {
+    beforeEach((done) => {
         webpack(config, (err, st) => {
             stats = st;
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            runtime = results.root.children.find(n => n.attributes.key.startsWith('entry'));
-            app = results.root.children.find(n => n.attributes.key === 'split_app');
-            asyncBar = results.root.children.find(n => n.attributes.key === 'async-bar');
-            asyncFoo = results.root.children.find(n => n.attributes.key === 'async-foo');
-            asyncAsyncBar = results.root.children.find(n => n.attributes.key === 'async-async-bar');
-            asyncAsyncBarTwo = results.root.children.find(n => n.attributes.key === 'async-async-bar-two');
-            asyncAsyncAsyncBar = results.root.children.find(n => n.attributes.key === 'async-async-async-bar');
+            runtime = results.root.children.find((n) => n.attributes.key.startsWith('entry'));
+            app = results.root.children.find((n) => n.attributes.key === 'split_app');
+            asyncBar = results.root.children.find((n) => n.attributes.key === 'async-bar');
+            asyncFoo = results.root.children.find((n) => n.attributes.key === 'async-foo');
+            asyncAsyncBar = results.root.children.find((n) => n.attributes.key === 'async-async-bar');
+            asyncAsyncBarTwo = results.root.children.find((n) => n.attributes.key === 'async-async-bar-two');
+            asyncAsyncAsyncBar = results.root.children.find((n) => n.attributes.key === 'async-async-async-bar');
             done();
         });
     });

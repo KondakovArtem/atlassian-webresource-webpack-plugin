@@ -53,7 +53,7 @@ class WrmPlugin {
             const newVals = []
                 .concat(oldVals)
                 .concat(val)
-                .filter(v => !!v);
+                .filter((v) => !!v);
             return map.set(key, newVals);
         });
     }
@@ -138,7 +138,7 @@ class WrmPlugin {
             'resourceParamMap',
             'webresourceKeyMap',
             'dataProvidersMap',
-        ].forEach(prop => (this.options[prop] = toMap(this.options[prop])));
+        ].forEach((prop) => (this.options[prop] = toMap(this.options[prop])));
 
         // make sure various maps contain only unique items
         this.options.resourceParamMap = this.ensureResourceParamsAreUnique(this.options.resourceParamMap);
@@ -167,7 +167,7 @@ class WrmPlugin {
     ensureTransformationsAreUnique(transformations) {
         const results = toMap(transformations);
         results.forEach((val, key, map) => {
-            const values = [].concat(val).filter(v => !!v);
+            const values = [].concat(val).filter((v) => !!v);
             map.set(key, Array.from(new Set(values)));
         });
         return results;
@@ -176,7 +176,7 @@ class WrmPlugin {
     ensureResourceParamsAreUnique(params) {
         const results = toMap(params);
         results.forEach((val, key, map) => {
-            const values = [].concat(val).filter(v => !!v);
+            const values = [].concat(val).filter((v) => !!v);
             map.set(key, unionBy(values.reverse(), 'name').reverse());
         });
         return results;
@@ -222,7 +222,7 @@ class WrmPlugin {
 
             for (const dataProvider of dataProviders) {
                 const keys = isObject ? Object.keys(dataProvider) : [];
-                const isValidShape = requiredKeys.every(key => keys.includes(key));
+                const isValidShape = requiredKeys.every((key) => keys.includes(key));
 
                 if (!isValidShape) {
                     logger.error(
@@ -291,10 +291,10 @@ An automated jsonpFunction name for this plugin was created:
     overwritePublicPath(compiler) {
         const isProductionMode = WebpackHelpers.isRunningInProductionMode(compiler);
 
-        compiler.hooks.compilation.tap('OverwritePublicPath Compilation', compilation => {
+        compiler.hooks.compilation.tap('OverwritePublicPath Compilation', (compilation) => {
             compilation.mainTemplate.hooks.requireExtensions.tap(
                 'OverwritePublicPath Require-Extensions',
-                standardScript => {
+                (standardScript) => {
                     // Ensure the `AJS.contextPath` function is available at runtime.
                     addBaseDependency('com.atlassian.plugins.atlassian-plugins-webresource-plugin:context-path');
                     const uuid = this.getAssetsUUID(isProductionMode);
@@ -302,9 +302,7 @@ An automated jsonpFunction name for this plugin was created:
                     // Add the public path extension to the webpack module runtime.
                     return `${standardScript}
 if (typeof AJS !== "undefined") {
-    ${compilation.mainTemplate.requireFn}.p = AJS.contextPath() + "/s/${uuid}/_/download/resources/${
-                        this.options.pluginKey
-                    }:assets-${uuid}/";
+    ${compilation.mainTemplate.requireFn}.p = AJS.contextPath() + "/s/${uuid}/_/download/resources/${this.options.pluginKey}:assets-${uuid}/";
 }
 `;
                 }
@@ -313,7 +311,7 @@ if (typeof AJS !== "undefined") {
     }
 
     hookUpProvidedDependencies(compiler) {
-        WebpackRuntimeHelpers.hookIntoNormalModuleFactory(compiler, factory => (data, callback) => {
+        WebpackRuntimeHelpers.hookIntoNormalModuleFactory(compiler, (factory) => (data, callback) => {
             const target = compiler.options.output.libraryTarget;
             const request = data.dependencies[0].request;
             // get globally available libraries through wrm
@@ -329,7 +327,7 @@ if (typeof AJS !== "undefined") {
     }
 
     injectWRMSpecificRequestTypes(compiler) {
-        WebpackRuntimeHelpers.hookIntoNormalModuleFactory(compiler, factory => (data, callback) => {
+        WebpackRuntimeHelpers.hookIntoNormalModuleFactory(compiler, (factory) => (data, callback) => {
             const target = compiler.options.output.libraryTarget;
             const request = data.dependencies[0].request;
             // import web-resources we find static import statements for
@@ -355,7 +353,7 @@ if (typeof AJS !== "undefined") {
     }
 
     enableAsyncLoadingWithWRM(compiler) {
-        compiler.hooks.compilation.tap('enable async loading with wrm - compilation', compilation => {
+        compiler.hooks.compilation.tap('enable async loading with wrm - compilation', (compilation) => {
             // copy & pasted hack from webpack
             if (!compilation.mainTemplate.hooks.jsonpScript) {
                 const SyncWaterfallHook = require('tapable').SyncWaterfallHook;
@@ -441,7 +439,7 @@ return installedChunks[chunkId][2] = Promise.all(promises);
         const assetsUUID = this.getAssetsUUID(isProductionMode);
 
         // Generate a 1:1 mapping from original filenames to compiled filenames
-        compiler.hooks.compilation.tap('wrm plugin setup phase', compilation => {
+        compiler.hooks.compilation.tap('wrm plugin setup phase', (compilation) => {
             compilation.hooks.normalModuleLoader.tap('wrm plugin - normal module', (loaderContext, module) => {
                 const { emitFile } = loaderContext;
                 loaderContext.emitFile = (name, content, sourceMap) => {
@@ -477,7 +475,7 @@ return installedChunks[chunkId][2] = Promise.all(promises);
                     `Option 'assetContentTypes' is deprecated and will be removed in a future version. Use 'resourceParamMap' instead. See README for further instructions.`
                 );
 
-                Object.keys(this.options.assetContentTypes).forEach(fileExtension => {
+                Object.keys(this.options.assetContentTypes).forEach((fileExtension) => {
                     const contentType = this.options.assetContentTypes[fileExtension];
 
                     if (!resourceParamMap.has(fileExtension)) {
@@ -486,7 +484,7 @@ return installedChunks[chunkId][2] = Promise.all(promises);
 
                     const params = resourceParamMap.get(fileExtension);
 
-                    if (params.find(param => param.name === 'content-type')) {
+                    if (params.find((param) => param.name === 'content-type')) {
                         logger.warn(
                             `There's already a 'content-type' defined for '${fileExtension}' in 'resourceParamMap'. Please stop using 'assetContentTypes'`
                         );
@@ -574,16 +572,16 @@ return installedChunks[chunkId][2] = Promise.all(promises);
             if (this.options.watch && this.options.watchPrepare) {
                 const entrypointDescriptors = appResourceGenerator.getResourceDescriptors();
                 const redirectDescriptors = entrypointDescriptors
-                    .map(c => c.resources)
+                    .map((c) => c.resources)
                     .reduce(flattenReduce, [])
-                    .filter(res => path.extname(res) === '.js')
-                    .map(r => ({ fileName: r, writePath: path.join(outputPath, r) }));
+                    .filter((res) => path.extname(res) === '.js')
+                    .map((r) => ({ fileName: r, writePath: path.join(outputPath, r) }));
 
                 compiler.hooks.done.tap('add watch mode modules', () => {
                     mkdirp.sync(path.dirname(this.options.xmlDescriptors));
                     fs.writeFileSync(this.options.xmlDescriptors, xmlDescriptors, 'utf8');
 
-                    const generateAssetCall = file => {
+                    const generateAssetCall = (file) => {
                         const pathName = urlJoin(compiler.options.output.publicPath, file);
 
                         const appendScript = `

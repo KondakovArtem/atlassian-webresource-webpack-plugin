@@ -7,21 +7,21 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('data-providers', function() {
+describe('data-providers', function () {
     let stats;
     let error;
     let entrypoints;
 
     function getEntrypointByKey(key) {
-        return entrypoints.find(entrypoint => entrypoint.attributes.key === key);
+        return entrypoints.find((entrypoint) => entrypoint.attributes.key === key);
     }
 
     function getDataProviders(entryPointNode) {
-        return entryPointNode.children.filter(node => node.name === 'data');
+        return entryPointNode.children.filter((node) => node.name === 'data');
     }
 
     function getDataProviderByKey(dataProvidersNodes, key) {
-        return dataProvidersNodes.find(node => node.attributes.key === key);
+        return dataProvidersNodes.find((node) => node.attributes.key === key);
     }
 
     function runWebpack(config, done) {
@@ -33,13 +33,13 @@ describe('data-providers', function() {
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            entrypoints = results.root.children.filter(n => n.attributes.key.startsWith('entry'));
+            entrypoints = results.root.children.filter((n) => n.attributes.key.startsWith('entry'));
             done();
         });
     }
 
     function runTheTestsFor(config) {
-        beforeEach(done => runWebpack(config, done));
+        beforeEach((done) => runWebpack(config, done));
 
         it('should generate one data provider for first entry point', () => {
             const entryPointNode = getEntrypointByKey('entrypoint-my-first-entry-point');

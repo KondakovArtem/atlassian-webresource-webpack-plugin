@@ -7,23 +7,23 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('css-and-assets-via-extract-text-plugin', function() {
+describe('css-and-assets-via-extract-text-plugin', function () {
     const config = require('./webpack.config.js');
 
     let stats;
     let error;
     let entrypoints;
 
-    const getResourceNodes = webresource => webresource && webresource.children.filter(n => n.name === 'resource');
+    const getResourceNodes = (webresource) => webresource && webresource.children.filter((n) => n.name === 'resource');
 
-    before(done => {
+    before((done) => {
         webpack(config, (err, st) => {
             error = err;
             stats = st;
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            entrypoints = results.root.children.filter(n => n.attributes.key.startsWith('entry'));
+            entrypoints = results.root.children.filter((n) => n.attributes.key.startsWith('entry'));
             done();
         });
     });
@@ -34,11 +34,11 @@ describe('css-and-assets-via-extract-text-plugin', function() {
         assert.equal(stats.hasWarnings(), false);
     });
 
-    describe('for feature one', function() {
+    describe('for feature one', function () {
         let resources;
 
         before(() => {
-            let webresource = entrypoints.find(n => n.attributes.key.endsWith('feature-one'));
+            let webresource = entrypoints.find((n) => n.attributes.key.endsWith('feature-one'));
             resources = getResourceNodes(webresource);
         });
 
@@ -62,11 +62,11 @@ describe('css-and-assets-via-extract-text-plugin', function() {
         });
     });
 
-    describe('for feature two', function() {
+    describe('for feature two', function () {
         let resources;
 
         before(() => {
-            let webresource = entrypoints.find(n => n.attributes.key.endsWith('feature-two'));
+            let webresource = entrypoints.find((n) => n.attributes.key.endsWith('feature-two'));
             resources = getResourceNodes(webresource);
         });
 

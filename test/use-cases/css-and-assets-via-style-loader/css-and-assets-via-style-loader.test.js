@@ -7,7 +7,7 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('css-and-assets-via-style-loader', function() {
+describe('css-and-assets-via-style-loader', function () {
     const config = require('./webpack.config.js');
 
     let stats;
@@ -15,15 +15,15 @@ describe('css-and-assets-via-style-loader', function() {
     let assets;
     let resources;
 
-    beforeEach(done => {
+    beforeEach((done) => {
         webpack(config, (err, st) => {
             error = err;
             stats = st;
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            assets = results.root.children.find(n => n.attributes.key.startsWith('assets'));
-            resources = assets.children.filter(n => n.name === 'resource');
+            assets = results.root.children.find((n) => n.attributes.key.startsWith('assets'));
+            resources = assets.children.filter((n) => n.name === 'resource');
             done();
         });
     });

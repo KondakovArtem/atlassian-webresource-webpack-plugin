@@ -27,12 +27,12 @@ module.exports = class AppResources {
 
     getSingleRuntimeFiles(entrypoints) {
         return Array.from(entrypoints.values())
-            .map(entrypoint => entrypoint.runtimeChunk.files)
+            .map((entrypoint) => entrypoint.runtimeChunk.files)
             .find(Boolean);
     }
 
     getAssetResourceDescriptor() {
-        const assetFiles = Object.keys(this.compilation.assets).filter(p => !/\.(js|css|soy)(\.map)?$/.test(p)); // remove anything that we know is handled differently
+        const assetFiles = Object.keys(this.compilation.assets).filter((p) => !/\.(js|css|soy)(\.map)?$/.test(p)); // remove anything that we know is handled differently
 
         const assets = {
             attributes: { key: `assets-${this.assetsUUID}` },
@@ -53,7 +53,7 @@ module.exports = class AppResources {
      */
     getSyncSplitChunks() {
         const entryPoints = [...this.compilation.entrypoints.values()];
-        const syncSplitChunks = entryPoints.map(e => e.chunks.filter(c => c !== e.runtimeChunk));
+        const syncSplitChunks = entryPoints.map((e) => e.chunks.filter((c) => c !== e.runtimeChunk));
 
         return Array.from(new Set(syncSplitChunks.reduce(flattenReduce, [])));
     }
@@ -94,7 +94,7 @@ module.exports = class AppResources {
          * Create descriptors for the split chunk web-resources that have to be created.
          * These include - like other chunk-descriptors their assets and external resources etc.
          */
-        const sharedSplitDescriptors = syncSplitChunks.map(c => {
+        const sharedSplitDescriptors = syncSplitChunks.map((c) => {
             const additionalFileDeps = WebpackHelpers.getDependencyResourcesFromChunk(c, resourceToAssetMap);
             return {
                 attributes: syncSplitChunkDependencyKeyMap.get(WebpackHelpers.getChunkIdentifier(c)),
@@ -111,7 +111,7 @@ module.exports = class AppResources {
         const entryPoints = [...this.compilation.entrypoints.values()];
         const resourceToAssetMap = this.assetNames;
 
-        const asyncChunkDescriptors = WebpackHelpers.getAllAsyncChunks(entryPoints).map(c => {
+        const asyncChunkDescriptors = WebpackHelpers.getAllAsyncChunks(entryPoints).map((c) => {
             const additionalFileDeps = WebpackHelpers.getDependencyResourcesFromChunk(c, resourceToAssetMap);
             return {
                 attributes: { key: `${c.id}` },
@@ -145,11 +145,11 @@ module.exports = class AppResources {
 
             // Retrieve all split chunks this entrypoint depends on. These must be added as "<dependency>"s to the web-resource of this entrypoint
             const sharedSplitDeps = entrypointChunks
-                .map(c => syncSplitChunkDependencyKeyMap.get(WebpackHelpers.getChunkIdentifier(c)))
+                .map((c) => syncSplitChunkDependencyKeyMap.get(WebpackHelpers.getChunkIdentifier(c)))
                 .filter(Boolean)
-                .map(val => val.dependency);
+                .map((val) => val.dependency);
 
-            const additionalFileDeps = entrypointChunks.map(c =>
+            const additionalFileDeps = entrypointChunks.map((c) =>
                 WebpackHelpers.getDependencyResourcesFromChunk(c, resourceToAssetMap)
             );
             // Construct the list of resources to add to this web-resource

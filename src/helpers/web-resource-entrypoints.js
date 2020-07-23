@@ -11,7 +11,7 @@ function getContextForEntry(entry, contextMap, addEntrypointNameAsContext) {
     if (addEntrypointNameAsContext) {
         contexts.unshift(entry);
     }
-    return contexts.filter(context => context && typeof context === 'string');
+    return contexts.filter((context) => context && typeof context === 'string');
 }
 
 /**

@@ -7,7 +7,7 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('css-and-assets-distribution-via-mini-css-extract-plugin', function() {
+describe('css-and-assets-distribution-via-mini-css-extract-plugin', function () {
     const config = require('./webpack.config.js');
 
     let stats;
@@ -16,18 +16,18 @@ describe('css-and-assets-distribution-via-mini-css-extract-plugin', function() {
     let assetWebResource;
 
     function getResources(node) {
-        return node.children.filter(n => n.name === 'resource');
+        return node.children.filter((n) => n.name === 'resource');
     }
 
-    beforeEach(done => {
+    beforeEach((done) => {
         webpack(config, (err, st) => {
             stats = st;
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            entryPoint = results.root.children.find(n => n.attributes.key === 'entrypoint-app');
-            asyncChunk = results.root.children.find(n => n.attributes.key === '0');
-            assetWebResource = results.root.children.find(n => n.attributes.key === 'assets-DEV_PSEUDO_HASH');
+            entryPoint = results.root.children.find((n) => n.attributes.key === 'entrypoint-app');
+            asyncChunk = results.root.children.find((n) => n.attributes.key === '0');
+            assetWebResource = results.root.children.find((n) => n.attributes.key === 'assets-DEV_PSEUDO_HASH');
             done();
         });
     });
@@ -64,7 +64,7 @@ describe('css-and-assets-distribution-via-mini-css-extract-plugin', function() {
     it('should create an asset resource containing all "other" assets', () => {
         const assetWebResourceResources = getResources(assetWebResource);
         assert.equal(assetWebResourceResources.length, 4);
-        const names = assetWebResourceResources.map(awrr => path.extname(awrr.attributes.name));
+        const names = assetWebResourceResources.map((awrr) => path.extname(awrr.attributes.name));
         assert.include(names, '.jpg', 'fails to include any jpg files');
         assert.include(names, '.svg', 'fails to include any svg files');
         assert.include(names, '.png', 'fails to include any png files');

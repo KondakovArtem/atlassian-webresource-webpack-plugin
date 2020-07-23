@@ -8,20 +8,20 @@ const targetDir = path.join(__dirname, 'target');
 const libraryDescriptor = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'library.xml');
 const featureDescriptor = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'main.xml');
 
-describe('specify-asset-dev-hash', function() {
+describe('specify-asset-dev-hash', function () {
     let config = require('./webpack.config.js');
     let results;
     let libDevNode;
     let featDevNode;
 
-    before(done => {
+    before((done) => {
         webpack(config, (err, stats) => {
             let libXMLFile = fs.readFileSync(libraryDescriptor, 'utf-8');
             let featXMLFile = fs.readFileSync(featureDescriptor, 'utf-8');
             results = parse(libXMLFile);
-            libDevNode = results.root.children.find(n => n.attributes.key === 'assets-libDevAssets');
+            libDevNode = results.root.children.find((n) => n.attributes.key === 'assets-libDevAssets');
             results = parse(featXMLFile);
-            featDevNode = results.root.children.find(n => n.attributes.key === 'assets-featDevAssets');
+            featDevNode = results.root.children.find((n) => n.attributes.key === 'assets-featDevAssets');
             done();
         });
     });

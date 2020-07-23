@@ -28,13 +28,13 @@ module.exports = class QUnitTestResources {
                     RESOURCE_JOINER
                 )
             )
-                .map(resource => {
+                .map((resource) => {
                     if (resource.includes(RESOURCE_JOINER)) {
                         return resource.split(RESOURCE_JOINER);
                     }
                     return [resource, resource];
                 })
-                .map(resourcePair => {
+                .map((resourcePair) => {
                     return { name: resourcePair[0], location: resourcePair[1] };
                 });
 
@@ -76,13 +76,13 @@ this option deprecated and try to migrate your code to a proper JS-Testrunner.
 ******************************************************************************
 `);
         return testGlobs
-            .map(g => glob.sync(g, { absolute: true })) // get all matching files
+            .map((g) => glob.sync(g, { absolute: true })) // get all matching files
             .reduce((_, _v, _i, files) => {
                 // flatten them and make them unique
                 const uniqueFiles = new Set([].concat(...files));
                 files.length = 0; // prevent further iteration ??MAGNETS??
                 return Array.from(uniqueFiles);
             })
-            .map(file => path.relative(context, file)); // make them relative to the context
+            .map((file) => path.relative(context, file)); // make them relative to the context
     }
 };

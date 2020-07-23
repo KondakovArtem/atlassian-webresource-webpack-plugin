@@ -7,10 +7,10 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('standalone', function() {
+describe('standalone', function () {
     let config = require('./webpack.config.js');
 
-    it('compiles an xml file', done => {
+    it('compiles an xml file', (done) => {
         webpack(config, (err, stats) => {
             if (err) {
                 throw err;
@@ -22,17 +22,17 @@ describe('standalone', function() {
         });
     });
 
-    describe('xml-descriptor', function() {
+    describe('xml-descriptor', function () {
         let xmlFile;
 
-        before(done => {
+        before((done) => {
             webpack(config, (err, stats) => {
                 xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
                 done();
             });
         });
 
-        it('is lean', function() {
+        it('is lean', function () {
             assert.equal(
                 xmlFile,
                 PrettyData.xml(

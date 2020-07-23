@@ -7,11 +7,11 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('ensure-runtime-overwrite-of-mini-css-extract-plugin', function() {
+describe('ensure-runtime-overwrite-of-mini-css-extract-plugin', function () {
     describe('mini-css-extract-plugin is defined before wrm-plugin', () => {
         const config = require('./webpack.before.config.js');
 
-        beforeEach(done => {
+        beforeEach((done) => {
             webpack(config, () => {
                 done();
             });
@@ -49,7 +49,7 @@ describe('ensure-runtime-overwrite-of-mini-css-extract-plugin', function() {
     describe('mini-css-extract-plugin is defined after wrm-plugin', () => {
         const config = require('./webpack.after.config.js');
 
-        beforeEach(done => {
+        beforeEach((done) => {
             webpack(config, () => {
                 done();
             });

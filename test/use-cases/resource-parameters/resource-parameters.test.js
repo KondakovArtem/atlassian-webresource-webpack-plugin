@@ -7,23 +7,23 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('resource-parameters', function() {
+describe('resource-parameters', function () {
     const config = require('./webpack.config.js');
 
-    const byExtension = (resources, ext) => resources.filter(r => r.attributes.name.endsWith(ext))[0];
+    const byExtension = (resources, ext) => resources.filter((r) => r.attributes.name.endsWith(ext))[0];
 
     let stats;
     let assets;
     let resources;
 
-    beforeEach(done => {
+    beforeEach((done) => {
         webpack(config, (err, st) => {
             stats = st;
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            assets = results.root.children.find(n => n.attributes.key.startsWith('assets'));
-            resources = assets.children.filter(n => n.name === 'resource');
+            assets = results.root.children.find((n) => n.attributes.key.startsWith('assets'));
+            resources = assets.children.filter((n) => n.name === 'resource');
             done();
         });
     });
@@ -56,15 +56,15 @@ describe('resource-parameters', function() {
         assert.equal(jpg.children[1].attributes.value, 'second', 'Last declared value should win.');
     });
 
-    it('should add image/svg+xml by default for svg files', done => {
+    it('should add image/svg+xml by default for svg files', (done) => {
         const svgConfig = require('./webpack.svg.config');
         webpack(svgConfig, (err, st) => {
             stats = st;
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            assets = results.root.children.find(n => n.attributes.key.startsWith('assets'));
-            resources = assets.children.filter(n => n.name === 'resource');
+            assets = results.root.children.find((n) => n.attributes.key.startsWith('assets'));
+            resources = assets.children.filter((n) => n.name === 'resource');
 
             const svg = byExtension(resources, '.svg');
             assert.equal(svg.attributes.type, 'download');

@@ -10,12 +10,12 @@ const renderTransformation = require('../renderTransformation');
  * @param {DataProvider[]} dataProviders
  * @return {string[]}
  */
-const renderDataProviders = dataProviders => {
+const renderDataProviders = (dataProviders) => {
     if (!Array.isArray(dataProviders) || !dataProviders.length < 0) {
         return [];
     }
 
-    return dataProviders.map(dataProvider =>
+    return dataProviders.map((dataProvider) =>
         renderElement('data', {
             key: dataProvider.key,
             class: dataProvider.class,
@@ -24,11 +24,11 @@ const renderDataProviders = dataProviders => {
 };
 
 function generateContext(contexts) {
-    return contexts ? contexts.map(context => `<context>${context}</context>`).join('') : '';
+    return contexts ? contexts.map((context) => `<context>${context}</context>`).join('') : '';
 }
 
 function generateDependencies(dependencies) {
-    return dependencies ? dependencies.map(dependency => `<dependency>${dependency}</dependency>`).join('\n') : '';
+    return dependencies ? dependencies.map((dependency) => `<dependency>${dependency}</dependency>`).join('\n') : '';
 }
 
 /**
@@ -41,7 +41,7 @@ function generateResourceElement(resource, parameterMap) {
     const assetContentType = path.extname(location).substr(1);
     const parameters = parameterMap.get(assetContentType) || [];
     const children = [];
-    const renderParameters = attributes => children.push(renderElement('param', attributes));
+    const renderParameters = (attributes) => children.push(renderElement('param', attributes));
     parameters.forEach(renderParameters);
 
     return renderElement(
@@ -71,8 +71,8 @@ function generateQunitResourceElement(filepath) {
  */
 function generateResources(parameterMap, resources) {
     return resources
-        .filter(r => !!r)
-        .map(resource => generateResourceElement(resource, parameterMap))
+        .filter((r) => !!r)
+        .map((resource) => generateResourceElement(resource, parameterMap))
         .join('\n');
 }
 
@@ -91,16 +91,18 @@ function createWebResource(webresource, transformations, pathPrefix = '', parame
     const children = [];
 
     /** convert filepaths in to {@link Resource}s. */
-    const convertFilePaths = location => pathPrefix + location;
+    const convertFilePaths = (location) => pathPrefix + location;
 
     // add resources for direct dependencies (e.g., JS and CSS files)
-    allResources.push(...resources.map(res => ({ name: res, location: convertFilePaths(res) })));
+    allResources.push(...resources.map((res) => ({ name: res, location: convertFilePaths(res) })));
 
     if (standalone) {
         children.push(generateResources(parameterMap, allResources));
     } else {
         // add resources for indirect dependencies (e.g., images extracted from CSS)
-        allResources.push(...externalResources.map(wr => ({ name: wr.name, location: convertFilePaths(wr.location) })));
+        allResources.push(
+            ...externalResources.map((wr) => ({ name: wr.name, location: convertFilePaths(wr.location) }))
+        );
 
         children.push(
             renderTransformation(transformations, allResources),
@@ -116,14 +118,14 @@ function createWebResource(webresource, transformations, pathPrefix = '', parame
 }
 
 function createResourceDescriptors(jsonDescriptors, transformations, pathPrefix, parameterMap, standalone) {
-    const descriptors = jsonDescriptors.map(descriptor =>
+    const descriptors = jsonDescriptors.map((descriptor) =>
         createWebResource(descriptor, transformations, pathPrefix, parameterMap, standalone)
     );
     return descriptors.join('');
 }
 
 function createTestResourceDescriptors(jsonTestDescriptors, transformations) {
-    const testDescriptors = jsonTestDescriptors.map(descriptor => createWebResource(descriptor, transformations));
+    const testDescriptors = jsonTestDescriptors.map((descriptor) => createWebResource(descriptor, transformations));
     return testDescriptors.join('');
 }
 

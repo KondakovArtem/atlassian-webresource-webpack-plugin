@@ -7,10 +7,10 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('simple', function() {
+describe('simple', function () {
     let config = require('./webpack.config.js');
 
-    it('compiles an xml file', done => {
+    it('compiles an xml file', (done) => {
         webpack(config, (err, stats) => {
             if (err) {
                 throw err;
@@ -22,14 +22,14 @@ describe('simple', function() {
         });
     });
 
-    describe('a web-resource for a webpack entry point', function() {
+    describe('a web-resource for a webpack entry point', function () {
         let results, contextEntryNode;
 
-        before(done => {
+        before((done) => {
             webpack(config, (err, stats) => {
                 let xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
                 results = parse(xmlFile);
-                contextEntryNode = results.root.children.find(n => n.attributes.key === 'entrypoint-simple-entry');
+                contextEntryNode = results.root.children.find((n) => n.attributes.key === 'entrypoint-simple-entry');
                 done();
             });
         });
@@ -49,14 +49,14 @@ describe('simple', function() {
         // @deprecated
         it('has a context named after the entry point', () => {
             let node = contextEntryNode.children
-                .filter(n => n.name === 'context')
-                .find(n => n.content === 'simple-entry');
+                .filter((n) => n.name === 'context')
+                .find((n) => n.content === 'simple-entry');
             assert.nestedPropertyVal(node, 'name', 'context');
             assert.nestedPropertyVal(node, 'content', 'simple-entry');
         });
 
         it('has a resource that references the generated bundle file', () => {
-            let node = contextEntryNode.children.find(n => n.name === 'resource');
+            let node = contextEntryNode.children.find((n) => n.name === 'resource');
             assert.nestedPropertyVal(node, 'name', 'resource');
             assert.nestedPropertyVal(node, 'attributes.type', 'download');
             assert.nestedPropertyVal(node, 'attributes.name', 'simple-entry.js');
@@ -64,14 +64,14 @@ describe('simple', function() {
         });
     });
 
-    describe('a web-resource for the (web-resource) deps of an entry point', function() {
+    describe('a web-resource for the (web-resource) deps of an entry point', function () {
         let results, contextDepsNode;
 
-        before(done => {
+        before((done) => {
             webpack(config, (err, stats) => {
                 let xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
                 results = parse(xmlFile);
-                contextDepsNode = results.root.children.find(n => n.attributes.key === 'entrypoint-simple-entry');
+                contextDepsNode = results.root.children.find((n) => n.attributes.key === 'entrypoint-simple-entry');
                 done();
             });
         });

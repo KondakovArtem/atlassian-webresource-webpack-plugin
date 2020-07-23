@@ -1,3 +1,3 @@
-define('app', ['./a', './b'], function(a, b) {
-    console.log(a,b);
+define('app', ['./a', './b'], function (a, b) {
+    console.log(a, b);
 });

@@ -7,7 +7,7 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('qunit-test-wrm-web-resource', function() {
+describe('qunit-test-wrm-web-resource', function () {
     this.timeout(10000);
     const config = require('./webpack.config.js');
 
@@ -19,34 +19,34 @@ describe('qunit-test-wrm-web-resource', function() {
     let qunitResources;
 
     function getDependencies(node) {
-        return node.children.filter(n => n.name === 'dependency');
+        return node.children.filter((n) => n.name === 'dependency');
     }
 
     function getResources(node) {
-        return node.children.filter(n => n.name === 'resource');
+        return node.children.filter((n) => n.name === 'resource');
     }
 
     function getContent(nodes) {
-        return nodes.map(n => n.content);
+        return nodes.map((n) => n.content);
     }
 
     function getName(nodes) {
-        return nodes.map(n => n.attributes.name);
+        return nodes.map((n) => n.attributes.name);
     }
 
-    before(done => {
+    before((done) => {
         webpack(config, (err, st) => {
             stats = st;
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
             [entry1, entry2] = results.root.children.filter(
-                n => n.attributes.key && n.attributes.key.startsWith('entrypoint')
+                (n) => n.attributes.key && n.attributes.key.startsWith('entrypoint')
             );
             [testEntry1, testEntry2] = results.root.children.filter(
-                n => n.attributes.key && n.attributes.key.startsWith('__test__entrypoint')
+                (n) => n.attributes.key && n.attributes.key.startsWith('__test__entrypoint')
             );
-            qunitResources = results.root.children.filter(n => n.attributes.type === 'qunit');
+            qunitResources = results.root.children.filter((n) => n.attributes.type === 'qunit');
             done();
         });
     });

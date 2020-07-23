@@ -7,7 +7,7 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('specify-transformation', function() {
+describe('specify-transformation', function () {
     const config = require('./webpack.specify-transformations.config');
 
     let stats;
@@ -15,18 +15,18 @@ describe('specify-transformation', function() {
     let wrNodes;
 
     function getWebresourceLike(needle) {
-        return wrNodes.find(n => n.attributes.key.indexOf(needle) > -1);
+        return wrNodes.find((n) => n.attributes.key.indexOf(needle) > -1);
     }
 
     function getTransformation(node) {
-        return node.children.filter(childNode => childNode.name === 'transformation');
+        return node.children.filter((childNode) => childNode.name === 'transformation');
     }
 
     function getTransformationByExtension(transformations, extname) {
-        return transformations.filter(transformation => transformation.attributes.extension === extname)[0];
+        return transformations.filter((transformation) => transformation.attributes.extension === extname)[0];
     }
 
-    beforeEach(done => {
+    beforeEach((done) => {
         webpack(config, (err, st) => {
             error = err;
             stats = st;
@@ -48,7 +48,7 @@ describe('specify-transformation', function() {
         let entryJsTrans, entrySoyTrans, entryLessTrans;
         let jsTrans, htmlTrans, lessTrans, soyTrans, svgTrans, txtTrans;
 
-        beforeEach(function() {
+        beforeEach(function () {
             const entrypointTransformations = getTransformation(getWebresourceLike('app-one'));
             const assetTransformations = getTransformation(getWebresourceLike('assets'));
 
@@ -70,7 +70,10 @@ describe('specify-transformation', function() {
         it('should remove default transformations from web-resources', () => {
             assert.equal(entrySoyTrans, null);
             assert.equal(entryLessTrans, null);
-            assert.notInclude(entryJsTrans.children.map(c => c.attributes.key), 'jsI18n');
+            assert.notInclude(
+                entryJsTrans.children.map((c) => c.attributes.key),
+                'jsI18n'
+            );
 
             // the defaults should not end up on the assets web-resource either,
             // since there aren't any assets of those types in the graph.
@@ -80,19 +83,34 @@ describe('specify-transformation', function() {
         });
 
         it('should add custom transformations to web-resources', () => {
-            assert.include(entryJsTrans.children.map(c => c.attributes.key), 'foo');
-            assert.include(entryJsTrans.children.map(c => c.attributes.key), 'bar');
+            assert.include(
+                entryJsTrans.children.map((c) => c.attributes.key),
+                'foo'
+            );
+            assert.include(
+                entryJsTrans.children.map((c) => c.attributes.key),
+                'bar'
+            );
 
-            assert.include(txtTrans.children.map(c => c.attributes.key), 'bar');
+            assert.include(
+                txtTrans.children.map((c) => c.attributes.key),
+                'bar'
+            );
 
-            assert.include(htmlTrans.children.map(c => c.attributes.key), 'stuff');
-            assert.include(htmlTrans.children.map(c => c.attributes.key), 'n stuff');
+            assert.include(
+                htmlTrans.children.map((c) => c.attributes.key),
+                'stuff'
+            );
+            assert.include(
+                htmlTrans.children.map((c) => c.attributes.key),
+                'n stuff'
+            );
 
             assert.equal(svgTrans, null);
         });
 
         it('should not produce duplicated transformations', () => {
-            const transformationNames = txtTrans.children.map(c => c.attributes.key);
+            const transformationNames = txtTrans.children.map((c) => c.attributes.key);
 
             assert.equal(transformationNames.length, 1);
         });

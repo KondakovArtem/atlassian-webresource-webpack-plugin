@@ -10,7 +10,7 @@ function stringifyAttributes(attributes) {
     return (
         ' ' +
         Object.keys(attributes)
-            .map(key => {
+            .map((key) => {
                 const val = typeof attributes[key] === 'undefined' ? '' : String(attributes[key]);
                 return `${key}="${val}"`;
             })

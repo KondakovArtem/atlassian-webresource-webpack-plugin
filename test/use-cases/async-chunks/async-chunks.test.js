@@ -7,7 +7,7 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('async-chunks', function() {
+describe('async-chunks', function () {
     const config = require('./webpack.config.js');
 
     let stats;
@@ -17,23 +17,23 @@ describe('async-chunks', function() {
     let asyncChunk2;
 
     function getDependencies(node) {
-        return node.children.filter(n => n.name === 'dependency');
+        return node.children.filter((n) => n.name === 'dependency');
     }
 
     function getContent(nodes) {
-        return nodes.map(n => n.content);
+        return nodes.map((n) => n.content);
     }
 
-    beforeEach(done => {
+    beforeEach((done) => {
         webpack(config, (err, st) => {
             stats = st;
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            runtime = results.root.children.find(n => n.attributes.key.startsWith('entry'));
-            app = results.root.children.find(n => n.attributes.key === 'split_app');
-            asyncChunk1 = results.root.children.find(n => n.attributes.key === '0');
-            asyncChunk2 = results.root.children.find(n => n.attributes.key === '1');
+            runtime = results.root.children.find((n) => n.attributes.key.startsWith('entry'));
+            app = results.root.children.find((n) => n.attributes.key === 'split_app');
+            asyncChunk1 = results.root.children.find((n) => n.attributes.key === '0');
+            asyncChunk2 = results.root.children.find((n) => n.attributes.key === '1');
             done();
         });
     });

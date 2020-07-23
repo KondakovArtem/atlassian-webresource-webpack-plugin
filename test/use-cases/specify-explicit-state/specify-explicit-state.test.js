@@ -7,23 +7,23 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('specify-explicit-webresource-state', function() {
+describe('specify-explicit-webresource-state', function () {
     const config = require('./webpack.config.js');
 
     let stats;
     let wrNodes;
 
     function findWrEndingWith(key) {
-        return wrNodes.find(n => n.attributes.key.endsWith(key));
+        return wrNodes.find((n) => n.attributes.key.endsWith(key));
     }
 
-    beforeEach(done => {
+    beforeEach((done) => {
         webpack(config, (err, st) => {
             stats = st;
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            wrNodes = results.root.children.filter(node => node.name === 'web-resource');
+            wrNodes = results.root.children.filter((node) => node.name === 'web-resource');
             done();
         });
     });

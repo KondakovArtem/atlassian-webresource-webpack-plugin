@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 let verbose = false;
-const setVerbose = arg => (verbose = arg);
+const setVerbose = (arg) => (verbose = arg);
 
 function log(...args) {
     if (verbose) {

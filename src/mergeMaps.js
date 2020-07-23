@@ -23,7 +23,7 @@ const defaultMerger = (v, k, map) => map.set(k, v);
 const mergeMaps = (...maps) => {
     const source = new Map();
     const merger = typeof maps[maps.length - 1] === 'function' ? maps.pop() : defaultMerger;
-    maps.forEach(map => {
+    maps.forEach((map) => {
         Array.from(map.entries()).reduce((m, [k, v]) => merger(v, k, m), source);
     });
     return source;

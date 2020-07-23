@@ -8,7 +8,7 @@ const CROSS_PLATFORM_BASE_DEPS = [];
 
 function process(arr) {
     return _.chain([].concat(CROSS_PLATFORM_BASE_DEPS, arr))
-        .filter(val => !!val)
+        .filter((val) => !!val)
         .uniq()
         .value();
 }

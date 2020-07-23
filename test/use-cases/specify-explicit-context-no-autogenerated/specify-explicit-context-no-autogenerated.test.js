@@ -7,7 +7,7 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('specify-explicit-context (with no auto-generated values)', function() {
+describe('specify-explicit-context (with no auto-generated values)', function () {
     const config = require('./webpack.config.js');
 
     let stats;
@@ -15,25 +15,25 @@ describe('specify-explicit-context (with no auto-generated values)', function() 
     let wrNodes;
 
     function getWebresourceLike(needle) {
-        return wrNodes.find(n => n.attributes.key.indexOf(needle) > -1);
+        return wrNodes.find((n) => n.attributes.key.indexOf(needle) > -1);
     }
 
     function getContexts(node) {
-        return node.children.filter(n => n.name === 'context');
+        return node.children.filter((n) => n.name === 'context');
     }
 
     function getContent(nodes) {
-        return nodes.map(n => n.content);
+        return nodes.map((n) => n.content);
     }
 
-    beforeEach(done => {
+    beforeEach((done) => {
         webpack(config, (err, st) => {
             error = err;
             stats = st;
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
-            wrNodes = results.root.children.filter(n => n.attributes.key.startsWith('entry'));
+            wrNodes = results.root.children.filter((n) => n.attributes.key.startsWith('entry'));
             done();
         });
     });

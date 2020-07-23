@@ -4,7 +4,7 @@ function renderParams(params) {
     if (!params) {
         return '';
     }
-    return params.map(param => renderElement('param', param.attributes, param.value)).join('');
+    return params.map((param) => renderElement('param', param.attributes, param.value)).join('');
 }
 
 module.exports = function renderCondition(condition) {

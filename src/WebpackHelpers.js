@@ -10,26 +10,26 @@ const flattenReduce = require('./flattenReduce');
 module.exports = class WebpackHelpers {
     static getAllAsyncChunks(entryPoints) {
         const seenChunkGroups = new Set();
-        const recursivelyGetAllAsyncChunks = chunkGroups => {
+        const recursivelyGetAllAsyncChunks = (chunkGroups) => {
             if (!chunkGroups.length === 0) {
                 return [];
             }
 
             return chunkGroups
-                .filter(cg => {
+                .filter((cg) => {
                     // circuit breaker
                     // dont use a chunk group more than once
                     const alreadySeen = seenChunkGroups.has(cg);
                     seenChunkGroups.add(cg);
                     return !alreadySeen;
                 })
-                .map(cg => [...cg.chunks, ...recursivelyGetAllAsyncChunks(cg.getChildren())])
+                .map((cg) => [...cg.chunks, ...recursivelyGetAllAsyncChunks(cg.getChildren())])
                 .reduce(flattenReduce, []);
         };
 
         // get all async chunks "deep"
         const allAsyncChunks = entryPoints
-            .map(e => recursivelyGetAllAsyncChunks(e.getChildren()))
+            .map((e) => recursivelyGetAllAsyncChunks(e.getChildren()))
             .reduce(flattenReduce, []);
 
         // dedupe
@@ -39,8 +39,8 @@ module.exports = class WebpackHelpers {
     static _getExternalResourceModules(chunk) {
         return chunk
             .getModules()
-            .filter(m => m instanceof WrmResourceModule)
-            .map(m => m.getResource());
+            .filter((m) => m instanceof WrmResourceModule)
+            .map((m) => m.getResource());
     }
 
     static getExternalResourcesForChunk(chunk) {
@@ -55,11 +55,11 @@ module.exports = class WebpackHelpers {
     static _getExternalDependencyModules(chunk) {
         return chunk
             .getModules()
-            .filter(m => {
+            .filter((m) => {
                 return m instanceof ProvidedExternalDependencyModule || m instanceof WrmDependencyModule;
             })
             .sort((a, b) => a.index - b.index)
-            .map(m => m.getDependency());
+            .map((m) => m.getDependency());
     }
 
     static getDependenciesForChunks(chunks) {
@@ -77,22 +77,22 @@ module.exports = class WebpackHelpers {
     }
 
     static extractAdditionalAssetsFromChunk(chunk) {
-        const ownDeps = chunk.getModules().map(m => m.resource);
+        const ownDeps = chunk.getModules().map((m) => m.resource);
         const ownDepsSet = new Set(ownDeps);
         const fileDeps = chunk
             .getModules()
-            .filter(m => m.buildInfo.fileDependencies)
-            .map(m => [...m.buildInfo.fileDependencies])
+            .filter((m) => m.buildInfo.fileDependencies)
+            .map((m) => [...m.buildInfo.fileDependencies])
             .reduce(flattenReduce, []);
         const fileDepsSet = new Set(fileDeps);
         return Array.from(fileDepsSet).filter(
-            filename => !ownDepsSet.has(filename) && !/\.(js|css|soy)(\.map)?$/.test(filename)
+            (filename) => !ownDepsSet.has(filename) && !/\.(js|css|soy)(\.map)?$/.test(filename)
         );
     }
 
     static getDependencyResourcesFromChunk(chunk, resourceToAssetMap) {
         const deps = WebpackHelpers.extractAdditionalAssetsFromChunk(chunk);
-        return deps.filter(dep => resourceToAssetMap.has(dep)).map(dep => resourceToAssetMap.get(dep));
+        return deps.filter((dep) => resourceToAssetMap.has(dep)).map((dep) => resourceToAssetMap.get(dep));
     }
 
     // get all files used in a chunk
@@ -115,9 +115,9 @@ This might be worth looking into as it could be an issue.
             circularDepCheck.add(mod);
 
             mod.dependencies
-                .map(d => d.module || d.originModule)
+                .map((d) => d.module || d.originModule)
                 .filter(Boolean)
-                .filter(m => {
+                .filter((m) => {
                     // filter out all "virtual" modules that do not reference an actual file (or a wrm web-resource)
                     if (m.resource) {
                         return true;
@@ -128,8 +128,8 @@ This might be worth looking into as it could be an issue.
                     return false;
                 })
 
-                .filter(actualModule => !actualModule.resource || !actualModule.resource.includes('node_modules')) // if it references a file remove it if it comes from "node_modules"
-                .forEach(localModule => addModule(localModule, container)); // recursively add modules own dependencies first
+                .filter((actualModule) => !actualModule.resource || !actualModule.resource.includes('node_modules')) // if it references a file remove it if it comes from "node_modules"
+                .forEach((localModule) => addModule(localModule, container)); // recursively add modules own dependencies first
 
             if (mod.resource && !mod.resource.includes('node_modules')) {
                 const reference = path.relative(context, mod.resource);

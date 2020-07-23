@@ -3,14 +3,14 @@ const assert = require('chai').assert;
 const WebpackHelpers = require('../../src/WebpackHelpers');
 const env = Object.assign({}, process.env);
 
-const stubCompiler = mode => ({ options: { mode } });
+const stubCompiler = (mode) => ({ options: { mode } });
 
 describe('isRunningInProductionMode', () => {
     afterEach(() => {
         process.env = env;
     });
 
-    it('determines production mode from compiler settings', function() {
+    it('determines production mode from compiler settings', function () {
         assert.equal(
             WebpackHelpers.isRunningInProductionMode(stubCompiler('production')),
             true,
@@ -18,7 +18,7 @@ describe('isRunningInProductionMode', () => {
         );
     });
 
-    it('returns false if mode is different than production', function() {
+    it('returns false if mode is different than production', function () {
         assert.equal(
             WebpackHelpers.isRunningInProductionMode(stubCompiler('')),
             false,
@@ -26,7 +26,7 @@ describe('isRunningInProductionMode', () => {
         );
     });
 
-    it('fallbacks to node.env when mode set to none', function() {
+    it('fallbacks to node.env when mode set to none', function () {
         process.env.NODE_ENV = 'production';
         assert.equal(
             WebpackHelpers.isRunningInProductionMode(stubCompiler('none')),
