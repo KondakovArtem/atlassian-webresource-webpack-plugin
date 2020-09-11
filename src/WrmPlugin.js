@@ -307,11 +307,12 @@ An automated jsonpFunction name for this plugin was created:
                     // Ensure the `AJS.contextPath` function is available at runtime.
                     addBaseDependency('com.atlassian.plugins.atlassian-plugins-webresource-plugin:context-path');
                     const uuid = this.getAssetsUUID(isProductionMode);
+                    const assetWebresource = `${this.options.pluginKey}:assets-${uuid}`;
 
                     // Add the public path extension to the webpack module runtime.
                     return `${standardScript}
 if (typeof AJS !== "undefined") {
-    ${compilation.mainTemplate.requireFn}.p = AJS.contextPath() + "/s/${uuid}/_/download/resources/${this.options.pluginKey}:assets-${uuid}/";
+    __webpack_require__.p = AJS.contextPath() + "/s/${uuid}/_/download/resources/${assetWebresource}/";
 }
 `;
                 }
@@ -459,7 +460,12 @@ return installedChunks[chunkId][2] = Promise.all(promises);
 
         // Generate a 1:1 mapping from original filenames to compiled filenames
         compiler.hooks.compilation.tap('wrm plugin setup phase', compilation => {
-            compilation.hooks.normalModuleLoader.tap('wrm plugin - normal module', (loaderContext, module) => {
+            const moduleLoader = webpack5or4(
+                () => require('webpack/lib/NormalModule').getCompilationHooks(compilation).loader,
+                () => compilation.hooks.normalModuleLoader
+            );
+
+            moduleLoader.tap('wrm plugin - normal module', (loaderContext, module) => {
                 const { emitFile } = loaderContext;
                 loaderContext.emitFile = (name, content, sourceMap) => {
                     const originalName = module.userRequest;
@@ -572,9 +578,11 @@ return installedChunks[chunkId][2] = Promise.all(promises);
                     const wrmManifestMapping = entryPointsResourceDescriptors
                         .filter(({ attributes }) => attributes.moduleId)
                         .reduce((result, { attributes: { key: resourceKey, moduleId } }) => {
-                            const libraryName = compilation.mainTemplate.getAssetPath(name, {
-                                chunk: { name: moduleId },
-                            });
+                            const getAssetPath = webpack5or4(
+                                () => (name, opts) => compilation.getAssetPath(name, opts),
+                                () => (name, opts) => compilation.mainTemplate.getAssetPath(name, opts)
+                            );
+                            const libraryName = getAssetPath(name, { chunk: { name: moduleId } });
 
                             result[moduleId] = buildProvidedDependency(
                                 this.options.pluginKey,
