@@ -5,8 +5,10 @@ const PrettyData = require('pretty-data').pd;
 const { v4: uuidv4Gen } = require('uuid');
 const fs = require('fs');
 const mkdirp = require('mkdirp');
-const once = require('lodash/once');
 const urlJoin = require('url-join');
+const once = require('lodash/once');
+const flatMap = require('lodash/flatMap');
+const uniq = require('lodash/uniq');
 const unionBy = require('lodash/unionBy');
 const isObject = require('lodash/isObject');
 const { Compilation } = require('webpack');
@@ -28,8 +30,6 @@ const WebpackRuntimeHelpers = require('./WebpackRuntimeHelpers');
 const logger = require('./logger');
 const QUnitTestResources = require('./QUnitTestResources');
 const AppResources = require('./AppResources');
-const flattenReduce = require('./flattenReduce');
-const mergeMaps = require('./mergeMaps');
 
 const { builtInProvidedDependencies } = require('./defaults/builtInProvidedDependencies');
 const { webpack5or4 } = require('./helpers/conditional-logic');
@@ -54,14 +54,14 @@ const DEFAULT_DEV_ASSETS_HASH = 'DEV_PSEUDO_HASH';
 
 class WrmPlugin {
     static extendTransformations(values) {
-        return mergeMaps(defaultTransformations, toMap(values), (val, key, map) => {
-            const oldVals = map.get(key);
-            const newVals = []
-                .concat(oldVals)
-                .concat(val)
-                .filter(v => !!v);
-            return map.set(key, newVals);
-        });
+        return [defaultTransformations, toMap(values)].reduce((acc, map) => {
+            for (let [key, val] of map.entries()) {
+                const oldVals = acc.get(key);
+                const newVals = [].concat(oldVals).concat(val).filter(Boolean);
+                acc.set(key, newVals);
+            }
+            return acc;
+        }, new Map());
     }
 
     /**
@@ -173,8 +173,8 @@ class WrmPlugin {
     ensureTransformationsAreUnique(transformations) {
         const results = toMap(transformations);
         results.forEach((val, key, map) => {
-            const values = [].concat(val).filter(v => !!v);
-            map.set(key, Array.from(new Set(values)));
+            const values = [].concat(val).filter(Boolean);
+            map.set(key, uniq(values));
         });
         return results;
     }
@@ -182,7 +182,7 @@ class WrmPlugin {
     ensureResourceParamsAreUnique(params) {
         const results = toMap(params);
         results.forEach((val, key, map) => {
-            const values = [].concat(val).filter(v => !!v);
+            const values = [].concat(val).filter(Boolean);
             map.set(key, unionBy(values.reverse(), 'name').reverse());
         });
         return results;
@@ -597,9 +597,7 @@ return installedChunks[chunkId][2] = Promise.all(promises);
 
             if (this.options.watch && this.options.watchPrepare) {
                 const entrypointDescriptors = appResourceGenerator.getResourceDescriptors();
-                const redirectDescriptors = entrypointDescriptors
-                    .map(c => c.resources)
-                    .reduce(flattenReduce, [])
+                const redirectDescriptors = flatMap(entrypointDescriptors, c => c.resources)
                     .filter(res => path.extname(res) === '.js')
                     .map(r => ({ fileName: r, writePath: path.join(outputPath, r) }));
 

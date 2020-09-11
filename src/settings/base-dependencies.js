@@ -3,14 +3,11 @@
  * Collects a set of web-resource dependencies that should be added
  * to all the web-resources generated during compilation.
  */
-const _ = require('lodash');
+const uniq = require('lodash/uniq');
 const CROSS_PLATFORM_BASE_DEPS = [];
 
 function process(arr) {
-    return _.chain([].concat(CROSS_PLATFORM_BASE_DEPS, arr))
-        .filter(val => !!val)
-        .uniq()
-        .value();
+    return uniq([...CROSS_PLATFORM_BASE_DEPS, ...arr].filter(Boolean));
 }
 
 let configuredContexts = [];

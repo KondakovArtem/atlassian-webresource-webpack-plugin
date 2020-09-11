@@ -1,5 +1,6 @@
 const glob = require('glob');
 const path = require('path');
+const uniq = require('lodash/uniq');
 
 const { extractPathPrefixForXml } = require('./helpers/options-parser');
 const { getWebresourceAttributesForEntry } = require('./helpers/web-resource-entrypoints');
@@ -42,7 +43,7 @@ module.exports = class QUnitTestResources {
                 location: `${pathPrefix}${this.qunitRequireMockPath}`,
             });
 
-            const testDependencies = Array.from(WebpackHelpers.getDependenciesForChunks(allEntryPointChunks));
+            const testDependencies = WebpackHelpers.getDependenciesForChunks(allEntryPointChunks);
             return {
                 attributes: { key: `__test__${webResourceAttrs.key}`, name: webResourceAttrs.name },
                 externalResources: testFiles,
@@ -123,18 +124,7 @@ This might be worth looking into as it could be an issue.
             if (mod.dependencies) {
                 mod.dependencies
                     .map(extractModule)
-                    .filter(Boolean)
-                    .filter(m => {
-                        if (allowed(m.resource)) {
-                            return true;
-                        }
-                        // include WrmResourceModules
-                        if (m instanceof WrmResourceModule) {
-                            return true;
-                        }
-                        // ignore the rest
-                        return false;
-                    })
+                    .filter(m => m && (allowed(m.resource) || m instanceof WrmResourceModule))
                     .forEach(addModule); // recursively add modules own dependencies
             }
         };
@@ -173,9 +163,9 @@ this option deprecated and try to migrate your code to a proper JS-Testrunner.
             .map(g => glob.sync(g, { absolute: true })) // get all matching files
             .reduce((_, _v, _i, files) => {
                 // flatten them and make them unique
-                const uniqueFiles = new Set([].concat(...files));
+                const uniqueFiles = uniq(files);
                 files.length = 0; // prevent further iteration ??MAGNETS??
-                return Array.from(uniqueFiles);
+                return uniqueFiles;
             })
             .map(file => path.relative(context, file)); // make them relative to the context
     }

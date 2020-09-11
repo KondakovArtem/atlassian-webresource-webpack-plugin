@@ -1,12 +1,12 @@
 const assert = require('chai').assert;
 const PrettyData = require('pretty-data').pd;
 
-const renderTransformation = require('../../src/renderTransformation');
+const renderTransformations = require('../../src/renderTransformation');
 
 describe('renderTransformer', () => {
     it('simple transformation', () => {
         const transformations = { js: ['jsI18n'] };
-        const conditionString = renderTransformation(transformations);
+        const conditionString = renderTransformations(transformations).join('');
         assert.equal(
             PrettyData.xml(conditionString),
             `
@@ -23,7 +23,7 @@ describe('renderTransformer', () => {
             soy: ['soyTransformer', 'jsI18n'],
             less: ['lessTransformer'],
         };
-        const conditionString = renderTransformation(transformations);
+        const conditionString = renderTransformations(transformations).join('');
         assert.equal(
             PrettyData.xml(conditionString),
             `
@@ -49,7 +49,7 @@ describe('renderTransformer', () => {
             png: ['png-one'],
         };
         const resources = [{ location: 'a.js' }, { location: 'b.not.really.soy.actually.js' }, { location: 'c.less' }];
-        const conditionString = renderTransformation(transformations, resources);
+        const conditionString = renderTransformations(transformations, resources).join('');
 
         assert.equal(
             PrettyData.xml(conditionString),

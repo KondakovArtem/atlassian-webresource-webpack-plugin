@@ -27,18 +27,13 @@ function transformFilterFactory(resources) {
  * required for a given set of resources. Renders every transform if no resources are provided.
  * @param {Map<String, Array<String>>} transformations
  * @param {Resource[]} resources
- * @returns {string} the rendered XML for each necessary transform.
+ * @returns {string[]} the rendered XML for each necessary transform.
  */
-module.exports = function renderTransformation(transformations, resources = []) {
+function renderTransformations(transformations, resources = []) {
     const transMap = toMap(transformations);
     return Array.from(transMap.keys())
         .filter(transformFilterFactory(resources))
-        .map(fileExtension =>
-            renderElement(
-                'transformation',
-                { extension: fileExtension },
-                renderTransformer(transMap.get(fileExtension))
-            )
-        )
-        .join('');
-};
+        .map(extension => renderElement('transformation', { extension }, renderTransformer(transMap.get(extension))));
+}
+
+module.exports = renderTransformations;

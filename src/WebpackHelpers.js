@@ -1,8 +1,9 @@
+const flatMap = require('lodash/flatMap');
+const uniq = require('lodash/uniq');
+
 const ProvidedExternalDependencyModule = require('./webpack-modules/ProvidedExternalDependencyModule');
 const WrmDependencyModule = require('./webpack-modules/WrmDependencyModule');
 const WrmResourceModule = require('./webpack-modules/WrmResourceModule');
-
-const flattenReduce = require('./flattenReduce');
 
 /** @typedef {import("webpack/lib/Compiler")} Compiler */
 /** @typedef {import("webpack/lib/Entrypoint")} Entrypoint */
@@ -14,29 +15,21 @@ module.exports = class WebpackHelpers {
     static getAllAsyncChunks(entryPoints) {
         const seenChunkGroups = new Set();
         const recursivelyGetAllAsyncChunks = chunkGroups => {
-            if (!chunkGroups.length === 0) {
-                return [];
-            }
-
-            return chunkGroups
-                .filter(cg => {
-                    // circuit breaker
-                    // dont use a chunk group more than once
-                    const alreadySeen = seenChunkGroups.has(cg);
-                    seenChunkGroups.add(cg);
-                    return !alreadySeen;
-                })
-                .map(cg => [...cg.chunks, ...recursivelyGetAllAsyncChunks(cg.getChildren())])
-                .reduce(flattenReduce, []);
+            const unseen = chunkGroups.filter(cg => {
+                // circuit breaker
+                // dont use a chunk group more than once
+                const alreadySeen = seenChunkGroups.has(cg);
+                seenChunkGroups.add(cg);
+                return !alreadySeen;
+            });
+            return flatMap(unseen, cg => [...cg.chunks, ...recursivelyGetAllAsyncChunks(cg.getChildren())]);
         };
 
         // get all async chunks "deep"
-        const allAsyncChunks = entryPoints
-            .map(e => recursivelyGetAllAsyncChunks(e.getChildren()))
-            .reduce(flattenReduce, []);
+        const allAsyncChunks = flatMap(entryPoints, e => recursivelyGetAllAsyncChunks(e.getChildren()));
 
         // dedupe
-        return Array.from(new Set(allAsyncChunks));
+        return uniq(allAsyncChunks);
     }
 
     static _getExternalResourceModules(chunk) {
@@ -58,9 +51,7 @@ module.exports = class WebpackHelpers {
     static _getExternalDependencyModules(chunk) {
         return chunk
             .getModules()
-            .filter(m => {
-                return m instanceof ProvidedExternalDependencyModule || m instanceof WrmDependencyModule;
-            })
+            .filter(m => m instanceof ProvidedExternalDependencyModule || m instanceof WrmDependencyModule)
             .sort((a, b) => a.index - b.index)
             .map(m => m.getDependency());
     }
@@ -82,10 +73,6 @@ module.exports = class WebpackHelpers {
             }
         }
         return Array.from(externalDeps);
-    }
-
-    static getChunkIdentifier(chunk) {
-        return chunk.name || chunk.id;
     }
 
     /**

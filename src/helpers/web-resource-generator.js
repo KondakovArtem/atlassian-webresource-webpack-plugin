@@ -2,7 +2,7 @@ const path = require('path');
 const { renderElement } = require('./xml');
 const { parseWebResourceAttributes } = require('./web-resource-parser');
 const renderCondition = require('../renderCondition');
-const renderTransformation = require('../renderTransformation');
+const renderTransforms = require('../renderTransformation');
 
 /**
  * Renders list of data providers {@see DataProvider} as <data key="provider-key" class="data.provider.Class" /> elements
@@ -23,12 +23,12 @@ const renderDataProviders = dataProviders => {
     );
 };
 
-function generateContext(contexts) {
-    return contexts ? contexts.map(context => `<context>${context}</context>`).join('') : '';
+function renderContexts(contexts) {
+    return contexts ? contexts.map(context => `<context>${context}</context>`) : [];
 }
 
-function generateDependencies(dependencies) {
-    return dependencies ? dependencies.map(dependency => `<dependency>${dependency}</dependency>`).join('\n') : '';
+function renderDependencies(dependencies) {
+    return dependencies ? dependencies.map(dependency => `<dependency>${dependency}</dependency>`) : [];
 }
 
 /**
@@ -67,13 +67,10 @@ function generateQunitResourceElement(filepath) {
 /**
  * @param {Map<String, Array<Object>>} parameterMap
  * @param {Resource[]} resources
- * @returns {string} an XML string of all {@link Resource} elements
+ * @returns {string[]} XML strings of all {@link Resource} elements
  */
-function generateResources(parameterMap, resources) {
-    return resources
-        .filter(r => !!r)
-        .map(resource => generateResourceElement(resource, parameterMap))
-        .join('\n');
+function renderResources(parameterMap, resources) {
+    return resources ? resources.filter(Boolean).map(resource => generateResourceElement(resource, parameterMap)) : [];
 }
 
 /**
@@ -97,18 +94,18 @@ function createWebResource(webresource, transformations, pathPrefix = '', parame
     allResources.push(...resources.map(res => ({ name: res, location: convertFilePaths(res) })));
 
     if (standalone) {
-        children.push(generateResources(parameterMap, allResources));
+        children.push(...renderResources(parameterMap, allResources));
     } else {
         // add resources for indirect dependencies (e.g., images extracted from CSS)
         allResources.push(...externalResources.map(wr => ({ name: wr.name, location: convertFilePaths(wr.location) })));
 
         children.push(
-            renderTransformation(transformations, allResources),
-            generateContext(contexts),
-            generateDependencies(dependencies),
-            generateResources(parameterMap, allResources),
-            renderCondition(conditions),
-            ...renderDataProviders(dataProviders)
+            ...renderTransforms(transformations, allResources),
+            ...renderContexts(contexts),
+            ...renderDependencies(dependencies),
+            ...renderResources(parameterMap, allResources),
+            ...renderDataProviders(dataProviders),
+            renderCondition(conditions)
         );
     }
 
