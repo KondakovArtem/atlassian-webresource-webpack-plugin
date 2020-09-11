@@ -2,7 +2,7 @@ const assert = require('assert');
 const path = require('path');
 const { createHash } = require('crypto');
 const PrettyData = require('pretty-data').pd;
-const uuidv4Gen = require('uuid/v4');
+const { v4: uuidv4Gen } = require('uuid');
 const fs = require('fs');
 const mkdirp = require('mkdirp');
 const once = require('lodash/once');
@@ -524,7 +524,7 @@ return installedChunks[chunkId][2] = Promise.all(promises);
             const xmlDescriptorWebpackPath = path.relative(outputPath, this.options.xmlDescriptors);
 
             compilation.assets[xmlDescriptorWebpackPath] = {
-                source: () => new Buffer(xmlDescriptors),
+                source: () => Buffer.from(xmlDescriptors),
                 size: () => Buffer.byteLength(xmlDescriptors),
             };
 
@@ -564,7 +564,7 @@ return installedChunks[chunkId][2] = Promise.all(promises);
                 const wrmManifestWebpackPath = path.relative(outputPath, this.options.wrmManifestPath);
 
                 compilation.assets[wrmManifestWebpackPath] = {
-                    source: () => new Buffer(wrmManifestJSON),
+                    source: () => Buffer.from(wrmManifestJSON),
                     size: () => Buffer.byteLength(wrmManifestJSON),
                 };
             }
