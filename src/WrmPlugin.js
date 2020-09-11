@@ -11,13 +11,8 @@ const flatMap = require('lodash/flatMap');
 const uniq = require('lodash/uniq');
 const unionBy = require('lodash/unionBy');
 const isObject = require('lodash/isObject');
-const { Compilation } = require('webpack');
 
-const {
-    createQUnitResourceDescriptors,
-    createResourceDescriptors,
-    createTestResourceDescriptors,
-} = require('./helpers/web-resource-generator');
+const { createResourceDescriptors } = require('./helpers/web-resource-generator');
 const { toMap, extractPathPrefixForXml } = require('./helpers/options-parser');
 const { buildProvidedDependency } = require('./helpers/provided-dependencies');
 const { addBaseDependency } = require('./settings/base-dependencies');
@@ -28,7 +23,6 @@ const WrmResourceModule = require('./webpack-modules/WrmResourceModule');
 const { isRunningInProductionMode, getLibraryDetails } = require('./WebpackHelpers');
 const WebpackRuntimeHelpers = require('./WebpackRuntimeHelpers');
 const logger = require('./logger');
-const QUnitTestResources = require('./QUnitTestResources');
 const AppResources = require('./AppResources');
 
 const { builtInProvidedDependencies } = require('./defaults/builtInProvidedDependencies');
@@ -324,46 +318,57 @@ if (typeof AJS !== "undefined") {
      * @param {Compiler} compiler
      */
     hookUpProvidedDependencies(compiler) {
-        WebpackRuntimeHelpers.hookIntoNormalModuleFactory(compiler, factory => (data, callback) => {
-            const { target } = getLibraryDetails(compiler);
-            const request = data.dependencies[0].request;
-            // get globally available libraries through wrm
-            if (this.options.providedDependencies.has(request)) {
-                logger.log('plugging hole into request to %s, will be provided as a dependency through WRM', request);
-                const p = this.options.providedDependencies.get(request);
-                callback(null, new ProvidedExternalDependencyModule(p.import, p.dependency, target));
-                return;
+        WebpackRuntimeHelpers.hookIntoNormalModuleFactory(
+            'wrm plugin - provided dependencies',
+            compiler,
+            factory => (data, callback) => {
+                const { target } = getLibraryDetails(compiler);
+                const request = data.dependencies[0].request;
+                // get globally available libraries through wrm
+                if (this.options.providedDependencies.has(request)) {
+                    logger.log(
+                        'plugging hole into request to %s, will be provided as a dependency through WRM',
+                        request
+                    );
+                    const p = this.options.providedDependencies.get(request);
+                    callback(null, new ProvidedExternalDependencyModule(p.import, p.dependency, target));
+                    return;
+                }
+                return factory(data, callback);
             }
-            return factory(data, callback);
-        });
+        );
     }
 
     /**
      * @param {Compiler} compiler
      */
     injectWRMSpecificRequestTypes(compiler) {
-        WebpackRuntimeHelpers.hookIntoNormalModuleFactory(compiler, factory => (data, callback) => {
-            const { target } = getLibraryDetails(compiler);
-            const request = data.dependencies[0].request;
-            // import web-resources we find static import statements for
-            if (request.startsWith('wr-dependency!')) {
-                const res = request.substr('wr-dependency!'.length);
-                logger.log('adding %s as a web-resource dependency through WRM', res);
-                callback(null, new WrmDependencyModule(res, target, this.options.pluginKey));
-                return;
+        WebpackRuntimeHelpers.hookIntoNormalModuleFactory(
+            'wrm plugin - inject request types',
+            compiler,
+            factory => (data, callback) => {
+                const { target } = getLibraryDetails(compiler);
+                const request = data.dependencies[0].request;
+                // import web-resources we find static import statements for
+                if (request.startsWith('wr-dependency!')) {
+                    const res = request.substr('wr-dependency!'.length);
+                    logger.log('adding %s as a web-resource dependency through WRM', res);
+                    callback(null, new WrmDependencyModule(res, target, this.options.pluginKey));
+                    return;
+                }
+
+                // import resources we find static import statements for
+                if (request.startsWith('wr-resource!')) {
+                    const res = request.substr('wr-resource!'.length);
+                    logger.log('adding %s as a resource through WRM', res);
+
+                    callback(null, new WrmResourceModule(res, target, data.context, compiler.options.context));
+                    return;
+                }
+
+                return factory(data, callback);
             }
-
-            // import resources we find static import statements for
-            if (request.startsWith('wr-resource!')) {
-                const res = request.substr('wr-resource!'.length);
-                logger.log('adding %s as a resource through WRM', res);
-
-                callback(null, new WrmResourceModule(res, target, data.context, compiler.options.context));
-                return;
-            }
-
-            return factory(data, callback);
-        });
+        );
     }
 
     /**
@@ -455,6 +460,8 @@ return installedChunks[chunkId][2] = Promise.all(promises);
 
         this.assetNames = new Map();
 
+        const outputPath = compiler.options.output.path;
+        const xmlDescriptorWebpackPath = path.relative(outputPath, this.options.xmlDescriptors);
         const isProductionMode = isRunningInProductionMode(compiler);
         const assetsUUID = this.getAssetsUUID(isProductionMode);
 
@@ -482,8 +489,6 @@ return installedChunks[chunkId][2] = Promise.all(promises);
          * @param {Function} callback
          */
         const generateXmlHandler = (compilation, callback) => {
-            const outputPath = compiler.options.output.path;
-            const xmlDescriptorWebpackPath = path.relative(outputPath, this.options.xmlDescriptors);
             const pathPrefix = extractPathPrefixForXml(this.options.locationPrefix);
 
             const appResourceGenerator = new AppResources(
@@ -536,20 +541,6 @@ return installedChunks[chunkId][2] = Promise.all(promises);
                 this.options.standalone
             );
             webResources.push(resourceDescriptors);
-
-            if (this.options.__testGlobs__ && !this.options.watch) {
-                const testResourcesGenerator = new QUnitTestResources(assetsUUID, this.options, compiler, compilation);
-                testResourcesGenerator.injectQUnitShim();
-                const testResourceDescriptors = createTestResourceDescriptors(
-                    testResourcesGenerator.createAllFileTestWebResources(),
-                    this.options.transformationMap
-                );
-                const qUnitTestResourceDescriptors = createQUnitResourceDescriptors(
-                    testResourcesGenerator.getTestFiles()
-                );
-
-                webResources.push(testResourceDescriptors, qUnitTestResourceDescriptors);
-            }
 
             const xmlDescriptors = PrettyData.xml(`<bundles>${webResources.join('')}</bundles>`);
 
@@ -647,24 +638,24 @@ document.head.appendChild(script);`.trim();
             callback();
         };
 
-        compiler.hooks.compilation.tap('wrm plugin', compilation => {
-            webpack5or4(
-                () => {
-                    compilation.hooks.processAssets.tapAsync(
-                        {
-                            name: 'wrm plugin - generate XML assets',
-                            stage: Compilation.PROCESS_ASSETS_STAGE_ANALYSE,
-                        },
-                        (_, callback) => generateXmlHandler(compilation, callback)
-                    );
-                },
-                () => {
-                    compiler.hooks.emit.tapAsync('wrm plugin - generate XML assets', (_, callback) =>
-                        generateXmlHandler(compilation, callback)
-                    );
-                }
-            );
-        });
+        WebpackRuntimeHelpers.hookIntoAssetAnalysisStage(
+            'wrm plugin - generate descriptors',
+            compiler,
+            generateXmlHandler
+        );
+
+        // Enable QUnit plugin if provided
+        if (this.options.__testGlobs__ && !this.options.watch) {
+            const filename = path.join(path.dirname(xmlDescriptorWebpackPath), 'qunit-webpack-bundles.xml');
+            const QUnitTestResourcesPlugin = require('./QUnitTestResourcesPlugin');
+            new QUnitTestResourcesPlugin({
+                assetsUUID,
+                outputPath: filename,
+                testGlobs: this.options.__testGlobs__,
+                transformationMap: this.options.transformationMap,
+                webresourceKeyMap: this.options.webresourceKeyMap,
+            }).apply(compiler);
+        }
     }
 }
 

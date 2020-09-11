@@ -6,6 +6,7 @@ const path = require('path');
 
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
+const qunitOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'qunit-webpack-bundles.xml');
 
 describe('qunit-test-wrm-web-resource', function () {
     this.timeout(10000);
@@ -38,15 +39,17 @@ describe('qunit-test-wrm-web-resource', function () {
         webpack(config, (err, st) => {
             stats = st;
 
-            const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
-            const results = parse(xmlFile);
-            [entry1, entry2] = results.root.children.filter(
+            const webresources = parse(fs.readFileSync(webresourceOutput, 'utf-8'));
+            [entry1, entry2] = webresources.root.children.filter(
                 n => n.attributes.key && n.attributes.key.startsWith('entrypoint')
             );
-            [testEntry1, testEntry2] = results.root.children.filter(
+
+            const qunits = parse(fs.readFileSync(qunitOutput, 'utf-8'));
+            [testEntry1, testEntry2] = qunits.root.children.filter(
                 n => n.attributes.key && n.attributes.key.startsWith('__test__entrypoint')
             );
-            qunitResources = results.root.children.filter(n => n.attributes.type === 'qunit');
+            qunitResources = qunits.root.children.filter(n => n.attributes.type === 'qunit');
+
             done();
         });
     });

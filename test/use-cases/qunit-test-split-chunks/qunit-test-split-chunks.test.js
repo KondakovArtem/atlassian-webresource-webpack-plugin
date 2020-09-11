@@ -8,10 +8,11 @@ const assert = chai.assert;
 
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
+const qunitOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'qunit-webpack-bundles.xml');
 
 const uuidLength = require('uuid').v4().length;
 
-describe('split-chunks-with-tests', function () {
+describe('qunit-test-split-chunks', function () {
     this.timeout(10000);
     const config = require('./webpack.config.js');
 
@@ -40,13 +41,14 @@ describe('split-chunks-with-tests', function () {
             error = err;
             stats = st;
 
-            const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
-            const results = parse(xmlFile);
+            const results = parse(fs.readFileSync(webresourceOutput, 'utf-8'));
             entryApp = results.root.children.find(n => n.attributes.key === 'entrypoint-app');
             entryApp2 = results.root.children.find(n => n.attributes.key === 'entrypoint-app2');
             splitChunkShared = results.root.children.find(n => n.attributes.key === 'split_app~app2');
-            testEntryApp = results.root.children.find(n => n.attributes.key === '__test__entrypoint-app');
-            testEntryApp2 = results.root.children.find(n => n.attributes.key === '__test__entrypoint-app2');
+
+            const qunits = parse(fs.readFileSync(qunitOutput, 'utf-8'));
+            testEntryApp = qunits.root.children.find(n => n.attributes.key === '__test__entrypoint-app');
+            testEntryApp2 = qunits.root.children.find(n => n.attributes.key === '__test__entrypoint-app2');
             done();
         });
     });
@@ -129,10 +131,10 @@ describe('split-chunks-with-tests', function () {
             assert.uuid(assetsResourceUuidApp1, 'v4', 'test file name should include uuid');
 
             assert.sameMembers(resourcesTestApp, [
-                'test/use-cases/split-chunks-with-tests/src/obj.js',
-                'test/use-cases/split-chunks-with-tests/src/bar.js',
-                'test/use-cases/split-chunks-with-tests/src/foo.js',
-                'test/use-cases/split-chunks-with-tests/src/app.js',
+                'test/use-cases/qunit-test-split-chunks/src/obj.js',
+                'test/use-cases/qunit-test-split-chunks/src/bar.js',
+                'test/use-cases/qunit-test-split-chunks/src/foo.js',
+                'test/use-cases/qunit-test-split-chunks/src/app.js',
             ]);
         });
 
@@ -145,10 +147,10 @@ describe('split-chunks-with-tests', function () {
             assert.uuid(assetsResourceUuidApp2, 'v4', 'test file name should include uuid');
 
             assert.sameMembers(resourcesTestApp2, [
-                'test/use-cases/split-chunks-with-tests/src/obj.js',
-                'test/use-cases/split-chunks-with-tests/src/bar.js',
-                'test/use-cases/split-chunks-with-tests/src/foo2.js',
-                'test/use-cases/split-chunks-with-tests/src/app2.js',
+                'test/use-cases/qunit-test-split-chunks/src/obj.js',
+                'test/use-cases/qunit-test-split-chunks/src/bar.js',
+                'test/use-cases/qunit-test-split-chunks/src/foo2.js',
+                'test/use-cases/qunit-test-split-chunks/src/app2.js',
             ]);
         });
     });

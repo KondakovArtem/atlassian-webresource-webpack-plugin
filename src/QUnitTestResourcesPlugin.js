@@ -1,31 +1,84 @@
 const glob = require('glob');
 const path = require('path');
 const uniq = require('lodash/uniq');
+const PrettyData = require('pretty-data').pd;
 
 const { extractPathPrefixForXml } = require('./helpers/options-parser');
 const { getWebresourceAttributesForEntry } = require('./helpers/web-resource-entrypoints');
+const { createQUnitResourceDescriptors, createTestResourceDescriptors } = require('./helpers/web-resource-generator');
 const { webpack5or4 } = require('./helpers/conditional-logic');
-const logger = require('./logger');
-const qUnitRequireMock = require('./shims/qunit-require-shim');
-const WebpackHelpers = require('./WebpackHelpers');
 const WrmDependencyModule = require('./webpack-modules/WrmDependencyModule');
 const WrmResourceModule = require('./webpack-modules/WrmResourceModule');
+const WebpackHelpers = require('./WebpackHelpers');
+const WebpackRuntimeHelpers = require('./WebpackRuntimeHelpers');
+const logger = require('./logger');
+
+/** @typedef {import("webpack/lib/Compiler")} Compiler */
+/** @typedef {import("webpack/lib/Compilation")} Compilation */
+/** @typedef {import("webpack/lib/Entrypoint")} Entrypoint */
 
 const RESOURCE_JOINER = '__RESOURCE__JOINER__';
-module.exports = class QUnitTestResources {
-    constructor(assetsUUID, options, compiler, compilation) {
-        this.options = options;
-        this.compiler = compiler;
-        this.compilation = compilation;
+
+module.exports = class QUnitTestResourcesPlugin {
+    constructor({ assetsUUID, testGlobs, outputPath, transformationMap, webresourceKeyMap }) {
+        this.testGlobs = testGlobs;
+        this.transformationMap = transformationMap;
+        this.webresourceKeyMap = webresourceKeyMap;
         this.qunitRequireMockPath = `qunit-require-shim-${assetsUUID}.js`;
+        this.outputPath = outputPath;
     }
 
-    createAllFileTestWebResources() {
-        return [...this.compilation.entrypoints.entries()].map(([name, entryPoint]) => {
-            const webResourceAttrs = getWebresourceAttributesForEntry(name, this.options.webresourceKeyMap);
+    /**
+     * @param {Compiler} compiler
+     */
+    apply(compiler) {
+        // hacky, but meh.
+        this.context = compiler.options.context;
+
+        compiler.hooks.compilation.tap('qunit plugin - inject shim', compilation => {
+            // inject QUnit shim file
+            const qUnitRequireMock = require('./shims/qunit-require-shim');
+            compilation.assets[this.qunitRequireMockPath] = {
+                source: () => Buffer.from(qUnitRequireMock),
+                size: () => Buffer.byteLength(qUnitRequireMock),
+            };
+        });
+
+        // Process source files used in this compilation and write out
+        // xml descriptors to power QUnit tests.
+        WebpackRuntimeHelpers.hookIntoAssetAnalysisStage(
+            'qunit plugin - generate descriptors',
+            compiler,
+            (compilation, callback) => {
+                const testResourceDescriptors = createTestResourceDescriptors(
+                    this.createAllFileTestWebResources(compilation),
+                    this.transformationMap
+                );
+                const testedFiles = this.getTestedFiles();
+                const qUnitTestResourceDescriptors = createQUnitResourceDescriptors(testedFiles);
+                const webResources = [...testResourceDescriptors, ...qUnitTestResourceDescriptors];
+
+                const xmlDescriptors = PrettyData.xml(`<bundles>${webResources.join('')}</bundles>`);
+
+                compilation.assets[this.outputPath] = {
+                    source: () => Buffer.from(xmlDescriptors),
+                    size: () => Buffer.byteLength(xmlDescriptors),
+                };
+
+                callback();
+            }
+        );
+    }
+
+    /**
+     * @param {Compilation} compilation
+     */
+    createAllFileTestWebResources(compilation) {
+        return [...compilation.entrypoints.entries()].map(([name, entryPoint]) => {
+            const webResourceAttrs = getWebresourceAttributesForEntry(name, this.webresourceKeyMap);
             const allEntryPointChunks = [...entryPoint.chunks, ...WebpackHelpers.getAllAsyncChunks([entryPoint])];
 
-            const testFiles = Array.from(this.extractAllFilesFromChunks(allEntryPointChunks))
+            const testFiles = this.extractAllFilesFromChunks(compilation, allEntryPointChunks)
                 .map(resource => {
                     if (resource.includes(RESOURCE_JOINER)) {
                         return resource.split(RESOURCE_JOINER);
@@ -52,12 +105,15 @@ module.exports = class QUnitTestResources {
         });
     }
 
-    // get all source files whose contents contributed to a chunk.
-    // this is a "sledgehammer approach" to avoid having to create an entry point per qunit tests and building it via webpack.
-    // it is not cheap. maybe it could be made cheaper...
-    extractAllFilesFromChunks(chunks) {
-        const { compilation } = this;
-        const { context } = this.compiler.options;
+    /**
+     * get all source files whose contents contributed to a chunk.
+     * this is a "sledgehammer approach" to avoid having to create an entry point per qunit tests and building it via webpack.
+     * it is not cheap. maybe it could be made cheaper...
+     * @param {Compilation} compilation
+     * @param {Chunk[]} chunks
+     */
+    extractAllFilesFromChunks(compilation, chunks) {
+        const { context } = this;
         const dependencyTreeSet = new Set();
         const circularDepCheck = new Set();
 
@@ -135,19 +191,11 @@ This might be worth looking into as it could be an issue.
             }
         }
 
-        return dependencyTreeSet;
+        return Array.from(dependencyTreeSet);
     }
 
-    injectQUnitShim() {
-        this.compilation.assets[this.qunitRequireMockPath] = {
-            source: () => Buffer.from(qUnitRequireMock),
-            size: () => Buffer.byteLength(qUnitRequireMock),
-        };
-    }
-
-    getTestFiles() {
-        const context = this.compiler.options.context;
-        const testGlobs = this.options.__testGlobs__;
+    getTestedFiles() {
+        const { context, testGlobs } = this;
 
         if (!testGlobs) {
             return [];
