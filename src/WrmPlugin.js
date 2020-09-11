@@ -527,44 +527,46 @@ return installedChunks[chunkId][2] = Promise.all(promises);
             };
 
             if (this.options.wrmManifestPath) {
-                const { library, libraryTarget } = compiler.options.output;
-                if (!library || !libraryTarget) {
-                    logger.error(
-                        'Can only use wrmManifestPath in conjunction with output.library and output.libraryTarget'
-                    );
-                    return;
-                }
-
-                if (libraryTarget !== 'amd') {
-                    logger.error(
-                        `Could not create manifest mapping. LibraryTarget '${libraryTarget}' is not supported. Use 'amd'`
-                    );
-                    return;
-                }
-
-                const wrmManifestMapping = entryPointsResourceDescriptors
-                    .filter(({ attributes }) => attributes.moduleId)
-                    .reduce((result, { attributes: { key: resourceKey, moduleId } }) => {
-                        const libraryName = compilation.mainTemplate.getAssetPath(compiler.options.output.library, {
-                            chunk: { name: moduleId },
-                        });
-
-                        result[moduleId] = buildProvidedDependency(
-                            this.options.pluginKey,
-                            resourceKey,
-                            `require('${libraryName}')`,
-                            libraryName
+                (() => {
+                    let { library: name, libraryTarget: target } = compiler.options.output;
+                    if (!name || !target) {
+                        logger.error(
+                            'Can only use wrmManifestPath in conjunction with output.library and output.libraryTarget'
                         );
+                        return;
+                    }
 
-                        return result;
-                    }, {});
-                const wrmManifestJSON = JSON.stringify({ providedDependencies: wrmManifestMapping }, null, 4);
-                const wrmManifestWebpackPath = path.relative(outputPath, this.options.wrmManifestPath);
+                    if (target !== 'amd') {
+                        logger.error(
+                            `Could not create manifest mapping. LibraryTarget '${target}' is not supported. Use 'amd'`
+                        );
+                        return;
+                    }
 
-                compilation.assets[wrmManifestWebpackPath] = {
-                    source: () => Buffer.from(wrmManifestJSON),
-                    size: () => Buffer.byteLength(wrmManifestJSON),
-                };
+                    const wrmManifestMapping = entryPointsResourceDescriptors
+                        .filter(({ attributes }) => attributes.moduleId)
+                        .reduce((result, { attributes: { key: resourceKey, moduleId } }) => {
+                            const libraryName = compilation.mainTemplate.getAssetPath(name, {
+                                chunk: { name: moduleId },
+                            });
+
+                            result[moduleId] = buildProvidedDependency(
+                                this.options.pluginKey,
+                                resourceKey,
+                                `require('${libraryName}')`,
+                                libraryName
+                            );
+
+                            return result;
+                        }, {});
+                    const wrmManifestJSON = JSON.stringify({ providedDependencies: wrmManifestMapping }, null, 4);
+                    const wrmManifestWebpackPath = path.relative(outputPath, this.options.wrmManifestPath);
+
+                    compilation.assets[wrmManifestWebpackPath] = {
+                        source: () => new Buffer(wrmManifestJSON),
+                        size: () => Buffer.byteLength(wrmManifestJSON),
+                    };
+                })();
             }
 
             if (this.options.watch && this.options.watchPrepare) {
