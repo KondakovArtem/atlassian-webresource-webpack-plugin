@@ -7,7 +7,7 @@ pipelines:
                     script:
                         - npm install
                         - >
-                            npm test
+                            npm run test:webpack:all
                             --
                             --reporter mocha-junit-reporter
                             --reporter-options mochaFile=./test-reports/mocha-junit.xml
@@ -17,7 +17,7 @@ pipelines:
                     script:
                         - npm install
                         - >
-                            npm test
+                            npm run test:webpack:all
                             --
                             --reporter mocha-junit-reporter
                             --reporter-options mochaFile=./test-reports/mocha-junit.xml

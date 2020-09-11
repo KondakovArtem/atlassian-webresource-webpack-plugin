@@ -1,0 +1,3 @@
+webpack:
+  versions: ~4.44.1 || ~5.0.0-beta.29
+  commands: npm test

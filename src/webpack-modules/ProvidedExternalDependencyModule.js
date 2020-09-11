@@ -12,12 +12,12 @@ module.exports = class ProvidedExternalDependencyModule extends ExternalModule {
     constructor(request, dependency, target) {
         super(request, target);
         this._request = request;
-        this._dependency = dependency;
+        this._wrmDependency = dependency;
         this._target = target;
     }
 
     libIdent() {
-        return `${this._dependency}/${this._request[this._target]}`;
+        return `${this._wrmDependency}/${this._request[this._target]}`;
     }
 
     chunkCondition() {
@@ -25,6 +25,6 @@ module.exports = class ProvidedExternalDependencyModule extends ExternalModule {
     }
 
     getDependency() {
-        return this._dependency;
+        return this._wrmDependency;
     }
 };

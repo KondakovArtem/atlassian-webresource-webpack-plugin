@@ -8,11 +8,24 @@ const flattenReduce = require('./flattenReduce');
 const WebpackHelpers = require('./WebpackHelpers');
 const { getBaseDependencies } = require('./settings/base-dependencies');
 
+/** @typedef {import("webpack/lib/Compiler")} Compiler */
+/** @typedef {import("webpack/lib/Compilation")} Compilation */
+/** @typedef {import("webpack/lib/Entrypoint")} Entrypoint */
+
 const RUNTIME_WR_KEY = 'common-runtime';
 
 module.exports = class AppResources {
-    constructor(assetsUUID, assetNames, options, compiler, compilation) {
+    /**
+     * @param {String} assetsUUID unique hash to identify the assets web-resource
+     * @param {String} xmlDescriptorWebpackPath relative path to the xml file that the WrmPlugin will render
+     * @param {Map<String,String>} assetNames full module filepaths -> relative filepath
+     * @param {Object} options WrmPlugin configuration
+     * @param {Compiler} compiler Webpack compiler
+     * @param {Compilation} compilation Webpack compilation
+     */
+    constructor(assetsUUID, xmlDescriptorWebpackPath, assetNames, options, compiler, compilation) {
         this.assetsUUID = assetsUUID;
+        this.xmlDescriptorPath = xmlDescriptorWebpackPath;
         this.assetNames = assetNames;
         this.options = options;
         this.compiler = compiler;
@@ -22,17 +35,31 @@ module.exports = class AppResources {
     isSingleRuntime() {
         const options = this.compiler.options;
         const runtimeChunkCfg = options.optimization && options.optimization.runtimeChunk;
-        return runtimeChunkCfg && runtimeChunkCfg.name && typeof runtimeChunkCfg.name === 'string';
+        if (runtimeChunkCfg) {
+            const { name } = runtimeChunkCfg;
+            if (typeof name === 'string') {
+                return true;
+            }
+            if (typeof name === 'function') {
+                const resultA = name({ name: 'foo' });
+                const resultB = name({ name: 'bar' });
+                return resultA === resultB;
+            }
+        }
+        return false;
     }
 
     getSingleRuntimeFiles(entrypoints) {
         return Array.from(entrypoints.values())
-            .map(entrypoint => entrypoint.runtimeChunk.files)
+            .map(entrypoint => entrypoint.getRuntimeChunk().files)
             .find(Boolean);
     }
 
     getAssetResourceDescriptor() {
-        const assetFiles = Object.keys(this.compilation.assets).filter(p => !/\.(js|css|soy)(\.map)?$/.test(p)); // remove anything that we know is handled differently
+        // remove anything that we know is handled differently
+        const assetFiles = Object.keys(this.compilation.assets)
+            .filter(p => !/\.(js|css|soy)(\.map)?$/.test(p))
+            .filter(p => !p.includes(this.xmlDescriptorPath));
 
         const assets = {
             attributes: { key: `assets-${this.assetsUUID}` },
@@ -40,6 +67,26 @@ module.exports = class AppResources {
         };
 
         return assets;
+    }
+
+    getDependencyResourcesFromChunk(chunk) {
+        if ('auxiliaryFiles' in chunk) {
+            return Array.from(chunk.auxiliaryFiles);
+        }
+        const resourceToAssetMap = this.assetNames;
+        const ownDepsSet = new Set();
+        const fileDepsSet = new Set();
+        chunk.getModules().forEach(m => {
+            ownDepsSet.add(m.resource);
+            if (m.buildInfo.fileDependencies) {
+                m.buildInfo.fileDependencies.forEach(filepath => fileDepsSet.add(filepath));
+            }
+        });
+        return Array.from(fileDepsSet)
+            .filter(filename => resourceToAssetMap.has(filename))
+            .filter(filename => !ownDepsSet.has(filename))
+            .filter(filename => !/\.(js|css|soy)(\.map)?$/.test(filename))
+            .map(dep => resourceToAssetMap.get(dep));
     }
 
     /**
@@ -53,7 +100,7 @@ module.exports = class AppResources {
      */
     getSyncSplitChunks() {
         const entryPoints = [...this.compilation.entrypoints.values()];
-        const syncSplitChunks = entryPoints.map(e => e.chunks.filter(c => c !== e.runtimeChunk));
+        const syncSplitChunks = entryPoints.map(e => e.chunks.filter(c => c !== e.getRuntimeChunk()));
 
         return Array.from(new Set(syncSplitChunks.reduce(flattenReduce, [])));
     }
@@ -82,8 +129,6 @@ module.exports = class AppResources {
     }
 
     getSyncSplitChunksResourceDescriptors() {
-        const resourceToAssetMap = this.assetNames;
-
         const syncSplitChunks = this.getSyncSplitChunks();
         const syncSplitChunkDependencyKeyMap = this.getSyncSplitChunkDependenciesKeyMap(
             this.options.pluginKey,
@@ -95,11 +140,11 @@ module.exports = class AppResources {
          * These include - like other chunk-descriptors their assets and external resources etc.
          */
         const sharedSplitDescriptors = syncSplitChunks.map(c => {
-            const additionalFileDeps = WebpackHelpers.getDependencyResourcesFromChunk(c, resourceToAssetMap);
+            const additionalFileDeps = this.getDependencyResourcesFromChunk(c);
             return {
                 attributes: syncSplitChunkDependencyKeyMap.get(WebpackHelpers.getChunkIdentifier(c)),
                 externalResources: WebpackHelpers.getExternalResourcesForChunk(c),
-                resources: Array.from(new Set(c.files.concat(additionalFileDeps))),
+                resources: Array.from(new Set([...c.files, ...additionalFileDeps])),
                 dependencies: getBaseDependencies().concat(WebpackHelpers.getDependenciesForChunks([c])),
             };
         });
@@ -109,14 +154,13 @@ module.exports = class AppResources {
 
     getAsyncChunksResourceDescriptors() {
         const entryPoints = [...this.compilation.entrypoints.values()];
-        const resourceToAssetMap = this.assetNames;
 
         const asyncChunkDescriptors = WebpackHelpers.getAllAsyncChunks(entryPoints).map(c => {
-            const additionalFileDeps = WebpackHelpers.getDependencyResourcesFromChunk(c, resourceToAssetMap);
+            const additionalFileDeps = this.getDependencyResourcesFromChunk(c);
             return {
                 attributes: { key: `${c.id}` },
                 externalResources: WebpackHelpers.getExternalResourcesForChunk(c),
-                resources: Array.from(new Set(c.files.concat(additionalFileDeps))),
+                resources: Array.from(new Set([...c.files, ...additionalFileDeps])),
                 dependencies: getBaseDependencies().concat(WebpackHelpers.getDependenciesForChunks([c])),
                 contexts: this.options.addAsyncNameAsContext && c.name ? [`async-chunk-${c.name}`] : undefined,
             };
@@ -127,7 +171,6 @@ module.exports = class AppResources {
 
     getEntryPointsResourceDescriptors() {
         const entrypoints = this.compilation.entrypoints;
-        const resourceToAssetMap = this.assetNames;
 
         const syncSplitChunks = this.getSyncSplitChunks();
         const syncSplitChunkDependencyKeyMap = this.getSyncSplitChunkDependenciesKeyMap(
@@ -141,7 +184,7 @@ module.exports = class AppResources {
         const prodEntryPoints = [...entrypoints].map(([name, entrypoint]) => {
             const webResourceAttrs = getWebresourceAttributesForEntry(name, this.options.webresourceKeyMap);
             const entrypointChunks = entrypoint.chunks;
-            const runtimeChunk = entrypoint.runtimeChunk;
+            const runtimeChunk = entrypoint.getRuntimeChunk();
 
             // Retrieve all split chunks this entrypoint depends on. These must be added as "<dependency>"s to the web-resource of this entrypoint
             const sharedSplitDeps = entrypointChunks
@@ -149,9 +192,7 @@ module.exports = class AppResources {
                 .filter(Boolean)
                 .map(val => val.dependency);
 
-            const additionalFileDeps = entrypointChunks.map(c =>
-                WebpackHelpers.getDependencyResourcesFromChunk(c, resourceToAssetMap)
-            );
+            const additionalFileDeps = entrypointChunks.map(c => this.getDependencyResourcesFromChunk(c));
             // Construct the list of resources to add to this web-resource
             const resourceList = [].concat(...additionalFileDeps);
             const dependencyList = [].concat(
