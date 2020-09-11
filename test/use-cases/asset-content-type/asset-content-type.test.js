@@ -17,6 +17,11 @@ describe('asset-content-type', () => {
     beforeEach(done => {
         webpack(config, (err, st) => {
             stats = st;
+            if (stats.hasErrors()) {
+                assert.fail(
+                    'Webpack stats contains errors: ' + JSON.stringify(stats.toJson({ errorDetails: true }), null, 4)
+                );
+            }
 
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
@@ -30,21 +35,27 @@ describe('asset-content-type', () => {
         assert.ok(assets);
         assert.equal(stats.hasErrors(), false);
         assert.equal(stats.hasWarnings(), false);
-        assert.equal(resources[0].attributes.type, 'download');
-        assert.equal(path.extname(resources[0].attributes.name), '.png');
     });
 
     it('should add all assets to the "asset"-webresource', () => {
-        assert.ok(assets);
-        assert.equal(stats.hasErrors(), false);
-        assert.equal(stats.hasWarnings(), false);
-        assert.equal(resources.length, 2);
-        assert.equal(resources[0].attributes.type, 'download');
-        assert.equal(path.extname(resources[0].attributes.name), '.png');
-        assert.equal(resources[1].attributes.type, 'download');
-        assert.equal(path.extname(resources[1].attributes.name), '.svg');
-        assert.equal(resources[1].children.length, 1, 'should contain a "param" child.');
-        assert.equal(resources[1].children[0].attributes.name, 'content-type', 'Type of param.');
-        assert.equal(resources[1].children[0].attributes.value, 'image/svg+xml', 'Value of param.');
+        assert.sameDeepMembers(resources, [
+            {
+                name: 'resource',
+                attributes: { type: 'download', name: 'ice.png', location: 'ice.png' },
+                children: [],
+            },
+            {
+                name: 'resource',
+                attributes: { type: 'download', name: 'rect.svg', location: 'rect.svg' },
+                children: [
+                    {
+                        name: 'param',
+                        attributes: { name: 'content-type', value: 'image/svg+xml' },
+                        children: [],
+                    },
+                ],
+                content: '',
+            },
+        ]);
     });
 });

@@ -26,7 +26,7 @@ describe('css-and-assets-distribution-via-mini-css-extract-plugin', () => {
             const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
             const results = parse(xmlFile);
             entryPoint = results.root.children.find(n => n.attributes.key === 'entrypoint-app');
-            asyncChunk = results.root.children.find(n => n.attributes.key === '0');
+            asyncChunk = results.root.children.find(n => n.attributes.key === '1');
             assetWebResource = results.root.children.find(n => n.attributes.key === 'assets-DEV_PSEUDO_HASH');
             done();
         });
@@ -41,24 +41,14 @@ describe('css-and-assets-distribution-via-mini-css-extract-plugin', () => {
 
     it('should add the stylesheet and the contained assets of the stylesheet as resources to the entry', () => {
         const entryResources = getResources(entryPoint);
-        assert.equal(entryResources.length, 4);
-        assert.equal(entryResources[0].attributes.type, 'download');
-        assert.equal(entryResources[0].attributes.name, 'app.css');
-        assert.equal(entryResources[1].attributes.type, 'download');
-        assert.equal(entryResources[1].attributes.name, 'app.js');
-        assert.equal(path.extname(entryResources[2].attributes.name), '.png');
-        assert.equal(path.extname(entryResources[3].attributes.name), '.jpg');
+        const resourceNames = entryResources.map(r => r.attributes.name);
+        assert.sameMembers(resourceNames, ['app.css', 'app.js', 'ice.png', 'ice2.jpg']);
     });
 
     it('should add the stylesheet and the contained assets of the stylesheet of the async chunk to the async chunk', () => {
         const asyncResources = getResources(asyncChunk);
-        assert.equal(asyncResources.length, 4);
-        assert.equal(asyncResources[0].attributes.name, '0.css');
-        assert.equal(asyncResources[0].attributes.type, 'download');
-        assert.equal(asyncResources[1].attributes.name, '0.js');
-        assert.equal(asyncResources[1].attributes.type, 'download');
-        assert.equal(path.extname(asyncResources[2].attributes.name), '.svg');
-        assert.equal(path.extname(asyncResources[3].attributes.name), '.svg');
+        const resourceNames = asyncResources.map(r => r.attributes.name);
+        assert.sameDeepMembers(resourceNames, ['1.js', '1.css', 'rect.svg', 'rect2.svg']);
     });
 
     it('should create an asset resource containing all "other" assets', () => {

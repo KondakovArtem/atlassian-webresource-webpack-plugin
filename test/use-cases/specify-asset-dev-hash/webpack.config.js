@@ -60,8 +60,6 @@ const webpackConfigForFeature = {
         feature: path.join(FRONTEND_SRC_DIR, 'feature.js'),
     },
     output: {
-        library: '',
-        libraryTarget: 'var',
         filename: '[name].js',
         path: path.resolve(OUTPUT_DIR),
     },

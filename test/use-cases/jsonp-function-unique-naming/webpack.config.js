@@ -16,6 +16,7 @@ providedDependencies.set('underscore', {
 
 module.exports = {
     mode: 'development',
+    devtool: false,
     entry: {
         app: path.join(FRONTEND_SRC_DIR, 'app.js'),
     },

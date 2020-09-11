@@ -372,11 +372,9 @@ if (typeof AJS !== "undefined") {
 if(installedChunks[chunkId] === 0) { // 0 means "already installed".
     return Promise.resolve();
 }
-
 if (installedChunks[chunkId]) {
     return installedChunks[chunkId][2];
 }
-
 promises.push(
     new Promise(function(resolve, reject) {
         installedChunks[chunkId] = [resolve, reject];

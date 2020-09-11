@@ -150,8 +150,8 @@ describe('qunit-test-wrm-web-resource', function () {
             ];
 
             // check
-            assert.deepEqual(actualResources1, expectedResources1, 'unexpected files in test resources for entry 1');
-            assert.deepEqual(actualResources2, expectedResources2, 'unexpected files in test resources for entry 2');
+            assert.sameMembers(actualResources1, expectedResources1, 'unexpected files in test resources for entry 1');
+            assert.sameMembers(actualResources2, expectedResources2, 'unexpected files in test resources for entry 2');
         });
     });
 });

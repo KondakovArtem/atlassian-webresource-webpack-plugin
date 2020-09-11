@@ -4,7 +4,6 @@ const webpack = require('webpack');
 const fs = require('fs');
 const path = require('path');
 
-chai.use(require('chai-uuid'));
 const assert = chai.assert;
 
 const targetDir = path.join(__dirname, 'target');
@@ -104,113 +103,53 @@ describe('split-chunks-with-tests', function () {
     });
 
     describe('test web-resources', () => {
-        let depsTestApp;
-        let depsTestApp2;
-        let resourcesTestApp;
-        let resourcesTestApp2;
-        beforeEach(() => {
-            depsTestApp = getContent(getChild(testEntryApp, 'dependency'));
-            depsTestApp2 = getContent(getChild(testEntryApp2, 'dependency'));
-            resourcesTestApp = getAttribute(getChild(testEntryApp, 'resource'), 'name');
-            resourcesTestApp2 = getAttribute(getChild(testEntryApp2, 'resource'), 'name');
-        });
+        const extLength = 3;
 
         it('should contain the dependencies as specified in the split chunks', () => {
-            assert.include(depsTestApp, 'jira.webresources:jquery', 'expected dependency not found');
-            assert.include(
+            const depsTestApp = getContent(getChild(testEntryApp, 'dependency'));
+            const depsTestApp2 = getContent(getChild(testEntryApp2, 'dependency'));
+            assert.includeMembers(
                 depsTestApp,
-                'com.atlassian.plugin.jslibs:underscore-1.4.4',
-                'expected dependency not found'
+                ['jira.webresources:jquery', 'com.atlassian.plugin.jslibs:underscore-1.4.4'],
+                'expected dependencies not found'
             );
-            assert.include(depsTestApp2, 'jira.webresources:jquery', 'expected dependency not found');
-            assert.include(
+            assert.includeMembers(
                 depsTestApp2,
-                'com.atlassian.plugin.jslibs:underscore-1.4.4',
-                'expected dependency not found'
+                ['jira.webresources:jquery', 'com.atlassian.plugin.jslibs:underscore-1.4.4'],
+                'expected dependencies not found'
             );
         });
 
-        it('should contain the resources as specified in its entry point - including those from split chunks', () => {
-            const extLength = 3;
-
-            const assetsResourceKeyApp1 = resourcesTestApp[0];
-            const assetsResourcePrefixApp1 = assetsResourceKeyApp1.substr(
-                0,
-                assetsResourceKeyApp1.length - uuidLength - extLength
-            );
+        it('app1 should contain the resources as specified in its entry point - including those from split chunks', () => {
+            const resourcesTestApp = getAttribute(getChild(testEntryApp, 'resource'), 'name');
+            const assetsResourceKeyApp1 = resourcesTestApp.shift();
             const assetsResourceUuidApp1 = assetsResourceKeyApp1.substr(-(uuidLength + extLength), uuidLength);
 
-            assert.strictEqual(assetsResourcePrefixApp1, 'qunit-require-shim-', 'expected resource not found');
-            assert.uuid(assetsResourceUuidApp1, 'v4', 'expected resource not found');
+            assert.startsWith(assetsResourceKeyApp1, 'qunit-require-shim-', 'test file not the first resource');
+            assert.uuid(assetsResourceUuidApp1, 'v4', 'test file name should include uuid');
 
-            assert.strictEqual(
-                resourcesTestApp[1],
+            assert.sameMembers(resourcesTestApp, [
+                'test/use-cases/split-chunks-with-tests/src/obj.js',
                 'test/use-cases/split-chunks-with-tests/src/bar.js',
-                'expected resource not found'
-            );
-            assert.strictEqual(
-                resourcesTestApp[2],
                 'test/use-cases/split-chunks-with-tests/src/foo.js',
-                'expected resource not found'
-            );
-            assert.strictEqual(
-                resourcesTestApp[3],
                 'test/use-cases/split-chunks-with-tests/src/app.js',
-                'expected resource not found'
-            );
-
-            const assetsResourceKeyApp2 = resourcesTestApp[0];
-            const assetsResourcePrefixApp2 = assetsResourceKeyApp2.substr(
-                0,
-                assetsResourceKeyApp2.length - uuidLength - extLength
-            );
-            const assetsResourceUuidApp2 = assetsResourceKeyApp2.substr(-(uuidLength + extLength), uuidLength);
-
-            assert.strictEqual(assetsResourcePrefixApp2, 'qunit-require-shim-', 'expected resource not found');
-            assert.uuid(assetsResourceUuidApp2, 'v4', 'expected resource not found');
-
-            assert.strictEqual(
-                resourcesTestApp2[1],
-                'test/use-cases/split-chunks-with-tests/src/bar.js',
-                'expected resource not found'
-            );
-            assert.strictEqual(
-                resourcesTestApp2[2],
-                'test/use-cases/split-chunks-with-tests/src/foo2.js',
-                'expected resource not found'
-            );
-            assert.strictEqual(
-                resourcesTestApp2[3],
-                'test/use-cases/split-chunks-with-tests/src/app2.js',
-                'expected resource not found'
-            );
-
-            assert.strictEqual(resourcesTestApp.length, 4, 'unexpected number of resources');
-            assert.strictEqual(resourcesTestApp2.length, 4, 'unexpected number of resources');
+            ]);
         });
 
-        it('should not contain resources from other entry points', () => {
-            assert.notInclude(
-                resourcesTestApp2,
-                'test/use-cases/split-chunks-with-tests/src/foo.js',
-                'unexpected resource found'
-            );
-            assert.notInclude(
-                resourcesTestApp2,
-                'test/use-cases/split-chunks-with-tests/src/app.js',
-                'unexpected resource found'
-            );
+        it('app2 should contain the resources as specified in its entry point - including those from split chunks', () => {
+            const resourcesTestApp2 = getAttribute(getChild(testEntryApp2, 'resource'), 'name');
+            const assetsResourceKeyApp2 = resourcesTestApp2.shift();
+            const assetsResourceUuidApp2 = assetsResourceKeyApp2.substr(-(uuidLength + extLength), uuidLength);
 
-            assert.notInclude(
-                resourcesTestApp,
+            assert.startsWith(assetsResourceKeyApp2, 'qunit-require-shim-', 'test file not the first resource');
+            assert.uuid(assetsResourceUuidApp2, 'v4', 'test file name should include uuid');
+
+            assert.sameMembers(resourcesTestApp2, [
+                'test/use-cases/split-chunks-with-tests/src/obj.js',
+                'test/use-cases/split-chunks-with-tests/src/bar.js',
                 'test/use-cases/split-chunks-with-tests/src/foo2.js',
-                'unexpected resource found'
-            );
-            assert.notInclude(
-                resourcesTestApp,
                 'test/use-cases/split-chunks-with-tests/src/app2.js',
-                'unexpected resource found'
-            );
+            ]);
         });
     });
 });

@@ -20,7 +20,12 @@ module.exports = {
     },
     optimization: {
         runtimeChunk: true,
+        chunkIds: 'natural',
+        moduleIds: 'natural',
         splitChunks: {
+            name(module, chunks, cacheGroupKey) {
+                return chunks.map(item => item.name).join('~');
+            },
             minSize: 0,
             chunks: 'all',
         },
