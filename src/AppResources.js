@@ -8,6 +8,7 @@ const flattenReduce = require('./flattenReduce');
 const WebpackHelpers = require('./WebpackHelpers');
 const { getBaseDependencies } = require('./settings/base-dependencies');
 
+/** @typedef {import("webpack/lib/Chunk")} Chunk */
 /** @typedef {import("webpack/lib/Compiler")} Compiler */
 /** @typedef {import("webpack/lib/Compilation")} Compilation */
 /** @typedef {import("webpack/lib/Entrypoint")} Entrypoint */
@@ -30,23 +31,6 @@ module.exports = class AppResources {
         this.options = options;
         this.compiler = compiler;
         this.compilation = compilation;
-    }
-
-    isSingleRuntime() {
-        const options = this.compiler.options;
-        const runtimeChunkCfg = options.optimization && options.optimization.runtimeChunk;
-        if (runtimeChunkCfg) {
-            const { name } = runtimeChunkCfg;
-            if (typeof name === 'string') {
-                return true;
-            }
-            if (typeof name === 'function') {
-                const resultA = name({ name: 'foo' });
-                const resultB = name({ name: 'bar' });
-                return resultA === resultB;
-            }
-        }
-        return false;
     }
 
     getSingleRuntimeFiles(entrypoints) {
@@ -113,6 +97,9 @@ module.exports = class AppResources {
      *   ...
      *   <dependency>this-plugin-key:split_some_chunk</dependency>
      *   ...
+     * </web-resource>
+     * @param {String} pluginKey
+     * @param {Set<Chunk>} syncSplitChunks
      */
     getSyncSplitChunkDependenciesKeyMap(pluginKey, syncSplitChunks) {
         const syncSplitChunkDependencyKeyMap = new Map();
@@ -170,6 +157,7 @@ module.exports = class AppResources {
     }
 
     getEntryPointsResourceDescriptors() {
+        const singleRuntime = WebpackHelpers.isSingleRuntime(this.compiler);
         const entrypoints = this.compilation.entrypoints;
 
         const syncSplitChunks = this.getSyncSplitChunks();
@@ -201,7 +189,7 @@ module.exports = class AppResources {
                 sharedSplitDeps
             );
 
-            if (this.isSingleRuntime()) {
+            if (singleRuntime) {
                 dependencyList.unshift(`${this.options.pluginKey}:${singleRuntimeWebResourceKey}`);
             } else {
                 resourceList.unshift(...runtimeChunk.files);
@@ -218,7 +206,7 @@ module.exports = class AppResources {
             };
         });
 
-        if (this.isSingleRuntime()) {
+        if (singleRuntime) {
             prodEntryPoints.push({
                 attributes: { key: singleRuntimeWebResourceKey },
                 dependencies: getBaseDependencies(),

@@ -65,7 +65,12 @@ module.exports = class WebpackHelpers {
             .map(m => m.getDependency());
     }
 
-    static getDependenciesForChunks(chunks) {
+    /**
+     * @param {Chunk|Chunk[]} val
+     * @return {String[]}
+     */
+    static getDependenciesForChunks(val) {
+        const chunks = [].concat(val);
         const externalDeps = new Set();
         for (const chunk of chunks) {
             for (const dep of WebpackHelpers._getExternalDependencyModules(chunk)) {
@@ -93,6 +98,30 @@ module.exports = class WebpackHelpers {
         const { mode } = compiler.options;
 
         return mode === 'production' || (mode === 'none' && process.env.NODE_ENV === 'production');
+    }
+
+    /**
+     * @param {Compiler} compiler Webpack compiler
+     * @returns true if the compiler is configured to output a single runtime chunk, false otherwise.
+     */
+    static isSingleRuntime(compiler) {
+        const { options } = compiler;
+        const runtimeChunkCfg = options.optimization && options.optimization.runtimeChunk;
+        if (runtimeChunkCfg) {
+            if (runtimeChunkCfg === 'single') {
+                return true;
+            }
+            const { name } = runtimeChunkCfg;
+            if (typeof name === 'string') {
+                return true;
+            }
+            if (typeof name === 'function') {
+                const resultA = name({ name: 'foo' });
+                const resultB = name({ name: 'bar' });
+                return resultA === resultB;
+            }
+        }
+        return false;
     }
 
     /**
