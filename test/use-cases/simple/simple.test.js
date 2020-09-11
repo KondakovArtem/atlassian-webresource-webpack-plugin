@@ -7,7 +7,7 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('simple', function() {
+describe('simple', () => {
     let config = require('./webpack.config.js');
 
     it('compiles an xml file', done => {
@@ -22,7 +22,7 @@ describe('simple', function() {
         });
     });
 
-    describe('a web-resource for a webpack entry point', function() {
+    describe('a web-resource for a webpack entry point', () => {
         let results, contextEntryNode;
 
         before(done => {
@@ -64,7 +64,7 @@ describe('simple', function() {
         });
     });
 
-    describe('a web-resource for the (web-resource) deps of an entry point', function() {
+    describe('a web-resource for the (web-resource) deps of an entry point', () => {
         let results, contextDepsNode;
 
         before(done => {

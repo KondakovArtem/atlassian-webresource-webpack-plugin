@@ -8,7 +8,7 @@ const RUNTIME_WR_KEY = 'common-runtime';
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-single.xml');
 
-describe('single runtime chunk', function() {
+describe('single runtime chunk', () => {
     const baseConfig = require('./webpack.config.js');
     const PLUGIN_KEY = 'com.atlassian.plugin.test';
     const BASE_DEPS = ['base.context:dep1', 'base.context:dep2'];
@@ -25,7 +25,7 @@ describe('single runtime chunk', function() {
         let wrNodes;
         runtimeWrKey = runtimeWrKey || RUNTIME_WR_KEY;
 
-        before(function(done) {
+        before(function (done) {
             setBaseDependencies(BASE_DEPS);
 
             webpack(config, (err, st) => {
@@ -36,12 +36,12 @@ describe('single runtime chunk', function() {
             });
         });
 
-        it('creates a web-resource for the runtime', function() {
+        it('creates a web-resource for the runtime', () => {
             const wrKeys = wrNodes.map(n => n.attributes.key);
             assert.include(wrKeys, runtimeWrKey, 'dedicated web-resource for the runtime not found');
         });
 
-        it('adds the runtime to the dedicated web-resource for it', function() {
+        it('adds the runtime to the dedicated web-resource for it', () => {
             const runtimeWR = wrNodes.find(n => n.attributes.key === runtimeWrKey);
             const runtimeResources = getResources(runtimeWR);
             const runtimeResourceLocations = runtimeResources.map(n => n.attributes.location);
@@ -49,21 +49,21 @@ describe('single runtime chunk', function() {
             assert.equal(runtimeResourceLocations[0], runtimeName, 'should be the runtime');
         });
 
-        it('adds base dependencies to the runtime web-resource', function() {
+        it('adds base dependencies to the runtime web-resource', () => {
             const runtimeWR = wrNodes.find(n => n.attributes.key === runtimeWrKey);
             const dependencies = getDependencies(runtimeWR);
             const dependencyNames = dependencies.map(d => d.content);
             assert.includeMembers(dependencyNames, BASE_DEPS, 'runtime should include base deps, but did not');
         });
 
-        it('does not add the runtime to more than one web-resource', function() {
+        it('does not add the runtime to more than one web-resource', () => {
             const allResourceNodes = [].concat.apply([], wrNodes.map(getResources));
             const allResourceLocations = allResourceNodes.map(n => n.attributes.location);
             const runtimeCount = allResourceLocations.filter(loc => loc === runtimeName).length;
             assert.equal(runtimeCount, 1, `${runtimeName} was added to multiple web-resources`);
         });
 
-        it('adds a dependency on the runtime to each entrypoint web-resource', function() {
+        it('adds a dependency on the runtime to each entrypoint web-resource', () => {
             const entrypoints = wrNodes.filter(n => n.attributes.key.startsWith('entry'));
             entrypoints.forEach(entry => {
                 const wrName = entry.attributes.key;
@@ -78,20 +78,20 @@ describe('single runtime chunk', function() {
         });
     }
 
-    describe('when configured as "single"', function() {
+    describe('when configured as "single"', () => {
         const config = baseConfig('single', webresourceOutput);
 
         runTheTestsFor(config, 'runtime.js');
     });
 
-    describe('when configured with a static name', function() {
+    describe('when configured with a static name', () => {
         const name = 'custom';
         const config = baseConfig({ name }, webresourceOutput);
 
         runTheTestsFor(config, `${name}.js`);
     });
 
-    describe('when configured with a name and custom output format', function() {
+    describe('when configured with a name and custom output format', () => {
         const name = 'fun';
         const config = baseConfig({ name }, webresourceOutput);
         config.output.filename = 'prefixed.[name].suffixed.js';
@@ -99,7 +99,7 @@ describe('single runtime chunk', function() {
         runTheTestsFor(config, `prefixed.${name}.suffixed.js`);
     });
 
-    describe('when configured with a web-resource key', function() {
+    describe('when configured with a web-resource key', () => {
         const name = 'custom';
         const webresourceKey = 'foobar';
         const config = baseConfig({ name }, webresourceOutput, webresourceKey);
@@ -107,11 +107,11 @@ describe('single runtime chunk', function() {
         runTheTestsFor(config, `${name}.js`, webresourceKey);
     });
 
-    describe('when not configured', function() {
+    describe('when not configured', () => {
         const config = baseConfig(false, webresourceOutput);
         let wrNodes;
 
-        before(function(done) {
+        before(function (done) {
             webpack(config, (err, st) => {
                 const xmlFile = fs.readFileSync(webresourceOutput, 'utf-8');
                 const results = parse(xmlFile);
@@ -120,7 +120,7 @@ describe('single runtime chunk', function() {
             });
         });
 
-        it('does not create a web-resource for the runtime', function() {
+        it('does not create a web-resource for the runtime', () => {
             const wrKeys = wrNodes.map(n => n.attributes.key);
             assert.notInclude(
                 wrKeys,

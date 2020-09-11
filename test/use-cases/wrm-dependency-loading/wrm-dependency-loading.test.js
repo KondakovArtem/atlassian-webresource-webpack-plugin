@@ -7,7 +7,7 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('wrm-dependency-loading', function() {
+describe('wrm-dependency-loading', () => {
     let stats;
     let entry;
     let dependencies;
@@ -48,12 +48,12 @@ describe('wrm-dependency-loading', function() {
         });
     }
 
-    describe('in ES6 modules', function() {
+    describe('in ES6 modules', () => {
         const config = require('./webpack.config.es6.js');
         runTheTestsFor(config);
     });
 
-    describe('in AMD', function() {
+    describe('in AMD', () => {
         const config = require('./webpack.config.amd.js');
         runTheTestsFor(config);
     });

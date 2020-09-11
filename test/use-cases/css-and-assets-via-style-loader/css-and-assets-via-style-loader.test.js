@@ -7,7 +7,7 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('css-and-assets-via-style-loader', function() {
+describe('css-and-assets-via-style-loader', () => {
     const config = require('./webpack.config.js');
 
     let stats;

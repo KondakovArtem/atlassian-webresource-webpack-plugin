@@ -7,7 +7,7 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const wrmManifestOutput = path.join(targetDir, 'manifest.json');
 
-describe('wrm-manifest-path', function() {
+describe('wrm-manifest-path', () => {
     let config = require('./webpack.config.js');
 
     it('generates a manifest JSON file', done => {

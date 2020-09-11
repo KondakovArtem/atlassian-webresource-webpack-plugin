@@ -7,7 +7,7 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const appOutput = path.join(targetDir, 'app.js');
 
-describe('jsonp-function-name', function() {
+describe('jsonp-function-name', () => {
     const config = require('./webpack.config.js');
 
     let appCode;

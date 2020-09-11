@@ -8,7 +8,7 @@ const targetDir = path.join(__dirname, 'target');
 const libraryDescriptor = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'library.xml');
 const featureDescriptor = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'main.xml');
 
-describe('specify-asset-dev-hash', function() {
+describe('specify-asset-dev-hash', () => {
     let config = require('./webpack.config.js');
     let results;
     let libDevNode;

@@ -7,7 +7,7 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('ensure-runtime-overwrite-of-mini-css-extract-plugin', function() {
+describe('ensure-runtime-overwrite-of-mini-css-extract-plugin', () => {
     describe('mini-css-extract-plugin is defined before wrm-plugin', () => {
         const config = require('./webpack.before.config.js');
 

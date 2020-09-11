@@ -7,7 +7,7 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('cyclic', function() {
+describe('cyclic', () => {
     let config = require('./webpack.config.js');
 
     it('compiles an xml file', done => {

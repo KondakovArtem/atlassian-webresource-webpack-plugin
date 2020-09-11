@@ -7,7 +7,7 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('provided-modules-replacement', function() {
+describe('provided-modules-replacement', () => {
     let stats;
     let error;
     let entry;

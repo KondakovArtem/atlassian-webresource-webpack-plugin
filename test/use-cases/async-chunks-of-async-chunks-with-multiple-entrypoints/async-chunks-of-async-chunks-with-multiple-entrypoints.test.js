@@ -7,7 +7,7 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('async-chunks-of-async-chunks-with-multiple-entrypoints', function() {
+describe('async-chunks-of-async-chunks-with-multiple-entrypoints', () => {
     const config = require('./webpack.config.js');
 
     let stats;

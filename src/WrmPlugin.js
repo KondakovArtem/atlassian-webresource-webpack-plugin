@@ -302,9 +302,7 @@ An automated jsonpFunction name for this plugin was created:
                     // Add the public path extension to the webpack module runtime.
                     return `${standardScript}
 if (typeof AJS !== "undefined") {
-    ${compilation.mainTemplate.requireFn}.p = AJS.contextPath() + "/s/${uuid}/_/download/resources/${
-                        this.options.pluginKey
-                    }:assets-${uuid}/";
+    ${compilation.mainTemplate.requireFn}.p = AJS.contextPath() + "/s/${uuid}/_/download/resources/${this.options.pluginKey}:assets-${uuid}/";
 }
 `;
                 }

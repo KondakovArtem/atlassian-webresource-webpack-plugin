@@ -12,7 +12,7 @@ const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 
 
 const uuidLength = require('uuid/v4')().length;
 
-describe('split-chunks-with-tests', function() {
+describe('split-chunks-with-tests', function () {
     this.timeout(10000);
     const config = require('./webpack.config.js');
 

@@ -7,7 +7,7 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('qunit-test-wrm-web-resource', function() {
+describe('qunit-test-wrm-web-resource', function () {
     this.timeout(10000);
     const config = require('./webpack.config.js');
 

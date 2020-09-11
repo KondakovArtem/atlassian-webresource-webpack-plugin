@@ -8,7 +8,7 @@ const { getBaseDependencies } = require('../../../src/settings/base-dependencies
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('wrm-resource-loading', function() {
+describe('wrm-resource-loading', () => {
     let stats;
     let entry;
 
@@ -72,17 +72,17 @@ describe('wrm-resource-loading', function() {
         });
     }
 
-    describe('in ES6 modules', function() {
+    describe('in ES6 modules', () => {
         const config = require('./webpack.config.es6.js');
         runTheTestsFor(config, 'src-es6');
     });
 
-    describe('in AMD', function() {
+    describe('in AMD', () => {
         const config = require('./webpack.config.amd.js');
         runTheTestsFor(config, 'src-amd');
     });
 
-    describe('with relative paths', function() {
+    describe('with relative paths', () => {
         const config = require('./webpack.config.relative.js');
         runTheTestsFor(config, 'src-relative');
     });

@@ -10,7 +10,7 @@ chai.use(require('chai-string'));
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('provided-modules-replacement', function() {
+describe('provided-modules-replacement', () => {
     const config = require('./webpack.config.js');
 
     let stats;

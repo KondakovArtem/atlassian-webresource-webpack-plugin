@@ -7,7 +7,7 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('standalone', function() {
+describe('standalone', () => {
     let config = require('./webpack.config.js');
 
     it('compiles an xml file', done => {
@@ -22,7 +22,7 @@ describe('standalone', function() {
         });
     });
 
-    describe('xml-descriptor', function() {
+    describe('xml-descriptor', () => {
         let xmlFile;
 
         before(done => {
@@ -32,7 +32,7 @@ describe('standalone', function() {
             });
         });
 
-        it('is lean', function() {
+        it('is lean', () => {
             assert.equal(
                 xmlFile,
                 PrettyData.xml(

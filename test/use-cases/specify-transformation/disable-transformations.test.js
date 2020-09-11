@@ -7,7 +7,7 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('specify-transformation', function() {
+describe('specify-transformation', () => {
     const config = require('./webpack.disable-tranformations.config');
 
     let stats;
@@ -42,7 +42,7 @@ describe('specify-transformation', function() {
         let entryJsTrans, entrySoyTrans, entryLessTrans;
         let jsTrans, htmlTrans, lessTrans, soyTrans, svgTrans, txtTrans;
 
-        beforeEach(function() {
+        beforeEach(() => {
             const entrypointTransformations = getTransformation(getWebresourceLike('app-one'));
             const assetTransformations = getTransformation(getWebresourceLike('assets'));
 

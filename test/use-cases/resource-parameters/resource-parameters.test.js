@@ -7,7 +7,7 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('resource-parameters', function() {
+describe('resource-parameters', () => {
     const config = require('./webpack.config.js');
 
     const byExtension = (resources, ext) => resources.filter(r => r.attributes.name.endsWith(ext))[0];

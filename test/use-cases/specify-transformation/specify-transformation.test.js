@@ -7,7 +7,7 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('specify-transformation', function() {
+describe('specify-transformation', () => {
     const config = require('./webpack.specify-transformations.config');
 
     let stats;
@@ -48,7 +48,7 @@ describe('specify-transformation', function() {
         let entryJsTrans, entrySoyTrans, entryLessTrans;
         let jsTrans, htmlTrans, lessTrans, soyTrans, svgTrans, txtTrans;
 
-        beforeEach(function() {
+        beforeEach(() => {
             const entrypointTransformations = getTransformation(getWebresourceLike('app-one'));
             const assetTransformations = getTransformation(getWebresourceLike('assets'));
 
@@ -70,7 +70,10 @@ describe('specify-transformation', function() {
         it('should remove default transformations from web-resources', () => {
             assert.equal(entrySoyTrans, null);
             assert.equal(entryLessTrans, null);
-            assert.notInclude(entryJsTrans.children.map(c => c.attributes.key), 'jsI18n');
+            assert.notInclude(
+                entryJsTrans.children.map(c => c.attributes.key),
+                'jsI18n'
+            );
 
             // the defaults should not end up on the assets web-resource either,
             // since there aren't any assets of those types in the graph.
@@ -80,13 +83,28 @@ describe('specify-transformation', function() {
         });
 
         it('should add custom transformations to web-resources', () => {
-            assert.include(entryJsTrans.children.map(c => c.attributes.key), 'foo');
-            assert.include(entryJsTrans.children.map(c => c.attributes.key), 'bar');
+            assert.include(
+                entryJsTrans.children.map(c => c.attributes.key),
+                'foo'
+            );
+            assert.include(
+                entryJsTrans.children.map(c => c.attributes.key),
+                'bar'
+            );
 
-            assert.include(txtTrans.children.map(c => c.attributes.key), 'bar');
+            assert.include(
+                txtTrans.children.map(c => c.attributes.key),
+                'bar'
+            );
 
-            assert.include(htmlTrans.children.map(c => c.attributes.key), 'stuff');
-            assert.include(htmlTrans.children.map(c => c.attributes.key), 'n stuff');
+            assert.include(
+                htmlTrans.children.map(c => c.attributes.key),
+                'stuff'
+            );
+            assert.include(
+                htmlTrans.children.map(c => c.attributes.key),
+                'n stuff'
+            );
 
             assert.equal(svgTrans, null);
         });

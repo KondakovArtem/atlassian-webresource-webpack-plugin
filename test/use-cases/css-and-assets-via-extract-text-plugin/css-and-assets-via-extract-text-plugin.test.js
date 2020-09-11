@@ -7,7 +7,7 @@ const path = require('path');
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 
-describe('css-and-assets-via-extract-text-plugin', function() {
+describe('css-and-assets-via-extract-text-plugin', () => {
     const config = require('./webpack.config.js');
 
     let stats;
@@ -34,7 +34,7 @@ describe('css-and-assets-via-extract-text-plugin', function() {
         assert.equal(stats.hasWarnings(), false);
     });
 
-    describe('for feature one', function() {
+    describe('for feature one', () => {
         let resources;
 
         before(() => {
@@ -62,7 +62,7 @@ describe('css-and-assets-via-extract-text-plugin', function() {
         });
     });
 
-    describe('for feature two', function() {
+    describe('for feature two', () => {
         let resources;
 
         before(() => {
