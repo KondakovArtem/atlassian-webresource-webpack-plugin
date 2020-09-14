@@ -1,8 +1,8 @@
 const path = require('path');
 const { renderElement } = require('./xml');
 const { parseWebResourceAttributes } = require('./web-resource-parser');
-const renderCondition = require('../renderCondition');
-const renderTransforms = require('../renderTransformation');
+const renderCondition = require('./renderCondition');
+const renderTransforms = require('./renderTransformations');
 
 /**
  * Renders list of data providers {@see DataProvider} as <data key="provider-key" class="data.provider.Class" /> elements
@@ -56,15 +56,6 @@ function generateResourceElement(resource, parameterMap) {
 }
 
 /**
- * Generates a <resource> descriptor that will glue the source code for a file to the qunit test runner.
- * @param {filepath} filepath
- * @returns {string} an XML representation of a {@link Resource}.
- */
-function generateQunitResourceElement(filepath) {
-    return renderElement('resource', { type: 'qunit', name: filepath, location: filepath });
-}
-
-/**
  * @param {Map<String, Array<Object>>} parameterMap
  * @param {Resource[]} resources
  * @returns {string[]} XML strings of all {@link Resource} elements
@@ -81,7 +72,7 @@ function renderResources(parameterMap, resources) {
  * @param standalone
  * @returns {string} an XML representation of the {@link WrmEntrypoint}.
  */
-function createWebResource(webresource, transformations, pathPrefix = '', parameterMap = new Map(), standalone) {
+function renderWebResource(webresource, transformations, pathPrefix = '', parameterMap = new Map(), standalone) {
     const { resources = [], externalResources = [], contexts, dependencies, conditions, dataProviders } = webresource;
     const attributes = parseWebResourceAttributes(webresource.attributes);
     const allResources = [];
@@ -112,24 +103,6 @@ function createWebResource(webresource, transformations, pathPrefix = '', parame
     return renderElement('web-resource', attributes, children);
 }
 
-function createResourceDescriptors(jsonDescriptors, transformations, pathPrefix, parameterMap, standalone) {
-    const descriptors = jsonDescriptors.map(descriptor =>
-        createWebResource(descriptor, transformations, pathPrefix, parameterMap, standalone)
-    );
-    return descriptors.join('');
-}
-
-function createTestResourceDescriptors(jsonTestDescriptors, transformations) {
-    const testDescriptors = jsonTestDescriptors.map(descriptor => createWebResource(descriptor, transformations));
-    return testDescriptors.join('');
-}
-
-function createQUnitResourceDescriptors(qUnitTestFiles) {
-    return qUnitTestFiles.map(generateQunitResourceElement).join('');
-}
-
 module.exports = {
-    createResourceDescriptors,
-    createTestResourceDescriptors,
-    createQUnitResourceDescriptors,
+    renderWebResource,
 };

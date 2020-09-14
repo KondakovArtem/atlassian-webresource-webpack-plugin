@@ -1,7 +1,7 @@
 const assert = require('chai').assert;
 const PrettyData = require('pretty-data').pd;
 
-const renderCondition = require('../../src/renderCondition');
+const renderCondition = require('../../src/helpers/renderCondition');
 
 describe('renderCondition', () => {
     describe('should correctly render condition', () => {

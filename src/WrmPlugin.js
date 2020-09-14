@@ -12,9 +12,9 @@ const uniq = require('lodash/uniq');
 const unionBy = require('lodash/unionBy');
 const isObject = require('lodash/isObject');
 
-const { createResourceDescriptors } = require('./helpers/web-resource-generator');
+const { renderWebResource } = require('./helpers/web-resource-generator');
 const { toMap, extractPathPrefixForXml } = require('./helpers/options-parser');
-const { addBaseDependency } = require('./settings/base-dependencies');
+const { addBaseDependency } = require('./deps/base-dependencies');
 
 const ProvidedExternalDependencyModule = require('./webpack-modules/ProvidedExternalDependencyModule');
 const WrmDependencyModule = require('./webpack-modules/WrmDependencyModule');
@@ -24,7 +24,7 @@ const WebpackRuntimeHelpers = require('./WebpackRuntimeHelpers');
 const AppResourcesFactory = require('./AppResourcesFactory');
 const logger = require('./logger');
 
-const { builtInProvidedDependencies } = require('./defaults/builtInProvidedDependencies');
+const { builtInProvidedDependencies } = require('./deps/provided-dependencies');
 const { webpack5or4 } = require('./helpers/conditional-logic');
 
 const defaultResourceParams = new Map().set('svg', [
@@ -524,18 +524,19 @@ return installedChunks[chunkId][2] = Promise.all(promises);
             const pathPrefix = extractPathPrefixForXml(this.options.locationPrefix);
             const appResourceGenerator = appResourcesFactory.build(compiler, compilation);
 
-            const webResources = [];
+            const descriptors = this.options.standalone
+                ? appResourceGenerator.getEntryPointsResourceDescriptors()
+                : appResourceGenerator.getResourceDescriptors();
 
-            const resourceDescriptors = createResourceDescriptors(
-                this.options.standalone
-                    ? appResourceGenerator.getEntryPointsResourceDescriptors()
-                    : appResourceGenerator.getResourceDescriptors(),
-                this.options.transformationMap,
-                pathPrefix,
-                this.options.resourceParamMap,
-                this.options.standalone
+            const webResources = descriptors.map(descriptor =>
+                renderWebResource(
+                    descriptor,
+                    this.options.transformationMap,
+                    pathPrefix,
+                    this.options.resourceParamMap,
+                    this.options.standalone
+                )
             );
-            webResources.push(resourceDescriptors);
 
             const xmlDescriptors = PrettyData.xml(`<bundles>${webResources.join('')}</bundles>`);
 

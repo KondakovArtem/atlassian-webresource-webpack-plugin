@@ -1,4 +1,4 @@
-const { renderElement } = require('./helpers/xml');
+const { renderElement } = require('./xml');
 
 function renderParams(params) {
     if (!params) {

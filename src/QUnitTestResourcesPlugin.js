@@ -5,7 +5,8 @@ const PrettyData = require('pretty-data').pd;
 
 const { extractPathPrefixForXml } = require('./helpers/options-parser');
 const { getWebresourceAttributesForEntry } = require('./helpers/web-resource-entrypoints');
-const { createQUnitResourceDescriptors, createTestResourceDescriptors } = require('./helpers/web-resource-generator');
+const { renderWebResource } = require('./helpers/web-resource-generator');
+const { renderElement } = require('./helpers/xml');
 const { webpack5or4 } = require('./helpers/conditional-logic');
 const WrmDependencyModule = require('./webpack-modules/WrmDependencyModule');
 const WrmResourceModule = require('./webpack-modules/WrmResourceModule');
@@ -50,12 +51,8 @@ module.exports = class QUnitTestResourcesPlugin {
             'qunit plugin - generate descriptors',
             compiler,
             (compilation, callback) => {
-                const testResourceDescriptors = createTestResourceDescriptors(
-                    this.createAllFileTestWebResources(compilation),
-                    this.transformationMap
-                );
-                const testedFiles = this.getTestedFiles();
-                const qUnitTestResourceDescriptors = createQUnitResourceDescriptors(testedFiles);
+                const testResourceDescriptors = this.createTestResourceDescriptors(compilation);
+                const qUnitTestResourceDescriptors = this.createQUnitResourceDescriptors();
                 const webResources = [...testResourceDescriptors, ...qUnitTestResourceDescriptors];
 
                 const xmlDescriptors = PrettyData.xml(`<bundles>${webResources.join('')}</bundles>`);
@@ -67,6 +64,18 @@ module.exports = class QUnitTestResourcesPlugin {
 
                 callback();
             }
+        );
+    }
+
+    createTestResourceDescriptors(compilation) {
+        const jsonTestDescriptors = this.createAllFileTestWebResources(compilation);
+        return jsonTestDescriptors.map(descriptor => renderWebResource(descriptor, this.transformationMap));
+    }
+
+    createQUnitResourceDescriptors() {
+        const qUnitTestFiles = this.getTestedFiles();
+        return qUnitTestFiles.map(filepath =>
+            renderElement('resource', { type: 'qunit', name: filepath, location: filepath })
         );
     }
 

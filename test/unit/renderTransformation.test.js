@@ -1,7 +1,7 @@
 const assert = require('chai').assert;
 const PrettyData = require('pretty-data').pd;
 
-const renderTransformations = require('../../src/renderTransformation');
+const renderTransformations = require('../../src/helpers/renderTransformations');
 
 describe('renderTransformer', () => {
     it('simple transformation', () => {

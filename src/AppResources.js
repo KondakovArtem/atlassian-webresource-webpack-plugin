@@ -8,7 +8,7 @@ const {
     getWebresourceAttributesForEntry,
 } = require('./helpers/web-resource-entrypoints');
 const WebpackHelpers = require('./WebpackHelpers');
-const { getBaseDependencies } = require('./settings/base-dependencies');
+const { getBaseDependencies } = require('./deps/base-dependencies');
 
 /** @typedef {import("webpack/lib/Chunk")} Chunk */
 /** @typedef {import("webpack/lib/Compiler")} Compiler */

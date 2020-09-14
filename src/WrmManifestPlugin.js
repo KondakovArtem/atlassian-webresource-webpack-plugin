@@ -1,7 +1,5 @@
-const path = require('path');
-
 const { webpack5or4 } = require('./helpers/conditional-logic');
-const { buildProvidedDependency } = require('./helpers/provided-dependencies');
+const { buildProvidedDependency } = require('./deps/provided-dependencies');
 const { getLibraryDetails } = require('./WebpackHelpers');
 const WebpackRuntimeHelpers = require('./WebpackRuntimeHelpers');
 const logger = require('./logger');

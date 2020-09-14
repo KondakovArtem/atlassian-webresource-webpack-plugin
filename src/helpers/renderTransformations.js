@@ -1,6 +1,6 @@
 const path = require('path');
-const { renderElement } = require('./helpers/xml');
-const { toMap } = require('./helpers/options-parser');
+const { renderElement } = require('./xml');
+const { toMap } = require('./options-parser');
 
 function renderTransformer(transformers) {
     if (transformers && transformers.length) {
