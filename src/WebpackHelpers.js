@@ -114,10 +114,10 @@ module.exports = class WebpackHelpers {
     /**
      * Extracts library detials from the webpack configuration
      * @param {Compiler} compiler Webpack compiler
-     * @returns {{target:string,name:string}} an object with `target` (the library type) and `name` (the name the library will get).
+     * @returns {{target:string,name:string}} an object with `target` (the output type, like "amd" or "var") and `name` (the name the library will get).
      */
     static getLibraryDetails(compiler) {
-        const { library } = compiler.options.output;
+        const { library, libraryTarget } = compiler.options.output;
         if (typeof library === 'object') {
             return {
                 target: library.type,
@@ -125,7 +125,7 @@ module.exports = class WebpackHelpers {
             };
         }
         return {
-            target: compiler.options.output.libraryTarget,
+            target: libraryTarget || compiler.options.externalsType,
             name: library,
         };
     }
