@@ -14,7 +14,6 @@ const isObject = require('lodash/isObject');
 
 const { createResourceDescriptors } = require('./helpers/web-resource-generator');
 const { toMap, extractPathPrefixForXml } = require('./helpers/options-parser');
-const { buildProvidedDependency } = require('./helpers/provided-dependencies');
 const { addBaseDependency } = require('./settings/base-dependencies');
 
 const ProvidedExternalDependencyModule = require('./webpack-modules/ProvidedExternalDependencyModule');
@@ -545,51 +544,6 @@ return installedChunks[chunkId][2] = Promise.all(promises);
                 size: () => Buffer.byteLength(xmlDescriptors),
             };
 
-            if (this.options.wrmManifestPath) {
-                (() => {
-                    let { name, target } = getLibraryDetails(compiler);
-                    if (!name || !target) {
-                        logger.error(
-                            'Can only use wrmManifestPath in conjunction with output.library and output.libraryTarget'
-                        );
-                        return;
-                    }
-
-                    if (target !== 'amd') {
-                        logger.error(
-                            `Could not create manifest mapping. LibraryTarget '${target}' is not supported. Use 'amd'`
-                        );
-                        return;
-                    }
-
-                    const wrmManifestMapping = entryPointsResourceDescriptors
-                        .filter(({ attributes }) => attributes.moduleId)
-                        .reduce((result, { attributes: { key: resourceKey, moduleId } }) => {
-                            const getAssetPath = webpack5or4(
-                                () => (name, opts) => compilation.getAssetPath(name, opts),
-                                () => (name, opts) => compilation.mainTemplate.getAssetPath(name, opts)
-                            );
-                            const libraryName = getAssetPath(name, { chunk: { name: moduleId } });
-
-                            result[moduleId] = buildProvidedDependency(
-                                this.options.pluginKey,
-                                resourceKey,
-                                `require('${libraryName}')`,
-                                libraryName
-                            );
-
-                            return result;
-                        }, {});
-                    const wrmManifestJSON = JSON.stringify({ providedDependencies: wrmManifestMapping }, null, 4);
-                    const wrmManifestWebpackPath = path.relative(outputPath, this.options.wrmManifestPath);
-
-                    compilation.assets[wrmManifestWebpackPath] = {
-                        source: () => Buffer.from(wrmManifestJSON),
-                        size: () => Buffer.byteLength(wrmManifestJSON),
-                    };
-                })();
-            }
-
             if (this.options.watch && this.options.watchPrepare) {
                 const entrypointDescriptors = appResourceGenerator.getResourceDescriptors();
                 const redirectDescriptors = flatMap(entrypointDescriptors, c => c.resources)
@@ -650,6 +604,17 @@ document.head.appendChild(script);`.trim();
                 testGlobs: this.options.__testGlobs__,
                 transformationMap: this.options.transformationMap,
                 webresourceKeyMap: this.options.webresourceKeyMap,
+            }).apply(compiler);
+        }
+
+        // Enable manifest output if provided
+        if (this.options.wrmManifestPath) {
+            const filename = path.relative(outputPath, this.options.wrmManifestPath);
+            const WrmManifestPlugin = require('./WrmManifestPlugin');
+            new WrmManifestPlugin({
+                appResourcesFactory,
+                outputPath: filename,
+                pluginKey: this.options.pluginKey,
             }).apply(compiler);
         }
     }
