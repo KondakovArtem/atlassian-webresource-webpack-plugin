@@ -22,8 +22,8 @@ const WrmDependencyModule = require('./webpack-modules/WrmDependencyModule');
 const WrmResourceModule = require('./webpack-modules/WrmResourceModule');
 const { isRunningInProductionMode, getLibraryDetails } = require('./WebpackHelpers');
 const WebpackRuntimeHelpers = require('./WebpackRuntimeHelpers');
+const AppResourcesFactory = require('./AppResourcesFactory');
 const logger = require('./logger');
-const AppResources = require('./AppResources');
 
 const { builtInProvidedDependencies } = require('./defaults/builtInProvidedDependencies');
 const { webpack5or4 } = require('./helpers/conditional-logic');
@@ -458,12 +458,11 @@ return installedChunks[chunkId][2] = Promise.all(promises);
             this.enableAsyncLoadingWithWRM(compiler);
         }
 
-        this.assetNames = new Map();
-
         const outputPath = compiler.options.output.path;
         const xmlDescriptorWebpackPath = path.relative(outputPath, this.options.xmlDescriptors);
         const isProductionMode = isRunningInProductionMode(compiler);
         const assetsUUID = this.getAssetsUUID(isProductionMode);
+        const assetNames = new Map();
 
         // Generate a 1:1 mapping from original filenames to compiled filenames
         compiler.hooks.compilation.tap('wrm plugin setup phase', compilation => {
@@ -476,11 +475,18 @@ return installedChunks[chunkId][2] = Promise.all(promises);
                 const { emitFile } = loaderContext;
                 loaderContext.emitFile = (name, content, sourceMap) => {
                     const originalName = module.userRequest;
-                    this.assetNames.set(originalName, name);
+                    assetNames.set(originalName, name);
 
                     return emitFile.call(module, name, content, sourceMap);
                 };
             });
+        });
+
+        const appResourcesFactory = new AppResourcesFactory({
+            assetsUUID,
+            assetNames,
+            xmlDescriptorWebpackPath,
+            options: this.options,
         });
 
         /**
@@ -490,15 +496,7 @@ return installedChunks[chunkId][2] = Promise.all(promises);
          */
         const generateXmlHandler = (compilation, callback) => {
             const pathPrefix = extractPathPrefixForXml(this.options.locationPrefix);
-
-            const appResourceGenerator = new AppResources(
-                assetsUUID,
-                xmlDescriptorWebpackPath,
-                this.assetNames,
-                this.options,
-                compiler,
-                compilation
-            );
+            const appResourceGenerator = appResourcesFactory.build(compiler, compilation);
 
             const webResources = [];
             const entryPointsResourceDescriptors = appResourceGenerator.getEntryPointsResourceDescriptors();

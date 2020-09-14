@@ -26,7 +26,7 @@ module.exports = class AppResources {
      * @param {Compiler} compiler Webpack compiler
      * @param {Compilation} compilation Webpack compilation
      */
-    constructor(assetsUUID, xmlDescriptorWebpackPath, assetNames, options, compiler, compilation) {
+    constructor({ assetsUUID, xmlDescriptorWebpackPath, assetNames, options, compiler, compilation }) {
         this.assetsUUID = assetsUUID;
         this.xmlDescriptorPath = xmlDescriptorWebpackPath;
         this.assetNames = assetNames;
