@@ -265,6 +265,33 @@ class WrmPlugin {
     }
 
     checkConfig(compiler) {
+        // `assetContentTypes` is DEPRECATED. This code block ensures we're backwards compatible, by applying the
+        // specified `assetContentTypes` into the `resourceParamMap`.
+        // This should be removed once we get rid of `assetContentTypes` once and for all.
+        if (this.options.assetContentTypes) {
+            logger.warn(
+                `Option 'assetContentTypes' is deprecated and will be removed in a future version. Use 'resourceParamMap' instead. See README for further instructions.`
+            );
+
+            const { resourceParamMap, assetContentTypes } = this.options;
+
+            for (let [fileExtension, contentType] of Object.entries(assetContentTypes)) {
+                if (!resourceParamMap.has(fileExtension)) {
+                    resourceParamMap.set(fileExtension, []);
+                }
+
+                const params = resourceParamMap.get(fileExtension);
+
+                if (params.find(param => param.name === 'content-type')) {
+                    logger.warn(
+                        `There's already a 'content-type' defined for '${fileExtension}' in 'resourceParamMap'. Please stop using 'assetContentTypes'`
+                    );
+                } else {
+                    params.push({ name: 'content-type', value: contentType });
+                }
+            }
+        }
+
         compiler.hooks.afterEnvironment.tap('Check Config', () => {
             const outputOptions = compiler.options.output;
 
@@ -499,43 +526,14 @@ return installedChunks[chunkId][2] = Promise.all(promises);
             const appResourceGenerator = appResourcesFactory.build(compiler, compilation);
 
             const webResources = [];
-            const entryPointsResourceDescriptors = appResourceGenerator.getEntryPointsResourceDescriptors();
-            const resourceParamMap = this.options.resourceParamMap;
-
-            // `assetContentTypes` is DEPRECATED. This code block ensures we're backwards compatible, by applying the
-            // specified `assetContentTypes` into the `resourceParamMap`.
-            // This should be removed once we get rid of `assetContentTypes` once and for all.
-            if (this.options.assetContentTypes) {
-                logger.warn(
-                    `Option 'assetContentTypes' is deprecated and will be removed in a future version. Use 'resourceParamMap' instead. See README for further instructions.`
-                );
-
-                Object.keys(this.options.assetContentTypes).forEach(fileExtension => {
-                    const contentType = this.options.assetContentTypes[fileExtension];
-
-                    if (!resourceParamMap.has(fileExtension)) {
-                        resourceParamMap.set(fileExtension, []);
-                    }
-
-                    const params = resourceParamMap.get(fileExtension);
-
-                    if (params.find(param => param.name === 'content-type')) {
-                        logger.warn(
-                            `There's already a 'content-type' defined for '${fileExtension}' in 'resourceParamMap'. Please stop using 'assetContentTypes'`
-                        );
-                    } else {
-                        params.push({ name: 'content-type', value: contentType });
-                    }
-                });
-            }
 
             const resourceDescriptors = createResourceDescriptors(
                 this.options.standalone
-                    ? entryPointsResourceDescriptors
+                    ? appResourceGenerator.getEntryPointsResourceDescriptors()
                     : appResourceGenerator.getResourceDescriptors(),
                 this.options.transformationMap,
                 pathPrefix,
-                resourceParamMap,
+                this.options.resourceParamMap,
                 this.options.standalone
             );
             webResources.push(resourceDescriptors);
