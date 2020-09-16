@@ -1,6 +1,8 @@
 ## 5.0.0 (Unreleased)
 
-* **[BREAKING]**: We dropped support for Node 6. The `atlassian-webresource-webpack-plugin` requires a Node version 10 or newer. 
+* **[BREAKING]**: We dropped support for Node 6. The `atlassian-webresource-webpack-plugin` requires a Node version 10 or newer.
+* feat: added webpack 5 support.
+    * [@chrisdarroch](https://bitbucket.org/chrisdarroch) in [PR #100](https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/pull-requests/100).
 
 ## 4.9.0 (July 23, 2020)
 * feat: added `dataProvidersMap` option that adds missing support for [data providers](https://developer.atlassian.com/server/framework/atlassian-sdk/adding-data-providers-to-your-plugin/#defining-a-data-provider-in-a-web-resource).
