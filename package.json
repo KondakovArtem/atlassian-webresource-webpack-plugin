@@ -54,6 +54,9 @@
     "bugs": {
         "url": "https://bitbucket.org/atlassianlabs/atlassian-webresource-webpack-plugin/issues"
     },
+    "publishConfig": {
+        "registry": "https://registry.npmjs.org/"
+    },
     "dependencies": {
         "glob": "^7.1.6",
         "lodash": "^4.17.20",
