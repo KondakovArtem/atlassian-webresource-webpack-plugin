@@ -22,7 +22,12 @@ module.exports = {
         app2: path.join(FRONTEND_SRC_DIR, 'app2.js'),
     },
     optimization: {
+        chunkIds: 'named',
+        moduleIds: 'named',
         splitChunks: {
+            name(module, chunks, cacheGroupKey) {
+                return chunks.map(item => item.name).join('~');
+            },
             minSize: 0,
             chunks: 'all',
         },

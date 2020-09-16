@@ -11,7 +11,6 @@ const RawSource = require('webpack-sources').RawSource;
 class EmptyExportsModule extends DllModule {
     constructor(dependency, type) {
         super(null, [], dependency, type);
-        this._dependency = dependency;
     }
 
     chunkCondition() {

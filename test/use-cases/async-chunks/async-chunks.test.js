@@ -32,8 +32,8 @@ describe('async-chunks', () => {
             const results = parse(xmlFile);
             runtime = results.root.children.find(n => n.attributes.key.startsWith('entry'));
             app = results.root.children.find(n => n.attributes.key === 'split_app');
-            asyncChunk1 = results.root.children.find(n => n.attributes.key === '0');
-            asyncChunk2 = results.root.children.find(n => n.attributes.key === '1');
+            asyncChunk1 = results.root.children.find(n => n.attributes.key === '2');
+            asyncChunk2 = results.root.children.find(n => n.attributes.key === '3');
             done();
         });
     });
@@ -49,26 +49,9 @@ describe('async-chunks', () => {
     it('should inject a WRM pre-condition checker into the webpack runtime', () => {
         // setup
         const bundleFile = fs.readFileSync(path.join(targetDir, 'runtime~app.js'), 'utf-8');
-        const expectedRuntimeAdjustment = `
-/******/ 		var promises = [];
-/******/
-/******/ 		if(installedChunks[chunkId] === 0) { // 0 means "already installed".
-/******/ 		    return Promise.resolve();
-/******/ 		}
-/******/
-/******/ 		if (installedChunks[chunkId]) {
-/******/ 		    return installedChunks[chunkId][2];
-/******/ 		}
-/******/
-/******/ 		promises.push(
-/******/ 		    new Promise(function(resolve, reject) {
-/******/ 		        installedChunks[chunkId] = [resolve, reject];
-/******/ 		    }),
-/******/ 		    new Promise(function(resolve, reject) {
-/******/ 		        WRM.require('wrc!com.atlassian.plugin.test:' + chunkId).then(resolve, reject);
-/******/ 		    })
-/******/ 		);
-/******/ 		return installedChunks[chunkId][2] = Promise.all(promises);`;
+        const expectedRuntimeAdjustment = require('../../fixtures/webpack-runtime-chunks').asyncChunkLoader(
+            'com.atlassian.plugin.test'
+        );
 
         assert.include(bundleFile, expectedRuntimeAdjustment);
     });

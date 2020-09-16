@@ -5,32 +5,27 @@ const PrettyData = require('pretty-data').pd;
 const { v4: uuidv4Gen } = require('uuid');
 const fs = require('fs');
 const mkdirp = require('mkdirp');
-const once = require('lodash/once');
 const urlJoin = require('url-join');
+const once = require('lodash/once');
+const flatMap = require('lodash/flatMap');
+const uniq = require('lodash/uniq');
 const unionBy = require('lodash/unionBy');
 const isObject = require('lodash/isObject');
 
-const {
-    createQUnitResourceDescriptors,
-    createResourceDescriptors,
-    createTestResourceDescriptors,
-} = require('./helpers/web-resource-generator');
+const { renderWebResource } = require('./helpers/web-resource-generator');
 const { toMap, extractPathPrefixForXml } = require('./helpers/options-parser');
-const { buildProvidedDependency } = require('./helpers/provided-dependencies');
-const { addBaseDependency } = require('./settings/base-dependencies');
+const { addBaseDependency } = require('./deps/base-dependencies');
 
 const ProvidedExternalDependencyModule = require('./webpack-modules/ProvidedExternalDependencyModule');
 const WrmDependencyModule = require('./webpack-modules/WrmDependencyModule');
 const WrmResourceModule = require('./webpack-modules/WrmResourceModule');
-const WebpackHelpers = require('./WebpackHelpers');
+const { isRunningInProductionMode, getLibraryDetails } = require('./WebpackHelpers');
 const WebpackRuntimeHelpers = require('./WebpackRuntimeHelpers');
+const AppResourcesFactory = require('./AppResourcesFactory');
 const logger = require('./logger');
-const QUnitTestResources = require('./QUnitTestResources');
-const AppResources = require('./AppResources');
-const flattenReduce = require('./flattenReduce');
-const mergeMaps = require('./mergeMaps');
 
-const { builtInProvidedDependencies } = require('./defaults/builtInProvidedDependencies');
+const { builtInProvidedDependencies } = require('./deps/provided-dependencies');
+const { webpack5or4 } = require('./helpers/conditional-logic');
 
 const defaultResourceParams = new Map().set('svg', [
     {
@@ -46,16 +41,20 @@ const defaultTransformations = new Map()
 
 const DEFAULT_DEV_ASSETS_HASH = 'DEV_PSEUDO_HASH';
 
+/** @typedef {import("webpack/lib/Compiler")} Compiler */
+/** @typedef {import("webpack/lib/Compilation")} Compilation */
+/** @typedef {import("webpack/lib/Entrypoint")} Entrypoint */
+
 class WrmPlugin {
     static extendTransformations(values) {
-        return mergeMaps(defaultTransformations, toMap(values), (val, key, map) => {
-            const oldVals = map.get(key);
-            const newVals = []
-                .concat(oldVals)
-                .concat(val)
-                .filter(v => !!v);
-            return map.set(key, newVals);
-        });
+        return [defaultTransformations, toMap(values)].reduce((acc, map) => {
+            for (let [key, val] of map.entries()) {
+                const oldVals = acc.get(key);
+                const newVals = [].concat(oldVals).concat(val).filter(Boolean);
+                acc.set(key, newVals);
+            }
+            return acc;
+        }, new Map());
     }
 
     /**
@@ -167,8 +166,8 @@ class WrmPlugin {
     ensureTransformationsAreUnique(transformations) {
         const results = toMap(transformations);
         results.forEach((val, key, map) => {
-            const values = [].concat(val).filter(v => !!v);
-            map.set(key, Array.from(new Set(values)));
+            const values = [].concat(val).filter(Boolean);
+            map.set(key, uniq(values));
         });
         return results;
     }
@@ -176,7 +175,7 @@ class WrmPlugin {
     ensureResourceParamsAreUnique(params) {
         const results = toMap(params);
         results.forEach((val, key, map) => {
-            const values = [].concat(val).filter(v => !!v);
+            const values = [].concat(val).filter(Boolean);
             map.set(key, unionBy(values.reverse(), 'name').reverse());
         });
         return results;
@@ -265,6 +264,33 @@ class WrmPlugin {
     }
 
     checkConfig(compiler) {
+        // `assetContentTypes` is DEPRECATED. This code block ensures we're backwards compatible, by applying the
+        // specified `assetContentTypes` into the `resourceParamMap`.
+        // This should be removed once we get rid of `assetContentTypes` once and for all.
+        if (this.options.assetContentTypes) {
+            logger.warn(
+                `Option 'assetContentTypes' is deprecated and will be removed in a future version. Use 'resourceParamMap' instead. See README for further instructions.`
+            );
+
+            const { resourceParamMap, assetContentTypes } = this.options;
+
+            for (let [fileExtension, contentType] of Object.entries(assetContentTypes)) {
+                if (!resourceParamMap.has(fileExtension)) {
+                    resourceParamMap.set(fileExtension, []);
+                }
+
+                const params = resourceParamMap.get(fileExtension);
+
+                if (params.find(param => param.name === 'content-type')) {
+                    logger.warn(
+                        `There's already a 'content-type' defined for '${fileExtension}' in 'resourceParamMap'. Please stop using 'assetContentTypes'`
+                    );
+                } else {
+                    params.push({ name: 'content-type', value: contentType });
+                }
+            }
+        }
+
         compiler.hooks.afterEnvironment.tap('Check Config', () => {
             const outputOptions = compiler.options.output;
 
@@ -272,7 +298,7 @@ class WrmPlugin {
             const { jsonpFunction } = outputOptions;
             if (!jsonpFunction || jsonpFunction === 'webpackJsonp') {
                 const generatedJsonpFunction = `atlassianWebpackJsonp${createHash('md5')
-                    .update(this.options.pluginKey)
+                    .update(this.options.pluginKey, 'utf8')
                     .digest('hex')}`;
                 logger.warn(`
 *********************************************************************************
@@ -288,8 +314,11 @@ An automated jsonpFunction name for this plugin was created:
         });
     }
 
+    /**
+     * @param {Compiler} compiler
+     */
     overwritePublicPath(compiler) {
-        const isProductionMode = WebpackHelpers.isRunningInProductionMode(compiler);
+        const isProductionMode = isRunningInProductionMode(compiler);
 
         compiler.hooks.compilation.tap('OverwritePublicPath Compilation', compilation => {
             compilation.mainTemplate.hooks.requireExtensions.tap(
@@ -298,11 +327,12 @@ An automated jsonpFunction name for this plugin was created:
                     // Ensure the `AJS.contextPath` function is available at runtime.
                     addBaseDependency('com.atlassian.plugins.atlassian-plugins-webresource-plugin:context-path');
                     const uuid = this.getAssetsUUID(isProductionMode);
+                    const assetWebresource = `${this.options.pluginKey}:assets-${uuid}`;
 
                     // Add the public path extension to the webpack module runtime.
                     return `${standardScript}
 if (typeof AJS !== "undefined") {
-    ${compilation.mainTemplate.requireFn}.p = AJS.contextPath() + "/s/${uuid}/_/download/resources/${this.options.pluginKey}:assets-${uuid}/";
+    __webpack_require__.p = AJS.contextPath() + "/s/${uuid}/_/download/resources/${assetWebresource}/";
 }
 `;
                 }
@@ -310,55 +340,75 @@ if (typeof AJS !== "undefined") {
         });
     }
 
+    /**
+     * @param {Compiler} compiler
+     */
     hookUpProvidedDependencies(compiler) {
-        WebpackRuntimeHelpers.hookIntoNormalModuleFactory(compiler, factory => (data, callback) => {
-            const target = compiler.options.output.libraryTarget;
-            const request = data.dependencies[0].request;
-            // get globally available libraries through wrm
-            if (this.options.providedDependencies.has(request)) {
-                logger.log('plugging hole into request to %s, will be provided as a dependency through WRM', request);
-                const p = this.options.providedDependencies.get(request);
-                callback(null, new ProvidedExternalDependencyModule(p.import, p.dependency, target));
-                return;
+        WebpackRuntimeHelpers.hookIntoNormalModuleFactory(
+            'wrm plugin - provided dependencies',
+            compiler,
+            factory => (data, callback) => {
+                const { target } = getLibraryDetails(compiler);
+                const request = data.dependencies[0].request;
+                // get globally available libraries through wrm
+                if (this.options.providedDependencies.has(request)) {
+                    logger.log(
+                        'plugging hole into request to %s, will be provided as a dependency through WRM',
+                        request
+                    );
+                    const p = this.options.providedDependencies.get(request);
+                    callback(null, new ProvidedExternalDependencyModule(p.import, p.dependency, target));
+                    return;
+                }
+                return factory(data, callback);
             }
-            factory(data, callback);
-            return;
-        });
+        );
     }
 
+    /**
+     * @param {Compiler} compiler
+     */
     injectWRMSpecificRequestTypes(compiler) {
-        WebpackRuntimeHelpers.hookIntoNormalModuleFactory(compiler, factory => (data, callback) => {
-            const target = compiler.options.output.libraryTarget;
-            const request = data.dependencies[0].request;
-            // import web-resources we find static import statements for
-            if (request.startsWith('wr-dependency!')) {
-                const res = request.substr('wr-dependency!'.length);
-                logger.log('adding %s as a web-resource dependency through WRM', res);
-                callback(null, new WrmDependencyModule(res, target, this.options.pluginKey));
-                return;
+        WebpackRuntimeHelpers.hookIntoNormalModuleFactory(
+            'wrm plugin - inject request types',
+            compiler,
+            factory => (data, callback) => {
+                const { target } = getLibraryDetails(compiler);
+                const request = data.dependencies[0].request;
+                // import web-resources we find static import statements for
+                if (request.startsWith('wr-dependency!')) {
+                    const res = request.substr('wr-dependency!'.length);
+                    logger.log('adding %s as a web-resource dependency through WRM', res);
+                    callback(null, new WrmDependencyModule(res, target, this.options.pluginKey));
+                    return;
+                }
+
+                // import resources we find static import statements for
+                if (request.startsWith('wr-resource!')) {
+                    const res = request.substr('wr-resource!'.length);
+                    logger.log('adding %s as a resource through WRM', res);
+
+                    callback(null, new WrmResourceModule(res, target, data.context, compiler.options.context));
+                    return;
+                }
+
+                return factory(data, callback);
             }
-
-            // import resources we find static import statements for
-            if (request.startsWith('wr-resource!')) {
-                const res = request.substr('wr-resource!'.length);
-                logger.log('adding %s as a resource through WRM', res);
-
-                callback(null, new WrmResourceModule(res, target, data.context, compiler.options.context));
-                return;
-            }
-
-            factory(data, callback);
-            return;
-        });
+        );
     }
 
+    /**
+     * @param {Compiler} compiler
+     */
     enableAsyncLoadingWithWRM(compiler) {
         compiler.hooks.compilation.tap('enable async loading with wrm - compilation', compilation => {
-            // copy & pasted hack from webpack
-            if (!compilation.mainTemplate.hooks.jsonpScript) {
-                const SyncWaterfallHook = require('tapable').SyncWaterfallHook;
-                compilation.mainTemplate.hooks.jsonpScript = new SyncWaterfallHook(['source', 'chunk', 'hash']);
-            }
+            webpack5or4(null, () => {
+                // copy & pasted hack from webpack
+                if (!compilation.mainTemplate.hooks.jsonpScript) {
+                    const SyncWaterfallHook = require('tapable').SyncWaterfallHook;
+                    compilation.mainTemplate.hooks.jsonpScript = new SyncWaterfallHook(['source', 'chunk', 'hash']);
+                }
+            });
             compilation.mainTemplate.hooks.requireEnsure.tap(
                 'enable async loading with wrm - jsonp-script',
                 (source, chunk, hash) => {
@@ -372,11 +422,9 @@ if (typeof AJS !== "undefined") {
 if(installedChunks[chunkId] === 0) { // 0 means "already installed".
     return Promise.resolve();
 }
-
 if (installedChunks[chunkId]) {
     return installedChunks[chunkId][2];
 }
-
 promises.push(
     new Promise(function(resolve, reject) {
         installedChunks[chunkId] = [resolve, reject];
@@ -417,6 +465,9 @@ return installedChunks[chunkId][2] = Promise.all(promises);
         return true;
     }
 
+    /**
+     * @param {Compiler} compiler
+     */
     apply(compiler) {
         // ensure settings make sense
         this.checkConfig(compiler);
@@ -433,147 +484,70 @@ return installedChunks[chunkId][2] = Promise.all(promises);
             this.enableAsyncLoadingWithWRM(compiler);
         }
 
-        this.assetNames = new Map();
-
-        const isProductionMode = WebpackHelpers.isRunningInProductionMode(compiler);
+        const outputPath = compiler.options.output.path;
+        const xmlDescriptorWebpackPath = path.relative(outputPath, this.options.xmlDescriptors);
+        const isProductionMode = isRunningInProductionMode(compiler);
         const assetsUUID = this.getAssetsUUID(isProductionMode);
+        const assetNames = new Map();
 
         // Generate a 1:1 mapping from original filenames to compiled filenames
         compiler.hooks.compilation.tap('wrm plugin setup phase', compilation => {
-            compilation.hooks.normalModuleLoader.tap('wrm plugin - normal module', (loaderContext, module) => {
+            const moduleLoader = webpack5or4(
+                () => require('webpack/lib/NormalModule').getCompilationHooks(compilation).loader,
+                () => compilation.hooks.normalModuleLoader
+            );
+
+            moduleLoader.tap('wrm plugin - normal module', (loaderContext, module) => {
                 const { emitFile } = loaderContext;
                 loaderContext.emitFile = (name, content, sourceMap) => {
                     const originalName = module.userRequest;
-                    this.assetNames.set(originalName, name);
+                    assetNames.set(originalName, name);
 
                     return emitFile.call(module, name, content, sourceMap);
                 };
             });
         });
 
-        // When the compiler is about to emit files, we jump in to produce our resource descriptors for the WRM.
-        compiler.hooks.emit.tapAsync('wrm plugin emit phase', (compilation, callback) => {
+        const appResourcesFactory = new AppResourcesFactory({
+            assetsUUID,
+            assetNames,
+            xmlDescriptorWebpackPath,
+            options: this.options,
+        });
+
+        /**
+         * When the compiler is about to emit files, we jump in to produce our resource descriptors for the WRM.
+         * @param {Compilation} compilation
+         * @param {Function} callback
+         */
+        const generateXmlHandler = (compilation, callback) => {
             const pathPrefix = extractPathPrefixForXml(this.options.locationPrefix);
-            const appResourceGenerator = new AppResources(
-                assetsUUID,
-                this.assetNames,
-                this.options,
-                compiler,
-                compilation
+            const appResourceGenerator = appResourcesFactory.build(compiler, compilation);
+
+            const descriptors = this.options.standalone
+                ? appResourceGenerator.getEntryPointsResourceDescriptors()
+                : appResourceGenerator.getResourceDescriptors();
+
+            const webResources = descriptors.map(descriptor =>
+                renderWebResource(
+                    descriptor,
+                    this.options.transformationMap,
+                    pathPrefix,
+                    this.options.resourceParamMap,
+                    this.options.standalone
+                )
             );
-            const testResourcesGenerator = new QUnitTestResources(assetsUUID, this.options, compiler, compilation);
-
-            const webResources = [];
-            const entryPointsResourceDescriptors = appResourceGenerator.getEntryPointsResourceDescriptors();
-            const resourceParamMap = this.options.resourceParamMap;
-
-            // `assetContentTypes` is DEPRECATED. This code block ensures we're backwards compatible, by applying the
-            // specified `assetContentTypes` into the `resourceParamMap`.
-            // This should be removed once we get rid of `assetContentTypes` once and for all.
-            if (this.options.assetContentTypes) {
-                logger.warn(
-                    `Option 'assetContentTypes' is deprecated and will be removed in a future version. Use 'resourceParamMap' instead. See README for further instructions.`
-                );
-
-                Object.keys(this.options.assetContentTypes).forEach(fileExtension => {
-                    const contentType = this.options.assetContentTypes[fileExtension];
-
-                    if (!resourceParamMap.has(fileExtension)) {
-                        resourceParamMap.set(fileExtension, []);
-                    }
-
-                    const params = resourceParamMap.get(fileExtension);
-
-                    if (params.find(param => param.name === 'content-type')) {
-                        logger.warn(
-                            `There's already a 'content-type' defined for '${fileExtension}' in 'resourceParamMap'. Please stop using 'assetContentTypes'`
-                        );
-                    } else {
-                        params.push({ name: 'content-type', value: contentType });
-                    }
-                });
-            }
-
-            const resourceDescriptors = createResourceDescriptors(
-                this.options.standalone
-                    ? entryPointsResourceDescriptors
-                    : appResourceGenerator.getResourceDescriptors(),
-                this.options.transformationMap,
-                pathPrefix,
-                resourceParamMap,
-                this.options.standalone
-            );
-            webResources.push(resourceDescriptors);
-
-            if (this.options.__testGlobs__ && !this.options.watch) {
-                testResourcesGenerator.injectQUnitShim();
-                const testResourceDescriptors = createTestResourceDescriptors(
-                    testResourcesGenerator.createAllFileTestWebResources(),
-                    this.options.transformationMap
-                );
-                const qUnitTestResourceDescriptors = createQUnitResourceDescriptors(
-                    testResourcesGenerator.getTestFiles()
-                );
-
-                webResources.push(testResourceDescriptors, qUnitTestResourceDescriptors);
-            }
-
-            const outputPath = compiler.options.output.path;
 
             const xmlDescriptors = PrettyData.xml(`<bundles>${webResources.join('')}</bundles>`);
-            const xmlDescriptorWebpackPath = path.relative(outputPath, this.options.xmlDescriptors);
 
             compilation.assets[xmlDescriptorWebpackPath] = {
                 source: () => Buffer.from(xmlDescriptors),
                 size: () => Buffer.byteLength(xmlDescriptors),
             };
 
-            if (this.options.wrmManifestPath) {
-                const { library, libraryTarget } = compiler.options.output;
-                if (!library || !libraryTarget) {
-                    logger.error(
-                        'Can only use wrmManifestPath in conjunction with output.library and output.libraryTarget'
-                    );
-                    return;
-                }
-
-                if (libraryTarget !== 'amd') {
-                    logger.error(
-                        `Could not create manifest mapping. LibraryTarget '${libraryTarget}' is not supported. Use 'amd'`
-                    );
-                    return;
-                }
-
-                const wrmManifestMapping = entryPointsResourceDescriptors
-                    .filter(({ attributes }) => attributes.moduleId)
-                    .reduce((result, { attributes: { key: resourceKey, moduleId } }) => {
-                        const libraryName = compilation.mainTemplate.getAssetPath(compiler.options.output.library, {
-                            chunk: { name: moduleId },
-                        });
-
-                        result[moduleId] = buildProvidedDependency(
-                            this.options.pluginKey,
-                            resourceKey,
-                            `require('${libraryName}')`,
-                            libraryName
-                        );
-
-                        return result;
-                    }, {});
-                const wrmManifestJSON = JSON.stringify({ providedDependencies: wrmManifestMapping }, null, 4);
-                const wrmManifestWebpackPath = path.relative(outputPath, this.options.wrmManifestPath);
-
-                compilation.assets[wrmManifestWebpackPath] = {
-                    source: () => Buffer.from(wrmManifestJSON),
-                    size: () => Buffer.byteLength(wrmManifestJSON),
-                };
-            }
-
             if (this.options.watch && this.options.watchPrepare) {
                 const entrypointDescriptors = appResourceGenerator.getResourceDescriptors();
-                const redirectDescriptors = entrypointDescriptors
-                    .map(c => c.resources)
-                    .reduce(flattenReduce, [])
+                const redirectDescriptors = flatMap(entrypointDescriptors, c => c.resources)
                     .filter(res => path.extname(res) === '.js')
                     .map(r => ({ fileName: r, writePath: path.join(outputPath, r) }));
 
@@ -613,7 +587,37 @@ document.head.appendChild(script);`.trim();
             }
 
             callback();
-        });
+        };
+
+        WebpackRuntimeHelpers.hookIntoAssetAnalysisStage(
+            'wrm plugin - generate descriptors',
+            compiler,
+            generateXmlHandler
+        );
+
+        // Enable QUnit plugin if provided
+        if (this.options.__testGlobs__ && !this.options.watch) {
+            const filename = path.join(path.dirname(xmlDescriptorWebpackPath), 'qunit-webpack-bundles.xml');
+            const QUnitTestResourcesPlugin = require('./QUnitTestResourcesPlugin');
+            new QUnitTestResourcesPlugin({
+                assetsUUID,
+                outputPath: filename,
+                testGlobs: this.options.__testGlobs__,
+                transformationMap: this.options.transformationMap,
+                webresourceKeyMap: this.options.webresourceKeyMap,
+            }).apply(compiler);
+        }
+
+        // Enable manifest output if provided
+        if (this.options.wrmManifestPath) {
+            const filename = path.relative(outputPath, this.options.wrmManifestPath);
+            const WrmManifestPlugin = require('./WrmManifestPlugin');
+            new WrmManifestPlugin({
+                appResourcesFactory,
+                outputPath: filename,
+                pluginKey: this.options.pluginKey,
+            }).apply(compiler);
+        }
     }
 }
 

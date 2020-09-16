@@ -22,8 +22,7 @@ describe('location-prefix', () => {
 
     it("add prefix to direct and external dependencies' location value", () => {
         const nodes = contextEntryNode.children.filter(n => n.name === 'resource');
-        assert.propertyVal(nodes[0].attributes, 'location', 'js/simple-entry.js');
-        assert.propertyVal(nodes[1].attributes, 'location', 'js/template.soy');
-        assert.propertyVal(nodes[2].attributes, 'location', 'js/styles.less');
+        const locations = nodes.map(node => node.attributes.location);
+        assert.sameMembers(locations, ['js/simple-entry.js', 'js/template.soy', 'js/styles.less']);
     });
 });

@@ -5,8 +5,6 @@ const webpack = require('webpack');
 const fs = require('fs');
 const path = require('path');
 
-chai.use(require('chai-string'));
-
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');
 

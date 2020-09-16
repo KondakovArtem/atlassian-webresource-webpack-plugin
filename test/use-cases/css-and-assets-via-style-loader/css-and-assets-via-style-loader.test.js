@@ -36,11 +36,15 @@ describe('css-and-assets-via-style-loader', () => {
         assert.equal(path.extname(resources[0].attributes.name), '.png');
     });
 
-    it('should overwrite webpack output path to point to a wrm-resource', () => {
+    it('should interpolate the CSS rules in to the JS code', () => {
         // setup
         const bundleFile = fs.readFileSync(path.join(targetDir, 'app.js'), 'utf-8');
-        const expectedLine = `jquery__WEBPACK_IMPORTED_MODULE_0___default()('body').append(\`<div class="\${_styles_css__WEBPACK_IMPORTED_MODULE_1___default.a.wurst}"><div class="\${_styles_css__WEBPACK_IMPORTED_MODULE_1___default.a.tricky}"></div></div>\`);`;
+        const expectedLine = /const html = `<div class="\$\{(.*?)\}"><div class="\$\{(.*?)\}"><\/div><\/div>`;/;
 
-        assert.include(bundleFile, expectedLine);
+        const result = expectedLine.exec(bundleFile);
+
+        assert.ok(result.length, 2);
+        assert.include(result[1], '.wurst', 'first variable should be interpolated');
+        assert.include(result[2], '.tricky', 'second variable should be interpolated');
     });
 });

@@ -3,7 +3,7 @@ const parse = require('xml-parser');
 const webpack = require('webpack');
 const fs = require('fs');
 const path = require('path');
-const { getBaseDependencies } = require('../../../src/settings/base-dependencies');
+const { getBaseDependencies } = require('../../../src/deps/base-dependencies');
 
 const targetDir = path.join(__dirname, 'target');
 const webresourceOutput = path.join(targetDir, 'META-INF', 'plugin-descriptor', 'wr-webpack-bundles.xml');

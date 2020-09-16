@@ -59,26 +59,9 @@ describe('async-chunks-of-async-chunks', () => {
     it('should inject a WRM pre-condition checker into the webpack runtime', () => {
         // setup
         const bundleFile = fs.readFileSync(path.join(targetDir, 'runtime~app.js'), 'utf-8');
-        const expectedRuntimeAdjustment = `
-/******/ 		var promises = [];
-/******/
-/******/ 		if(installedChunks[chunkId] === 0) { // 0 means "already installed".
-/******/ 		    return Promise.resolve();
-/******/ 		}
-/******/
-/******/ 		if (installedChunks[chunkId]) {
-/******/ 		    return installedChunks[chunkId][2];
-/******/ 		}
-/******/
-/******/ 		promises.push(
-/******/ 		    new Promise(function(resolve, reject) {
-/******/ 		        installedChunks[chunkId] = [resolve, reject];
-/******/ 		    }),
-/******/ 		    new Promise(function(resolve, reject) {
-/******/ 		        WRM.require('wrc!com.atlassian.plugin.test:' + chunkId).then(resolve, reject);
-/******/ 		    })
-/******/ 		);
-/******/ 		return installedChunks[chunkId][2] = Promise.all(promises);`;
+        const expectedRuntimeAdjustment = require('../../fixtures/webpack-runtime-chunks').asyncChunkLoader(
+            'com.atlassian.plugin.test'
+        );
 
         assert.include(bundleFile, expectedRuntimeAdjustment);
     });

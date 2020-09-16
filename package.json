@@ -61,15 +61,16 @@
         "pretty-data": "^0.40.0",
         "tapable": "^1.1.3",
         "url-join": "^4.0.1",
-        "uuid": "^8.3.0",
-        "webpack-sources": "^1.4.3"
+        "uuid": "^8.3.0"
     },
     "devDependencies": {
         "babel-eslint": "^10.1.0",
         "chai": "^4.2.0",
         "chai-string": "^1.5.0",
         "chai-uuid": "^1.0.6",
+        "chai-xml": "^0.3.2",
         "css-loader": "^2.0.0",
+        "del": "^5.1.0",
         "eslint": "^7.8.1",
         "eslint-config-prettier": "^6.11.0",
         "eslint-plugin-babel": "^5.3.1",
@@ -82,23 +83,25 @@
         "file-loader": "^6.0.0",
         "jquery": "^3.5.1",
         "mini-css-extract-plugin": "^0.9.0",
-        "mocha": "^8.0.1",
+        "mocha": "^8.1.3",
         "mocha-junit-reporter": "^2.0.0",
         "prettier": "^2.1.1",
         "prettier-eslint": "^11.0.0",
         "style-loader": "^1.2.1",
+        "test-all-versions": "^4.1.1",
         "underscore": "^1.10.2",
-        "webpack": "^4.44.1",
-        "webpack-cli": "^3.3.12",
+        "webpack": "next",
+        "webpack-cli": "beta",
         "webpack-merge": "^4.2.2",
         "xml-parser": "^1.2.1"
     },
     "peerDependencies": {
-        "webpack": "^4"
+        "webpack": "^4 || ^5",
+        "webpack-sources": "^1 || ^2"
     },
     "engines": {
-        "node": ">=10.0.0",
-        "npm": ">=6.9.0"
+        "node": ">=10.13",
+        "npm": ">=6.9"
     },
     "keywords": [
         "atlassian",
@@ -113,6 +116,9 @@
     "scripts": {
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
-        "test": "mocha 'test/**/*.test.js'"
+        "test": "mocha 'test/**/*.test.js'",
+        "test:webpack:4": "tav webpack ~4.44.1 'npm test'",
+        "test:webpack:5": "tav webpack ~5.0.0-beta.29 'npm test'",
+        "test:webpack:all": "tav"
     }
 }

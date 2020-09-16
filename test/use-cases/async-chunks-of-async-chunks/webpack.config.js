@@ -22,7 +22,12 @@ module.exports = {
     },
     optimization: {
         runtimeChunk: true,
+        chunkIds: 'named',
+        moduleIds: 'named',
         splitChunks: {
+            name(module, chunks, cacheGroupKey) {
+                return chunks.map(item => item.name).join('~');
+            },
             minSize: 0,
             chunks: 'all',
         },
@@ -34,7 +39,6 @@ module.exports = {
             providedDependencies,
             verbose: false,
         }),
-        new webpack.NamedChunksPlugin(),
     ],
     output: {
         filename: '[name].js',

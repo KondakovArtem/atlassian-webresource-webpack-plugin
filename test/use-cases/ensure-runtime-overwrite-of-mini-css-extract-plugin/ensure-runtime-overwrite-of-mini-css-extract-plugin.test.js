@@ -20,27 +20,9 @@ describe('ensure-runtime-overwrite-of-mini-css-extract-plugin', () => {
         it('should inject a WRM pre-condition checker into the webpack runtime', () => {
             // setup
             const bundleFile = fs.readFileSync(path.join(targetDir, 'app-before.js'), 'utf-8');
-
-            const expectedRuntimeAdjustment = `
-/******/ 		var promises = [];
-/******/
-/******/ 		if(installedChunks[chunkId] === 0) { // 0 means "already installed".
-/******/ 		    return Promise.resolve();
-/******/ 		}
-/******/
-/******/ 		if (installedChunks[chunkId]) {
-/******/ 		    return installedChunks[chunkId][2];
-/******/ 		}
-/******/
-/******/ 		promises.push(
-/******/ 		    new Promise(function(resolve, reject) {
-/******/ 		        installedChunks[chunkId] = [resolve, reject];
-/******/ 		    }),
-/******/ 		    new Promise(function(resolve, reject) {
-/******/ 		        WRM.require('wrc!com.atlassian.plugin.test:' + chunkId).then(resolve, reject);
-/******/ 		    })
-/******/ 		);
-/******/ 		return installedChunks[chunkId][2] = Promise.all(promises);`;
+            const expectedRuntimeAdjustment = require('../../fixtures/webpack-runtime-chunks').asyncChunkLoader(
+                'com.atlassian.plugin.test'
+            );
 
             assert.include(bundleFile, expectedRuntimeAdjustment, 'expect runtime overwrite');
         });
@@ -58,27 +40,9 @@ describe('ensure-runtime-overwrite-of-mini-css-extract-plugin', () => {
         it('should inject a WRM pre-condition checker into the webpack runtime', () => {
             // setup
             const bundleFile = fs.readFileSync(path.join(targetDir, 'app-after.js'), 'utf-8');
-
-            const expectedRuntimeAdjustment = `
-/******/ 		var promises = [];
-/******/
-/******/ 		if(installedChunks[chunkId] === 0) { // 0 means "already installed".
-/******/ 		    return Promise.resolve();
-/******/ 		}
-/******/
-/******/ 		if (installedChunks[chunkId]) {
-/******/ 		    return installedChunks[chunkId][2];
-/******/ 		}
-/******/
-/******/ 		promises.push(
-/******/ 		    new Promise(function(resolve, reject) {
-/******/ 		        installedChunks[chunkId] = [resolve, reject];
-/******/ 		    }),
-/******/ 		    new Promise(function(resolve, reject) {
-/******/ 		        WRM.require('wrc!com.atlassian.plugin.test:' + chunkId).then(resolve, reject);
-/******/ 		    })
-/******/ 		);
-/******/ 		return installedChunks[chunkId][2] = Promise.all(promises);`;
+            const expectedRuntimeAdjustment = require('../../fixtures/webpack-runtime-chunks').asyncChunkLoader(
+                'com.atlassian.plugin.test'
+            );
 
             assert.include(bundleFile, expectedRuntimeAdjustment, 'expect runtime overwrite');
         });

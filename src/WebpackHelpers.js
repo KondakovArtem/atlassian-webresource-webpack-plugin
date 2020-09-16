@@ -1,39 +1,35 @@
-const path = require('path');
+const flatMap = require('lodash/flatMap');
+const uniq = require('lodash/uniq');
 
 const ProvidedExternalDependencyModule = require('./webpack-modules/ProvidedExternalDependencyModule');
 const WrmDependencyModule = require('./webpack-modules/WrmDependencyModule');
 const WrmResourceModule = require('./webpack-modules/WrmResourceModule');
 
-const logger = require('./logger');
-const flattenReduce = require('./flattenReduce');
+/** @typedef {import("webpack/lib/Compiler")} Compiler */
+/** @typedef {import("webpack/lib/Entrypoint")} Entrypoint */
 
 module.exports = class WebpackHelpers {
+    /**
+     * @param {Entrypoint[]} entryPoints
+     */
     static getAllAsyncChunks(entryPoints) {
         const seenChunkGroups = new Set();
         const recursivelyGetAllAsyncChunks = chunkGroups => {
-            if (!chunkGroups.length === 0) {
-                return [];
-            }
-
-            return chunkGroups
-                .filter(cg => {
-                    // circuit breaker
-                    // dont use a chunk group more than once
-                    const alreadySeen = seenChunkGroups.has(cg);
-                    seenChunkGroups.add(cg);
-                    return !alreadySeen;
-                })
-                .map(cg => [...cg.chunks, ...recursivelyGetAllAsyncChunks(cg.getChildren())])
-                .reduce(flattenReduce, []);
+            const unseen = chunkGroups.filter(cg => {
+                // circuit breaker
+                // dont use a chunk group more than once
+                const alreadySeen = seenChunkGroups.has(cg);
+                seenChunkGroups.add(cg);
+                return !alreadySeen;
+            });
+            return flatMap(unseen, cg => [...cg.chunks, ...recursivelyGetAllAsyncChunks(cg.getChildren())]);
         };
 
         // get all async chunks "deep"
-        const allAsyncChunks = entryPoints
-            .map(e => recursivelyGetAllAsyncChunks(e.getChildren()))
-            .reduce(flattenReduce, []);
+        const allAsyncChunks = flatMap(entryPoints, e => recursivelyGetAllAsyncChunks(e.getChildren()));
 
         // dedupe
-        return Array.from(new Set(allAsyncChunks));
+        return uniq(allAsyncChunks);
     }
 
     static _getExternalResourceModules(chunk) {
@@ -55,14 +51,17 @@ module.exports = class WebpackHelpers {
     static _getExternalDependencyModules(chunk) {
         return chunk
             .getModules()
-            .filter(m => {
-                return m instanceof ProvidedExternalDependencyModule || m instanceof WrmDependencyModule;
-            })
+            .filter(m => m instanceof ProvidedExternalDependencyModule || m instanceof WrmDependencyModule)
             .sort((a, b) => a.index - b.index)
             .map(m => m.getDependency());
     }
 
-    static getDependenciesForChunks(chunks) {
+    /**
+     * @param {Chunk|Chunk[]} val
+     * @return {String[]}
+     */
+    static getDependenciesForChunks(val) {
+        const chunks = [].concat(val);
         const externalDeps = new Set();
         for (const chunk of chunks) {
             for (const dep of WebpackHelpers._getExternalDependencyModules(chunk)) {
@@ -76,101 +75,58 @@ module.exports = class WebpackHelpers {
         return Array.from(externalDeps);
     }
 
-    static extractAdditionalAssetsFromChunk(chunk) {
-        const ownDeps = chunk.getModules().map(m => m.resource);
-        const ownDepsSet = new Set(ownDeps);
-        const fileDeps = chunk
-            .getModules()
-            .filter(m => m.buildInfo.fileDependencies)
-            .map(m => [...m.buildInfo.fileDependencies])
-            .reduce(flattenReduce, []);
-        const fileDepsSet = new Set(fileDeps);
-        return Array.from(fileDepsSet).filter(
-            filename => !ownDepsSet.has(filename) && !/\.(js|css|soy)(\.map)?$/.test(filename)
-        );
-    }
-
-    static getDependencyResourcesFromChunk(chunk, resourceToAssetMap) {
-        const deps = WebpackHelpers.extractAdditionalAssetsFromChunk(chunk);
-        return deps.filter(dep => resourceToAssetMap.has(dep)).map(dep => resourceToAssetMap.get(dep));
-    }
-
-    // get all files used in a chunk
-    // this is needed to create a web-resource that can be used by qunit tests.
-    // this is a "sledgehammer approach" to avoid having to create an entry point per qunit tests and building it via webpack.
-    static extractAllFilesFromChunks(chunks, context, RESOURCE_JOINER) {
-        const circularDepCheck = new Set();
-        const addModule = (mod, container) => {
-            if (circularDepCheck.has(mod)) {
-                logger.warn(`
-*********************************************************************************
-Circular dependency detected.
-The module ${mod.userRequest}/${mod.resource} is involved in a circular dependency.
-This might be worth looking into as it could be an issue.
-*********************************************************************************
-
-`);
-                return;
-            }
-            circularDepCheck.add(mod);
-
-            mod.dependencies
-                .map(d => d.module || d.originModule)
-                .filter(Boolean)
-                .filter(m => {
-                    // filter out all "virtual" modules that do not reference an actual file (or a wrm web-resource)
-                    if (m.resource) {
-                        return true;
-                    }
-                    if (m instanceof WrmResourceModule) {
-                        return true;
-                    }
-                    return false;
-                })
-
-                .filter(actualModule => !actualModule.resource || !actualModule.resource.includes('node_modules')) // if it references a file remove it if it comes from "node_modules"
-                .forEach(localModule => addModule(localModule, container)); // recursively add modules own dependencies first
-
-            if (mod.resource && !mod.resource.includes('node_modules')) {
-                const reference = path.relative(context, mod.resource);
-                container.add(reference);
-            }
-
-            // handle imports of resources through "wr-resource!..."-syntax
-            if (mod instanceof WrmResourceModule) {
-                container.add(mod.getResourcePair().join(RESOURCE_JOINER));
-            }
-        };
-
-        let dependencyTreeSet = new Set();
-        for (const chunk of chunks) {
-            for (const mod of chunk.getModules()) {
-                addModule(mod, dependencyTreeSet);
-            }
-        }
-        return dependencyTreeSet;
-    }
-
-    static getChunkIdentifier(chunk) {
-        return chunk.name || chunk.id;
-    }
-
     /**
      * Checks if webpack compiler is running in production mode
      *
-     * @param   {Object}    compiler    Webpack compiler
-     * @returns {Boolean}               Returns true if webpack is running in production mode, false otherwise
+     * @param   {Compiler} compiler Webpack compiler
+     * @returns {Boolean} true if webpack is running in production mode, false otherwise
      */
     static isRunningInProductionMode(compiler) {
-        const { options } = compiler;
+        const { mode } = compiler.options;
 
-        if (options.mode) {
-            if (options.mode === 'production') {
+        return mode === 'production' || (mode === 'none' && process.env.NODE_ENV === 'production');
+    }
+
+    /**
+     * @param {Compiler} compiler Webpack compiler
+     * @returns true if the compiler is configured to output a single runtime chunk, false otherwise.
+     */
+    static isSingleRuntime(compiler) {
+        const { options } = compiler;
+        const runtimeChunkCfg = options.optimization && options.optimization.runtimeChunk;
+        if (runtimeChunkCfg) {
+            if (runtimeChunkCfg === 'single') {
                 return true;
-            } else if (options.mode === 'none') {
-                return process.env.NODE_ENV === 'production';
+            }
+            const { name } = runtimeChunkCfg;
+            if (typeof name === 'string') {
+                return true;
+            }
+            if (typeof name === 'function') {
+                const resultA = name({ name: 'foo' });
+                const resultB = name({ name: 'bar' });
+                return resultA === resultB;
             }
         }
         return false;
+    }
+
+    /**
+     * Extracts library detials from the webpack configuration
+     * @param {Compiler} compiler Webpack compiler
+     * @returns {{target:string,name:string}} an object with `target` (the output type, like "amd" or "var") and `name` (the name the library will get).
+     */
+    static getLibraryDetails(compiler) {
+        const { library, libraryTarget } = compiler.options.output;
+        if (typeof library === 'object') {
+            return {
+                target: library.type,
+                name: library.name,
+            };
+        }
+        return {
+            target: libraryTarget || compiler.options.externalsType,
+            name: library,
+        };
     }
 };

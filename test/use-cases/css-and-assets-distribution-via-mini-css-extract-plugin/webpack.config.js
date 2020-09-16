@@ -28,6 +28,9 @@ module.exports = {
             {
                 test: /\.(jpg|png|svg)$/,
                 loader: 'file-loader',
+                options: {
+                    name: '[name].[ext]',
+                },
             },
         ],
     },
@@ -47,5 +50,9 @@ module.exports = {
     output: {
         filename: '[name].js',
         path: OUTPUT_DIR,
+    },
+    optimization: {
+        chunkIds: 'natural',
+        moduleIds: 'natural',
     },
 };

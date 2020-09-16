@@ -1,38 +1,51 @@
+const uniq = require('lodash/uniq');
+const flatMap = require('lodash/flatMap');
+
 const {
     getConditionForEntry,
     getDataProvidersForEntry,
     getContextForEntry,
     getWebresourceAttributesForEntry,
 } = require('./helpers/web-resource-entrypoints');
-const flattenReduce = require('./flattenReduce');
 const WebpackHelpers = require('./WebpackHelpers');
-const { getBaseDependencies } = require('./settings/base-dependencies');
+const { getBaseDependencies } = require('./deps/base-dependencies');
+
+/** @typedef {import("webpack/lib/Chunk")} Chunk */
+/** @typedef {import("webpack/lib/Compiler")} Compiler */
+/** @typedef {import("webpack/lib/Compilation")} Compilation */
+/** @typedef {import("webpack/lib/Entrypoint")} Entrypoint */
 
 const RUNTIME_WR_KEY = 'common-runtime';
 
 module.exports = class AppResources {
-    constructor(assetsUUID, assetNames, options, compiler, compilation) {
+    /**
+     * @param {String} assetsUUID unique hash to identify the assets web-resource
+     * @param {String} xmlDescriptorWebpackPath relative path to the xml file that the WrmPlugin will render
+     * @param {Map<String,String>} assetNames full module filepaths -> relative filepath
+     * @param {Object} options WrmPlugin configuration
+     * @param {Compiler} compiler Webpack compiler
+     * @param {Compilation} compilation Webpack compilation
+     */
+    constructor({ assetsUUID, xmlDescriptorWebpackPath, assetNames, options, compiler, compilation }) {
         this.assetsUUID = assetsUUID;
+        this.xmlDescriptorPath = xmlDescriptorWebpackPath;
         this.assetNames = assetNames;
         this.options = options;
         this.compiler = compiler;
         this.compilation = compilation;
     }
 
-    isSingleRuntime() {
-        const options = this.compiler.options;
-        const runtimeChunkCfg = options.optimization && options.optimization.runtimeChunk;
-        return runtimeChunkCfg && runtimeChunkCfg.name && typeof runtimeChunkCfg.name === 'string';
-    }
-
-    getSingleRuntimeFiles(entrypoints) {
-        return Array.from(entrypoints.values())
-            .map(entrypoint => entrypoint.runtimeChunk.files)
+    getSingleRuntimeFiles() {
+        return this.getEntryPoints()
+            .map(entrypoint => entrypoint.getRuntimeChunk().files)
             .find(Boolean);
     }
 
     getAssetResourceDescriptor() {
-        const assetFiles = Object.keys(this.compilation.assets).filter(p => !/\.(js|css|soy)(\.map)?$/.test(p)); // remove anything that we know is handled differently
+        // remove anything that we know is handled differently
+        const assetFiles = Object.keys(this.compilation.assets)
+            .filter(p => !/\.(js|css|soy)(\.map)?$/.test(p))
+            .filter(p => !p.includes(this.xmlDescriptorPath));
 
         const assets = {
             attributes: { key: `assets-${this.assetsUUID}` },
@@ -40,6 +53,26 @@ module.exports = class AppResources {
         };
 
         return assets;
+    }
+
+    getDependencyResourcesFromChunk(chunk) {
+        if ('auxiliaryFiles' in chunk) {
+            return Array.from(chunk.auxiliaryFiles);
+        }
+        const resourceToAssetMap = this.assetNames;
+        const ownDepsSet = new Set();
+        const fileDepsSet = new Set();
+        chunk.getModules().forEach(m => {
+            ownDepsSet.add(m.resource);
+            if (m.buildInfo.fileDependencies) {
+                m.buildInfo.fileDependencies.forEach(filepath => fileDepsSet.add(filepath));
+            }
+        });
+        return Array.from(fileDepsSet)
+            .filter(filename => resourceToAssetMap.has(filename))
+            .filter(filename => !ownDepsSet.has(filename))
+            .filter(filename => !/\.(js|css|soy)(\.map)?$/.test(filename))
+            .map(dep => resourceToAssetMap.get(dep));
     }
 
     /**
@@ -52,10 +85,9 @@ module.exports = class AppResources {
      * IMPORTANT-NOTE: async-chunks required by this entrypoint are not specified in these chunks but in the childGroups of the entry and/or split chunks.
      */
     getSyncSplitChunks() {
-        const entryPoints = [...this.compilation.entrypoints.values()];
-        const syncSplitChunks = entryPoints.map(e => e.chunks.filter(c => c !== e.runtimeChunk));
+        const syncSplitChunks = flatMap(this.getEntryPoints(), e => e.chunks.filter(c => c !== e.getRuntimeChunk()));
 
-        return Array.from(new Set(syncSplitChunks.reduce(flattenReduce, [])));
+        return uniq(syncSplitChunks);
     }
 
     /**
@@ -66,15 +98,17 @@ module.exports = class AppResources {
      *   ...
      *   <dependency>this-plugin-key:split_some_chunk</dependency>
      *   ...
+     * </web-resource>
+     * @param {Set<Chunk>} syncSplitChunks
      */
-    getSyncSplitChunkDependenciesKeyMap(pluginKey, syncSplitChunks) {
+    getSyncSplitChunkDependenciesKeyMap(syncSplitChunks) {
         const syncSplitChunkDependencyKeyMap = new Map();
+
         for (const c of syncSplitChunks) {
-            const chunkIdentifier = WebpackHelpers.getChunkIdentifier(c);
-            const webResourceKey = `split_${chunkIdentifier}`;
-            syncSplitChunkDependencyKeyMap.set(chunkIdentifier, {
+            const webResourceKey = `split_${c.name || c.id}`;
+            syncSplitChunkDependencyKeyMap.set(c, {
                 key: webResourceKey,
-                dependency: `${pluginKey}:${webResourceKey}`,
+                dependency: `${this.options.pluginKey}:${webResourceKey}`,
             });
         }
 
@@ -82,25 +116,20 @@ module.exports = class AppResources {
     }
 
     getSyncSplitChunksResourceDescriptors() {
-        const resourceToAssetMap = this.assetNames;
-
         const syncSplitChunks = this.getSyncSplitChunks();
-        const syncSplitChunkDependencyKeyMap = this.getSyncSplitChunkDependenciesKeyMap(
-            this.options.pluginKey,
-            syncSplitChunks
-        );
+        const syncSplitChunkDependencyKeyMap = this.getSyncSplitChunkDependenciesKeyMap(syncSplitChunks);
 
         /**
          * Create descriptors for the split chunk web-resources that have to be created.
          * These include - like other chunk-descriptors their assets and external resources etc.
          */
         const sharedSplitDescriptors = syncSplitChunks.map(c => {
-            const additionalFileDeps = WebpackHelpers.getDependencyResourcesFromChunk(c, resourceToAssetMap);
+            const additionalFileDeps = this.getDependencyResourcesFromChunk(c);
             return {
-                attributes: syncSplitChunkDependencyKeyMap.get(WebpackHelpers.getChunkIdentifier(c)),
+                attributes: syncSplitChunkDependencyKeyMap.get(c),
                 externalResources: WebpackHelpers.getExternalResourcesForChunk(c),
-                resources: Array.from(new Set(c.files.concat(additionalFileDeps))),
-                dependencies: getBaseDependencies().concat(WebpackHelpers.getDependenciesForChunks([c])),
+                resources: uniq([...c.files, ...additionalFileDeps]),
+                dependencies: uniq([...getBaseDependencies(), ...WebpackHelpers.getDependenciesForChunks(c)]),
             };
         });
 
@@ -108,16 +137,13 @@ module.exports = class AppResources {
     }
 
     getAsyncChunksResourceDescriptors() {
-        const entryPoints = [...this.compilation.entrypoints.values()];
-        const resourceToAssetMap = this.assetNames;
-
-        const asyncChunkDescriptors = WebpackHelpers.getAllAsyncChunks(entryPoints).map(c => {
-            const additionalFileDeps = WebpackHelpers.getDependencyResourcesFromChunk(c, resourceToAssetMap);
+        const asyncChunkDescriptors = WebpackHelpers.getAllAsyncChunks(this.getEntryPoints()).map(c => {
+            const additionalFileDeps = this.getDependencyResourcesFromChunk(c);
             return {
                 attributes: { key: `${c.id}` },
                 externalResources: WebpackHelpers.getExternalResourcesForChunk(c),
-                resources: Array.from(new Set(c.files.concat(additionalFileDeps))),
-                dependencies: getBaseDependencies().concat(WebpackHelpers.getDependenciesForChunks([c])),
+                resources: uniq([...c.files, ...additionalFileDeps]),
+                dependencies: uniq([...getBaseDependencies(), ...WebpackHelpers.getDependenciesForChunks(c)]),
                 contexts: this.options.addAsyncNameAsContext && c.name ? [`async-chunk-${c.name}`] : undefined,
             };
         });
@@ -125,42 +151,41 @@ module.exports = class AppResources {
         return asyncChunkDescriptors;
     }
 
+    getEntryPoints() {
+        return Array.from(this.compilation.entrypoints.values());
+    }
+
     getEntryPointsResourceDescriptors() {
-        const entrypoints = this.compilation.entrypoints;
-        const resourceToAssetMap = this.assetNames;
+        const singleRuntime = WebpackHelpers.isSingleRuntime(this.compiler);
 
         const syncSplitChunks = this.getSyncSplitChunks();
-        const syncSplitChunkDependencyKeyMap = this.getSyncSplitChunkDependenciesKeyMap(
-            this.options.pluginKey,
-            syncSplitChunks
-        );
+        const syncSplitChunkDependencyKeyMap = this.getSyncSplitChunkDependenciesKeyMap(syncSplitChunks);
 
         const singleRuntimeWebResourceKey = this.options.singleRuntimeWebResourceKey || RUNTIME_WR_KEY;
 
         // Used in prod
-        const prodEntryPoints = [...entrypoints].map(([name, entrypoint]) => {
+        const prodEntryPoints = this.getEntryPoints().map(entrypoint => {
+            const name = entrypoint.name;
             const webResourceAttrs = getWebresourceAttributesForEntry(name, this.options.webresourceKeyMap);
             const entrypointChunks = entrypoint.chunks;
-            const runtimeChunk = entrypoint.runtimeChunk;
+            const runtimeChunk = entrypoint.getRuntimeChunk();
 
             // Retrieve all split chunks this entrypoint depends on. These must be added as "<dependency>"s to the web-resource of this entrypoint
             const sharedSplitDeps = entrypointChunks
-                .map(c => syncSplitChunkDependencyKeyMap.get(WebpackHelpers.getChunkIdentifier(c)))
+                .map(c => syncSplitChunkDependencyKeyMap.get(c))
                 .filter(Boolean)
                 .map(val => val.dependency);
 
-            const additionalFileDeps = entrypointChunks.map(c =>
-                WebpackHelpers.getDependencyResourcesFromChunk(c, resourceToAssetMap)
-            );
             // Construct the list of resources to add to this web-resource
-            const resourceList = [].concat(...additionalFileDeps);
-            const dependencyList = [].concat(
-                getBaseDependencies(),
-                WebpackHelpers.getDependenciesForChunks([runtimeChunk]),
-                sharedSplitDeps
-            );
+            const resourceList = flatMap(entrypointChunks, c => this.getDependencyResourcesFromChunk(c));
 
-            if (this.isSingleRuntime()) {
+            const dependencyList = [
+                ...getBaseDependencies(),
+                ...WebpackHelpers.getDependenciesForChunks(runtimeChunk),
+                ...sharedSplitDeps,
+            ];
+
+            if (singleRuntime) {
                 dependencyList.unshift(`${this.options.pluginKey}:${singleRuntimeWebResourceKey}`);
             } else {
                 resourceList.unshift(...runtimeChunk.files);
@@ -172,16 +197,16 @@ module.exports = class AppResources {
                 conditions: getConditionForEntry(name, this.options.conditionMap),
                 dataProviders: getDataProvidersForEntry(name, this.options.dataProvidersMap),
                 externalResources: WebpackHelpers.getExternalResourcesForChunk(runtimeChunk),
-                resources: Array.from(new Set(resourceList)),
-                dependencies: Array.from(new Set(dependencyList)),
+                resources: uniq(resourceList),
+                dependencies: uniq(dependencyList),
             };
         });
 
-        if (this.isSingleRuntime()) {
+        if (singleRuntime) {
             prodEntryPoints.push({
                 attributes: { key: singleRuntimeWebResourceKey },
                 dependencies: getBaseDependencies(),
-                resources: this.getSingleRuntimeFiles(entrypoints),
+                resources: this.getSingleRuntimeFiles(),
             });
         }
 

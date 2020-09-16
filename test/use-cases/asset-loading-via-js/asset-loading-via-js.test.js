@@ -30,19 +30,11 @@ describe('asset-loading-via-js', () => {
         assert.ok(assets);
         assert.equal(stats.hasErrors(), false);
         assert.equal(stats.hasWarnings(), false);
-        assert.equal(resources[0].attributes.type, 'download');
-        assert.equal(path.extname(resources[0].attributes.name), '.png');
     });
 
     it('should add all assets to the "asset"-webresource', () => {
-        assert.ok(assets);
-        assert.equal(stats.hasErrors(), false);
-        assert.equal(stats.hasWarnings(), false);
-        assert.equal(resources.length, 2);
-        assert.equal(resources[0].attributes.type, 'download');
-        assert.equal(path.extname(resources[0].attributes.name), '.png');
-        assert.equal(resources[1].attributes.type, 'download');
-        assert.equal(path.extname(resources[1].attributes.name), '.svg');
+        const resourceNames = resources.map(r => r.attributes.name);
+        assert.sameMembers(resourceNames, ['compiled-ice.png', 'compiled-rect.svg']);
     });
 
     it('should overwrite webpack output path to point to a wrm-resource', () => {
